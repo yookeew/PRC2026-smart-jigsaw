@@ -1,6 +1,6 @@
 # Reproducing this project
 
-This rebuilds our best submission, **v26** (leaderboard RMSE 262.70), from
+This rebuilds our best submission, **v30** (leaderboard RMSE 261.40), from
 the raw challenge data. The design is in [CLAUDE.md](CLAUDE.md). The
 experiment log, including every rejected idea, is in
 [PROGRESS.md](PROGRESS.md). Every adopted change has a pre-registration in
@@ -15,7 +15,10 @@ experiment log, including every rejected idea, is in
 5. A second-stage corrector on CatBoost, trained on out-of-fold predictions.
 6. An NNLS stack of the two models, then the ADS-B stages → v23.
 7. A learned ADS-B combiner on rows that have ADS-B information, trained on
-   the holdout plus Sep–Dec 2025 ADS-B → v26.
+   the holdout plus a sample of ADS-B days from every other 2025 month → v27.
+8. A neighbour-state corrector on rows without ADS-B information. It uses
+   label-free signals from nearby flights, and its correction is
+   zero-mean per airport and day → v30.
 
 Everything under `cache/` is scratch space, gitignored, and rebuilt by the
 steps below.
@@ -24,7 +27,7 @@ steps below.
 
 | Step | Where | Time |
 |---|---|---|
-| ADS-B download (126 + 50 days) | Colab or any machine | several hours, network-bound |
+| ADS-B download (126 + 122 days) | Colab or any machine | several hours, network-bound |
 | ADS-B detection (4 passes) | local | ~1 h |
 | LightGBM | local (tested on 22 cores / 32 GB RAM) | ~2 h |
 | CatBoost (3 runs) | Colab T4 | ~4 h |
@@ -74,10 +77,13 @@ Each source, with its licence, is listed in [DATA_SOURCES.md](DATA_SOURCES.md).
    - The two single days (2025-09-15, 2025-11-15) were used to explore
      designs outside the holdout. The stand inference in step 2 also reads
      them.
-4. **Sep–Dec 2025 sample** for the combiner (§64): the 1st–4th of each
-   month, then every third day to the 28th, plus the 15th of Sep and Nov,
-   into `external-data/adsb-restofyear/` (Colab cell "ADS-B fetch, the
-   other 2025 months"). Keep `manifest.csv`: the thin-day rule reads it.
+4. **The rest-of-2025 sample** for the combiner (§64-65): for every
+   non-holdout month (Feb-Jun, Aug-Dec), the 1st-4th, then every third day
+   to the 28th; plus the 15th of Sep and Nov.
+   - It goes into `external-data/adsb-restofyear/` (Colab cell "ADS-B
+     fetch, the other 2025 months").
+   - Keep `manifest.csv`: the pre-registered thin-day rule reads it and
+     keeps 115 of the 122 days.
 5. `src/ingest/normalise_adsb.py` writes the tracks to
    `data/external/adsb/day=*/`. It reads `external-data/adsb/`,
    `external-data/adsb-fetch/` and `external-data/adsb-restofyear/`.
@@ -98,8 +104,9 @@ in order, because later passes depend on earlier outputs:
 4. `src/link/adsb_pushback.py --v4` → `cache/adsb_pushback_v4/`: v3 plus
    the fallback for matched rows with no at-stand pushback (§57).
 
-The `--v5` pass (runway-ending matches, §60) was tested and rejected, so v25
-doesn't need it.
+Run pass 4 after the rest-of-2025 days are normalised so they get v4
+detections too. The `--v5` pass (runway-ending matches, §60) was tested and
+rejected, so nothing downstream needs it.
 
 ## 3. Features (local, a few minutes)
 
@@ -164,11 +171,12 @@ by 27 s RMS for us, and our submissions use run 3 throughout
 land close to our scores but won't be byte-identical. Everything
 downstream of the CatBoost runs is deterministic.
 
-The LightGBM out-of-fold folds (`cache/oof/lgb_mixed/`) are only needed
-for the rejected LightGBM corrector (§51) and the combiner retrain test
-(`tests/adsb_combiner_12m_test.py`):
-`run_oof(engine="lgb", target="mixed", seed=42)`, ~30-50 min per fold
-locally.
+**The LightGBM out-of-fold folds are required from step 7 on.** Steps 7 and
+8 train on the rest-of-2025 ADS-B days, using the out-of-fold LightGBM and
+CatBoost predictions as their stack input:
+- the command is `run_oof(engine="lgb", target="mixed", seed=42)`;
+- it writes `cache/oof/lgb_mixed/`;
+- ~30-50 min per fold locally.
 
 ## 5. OOF corrector on CatBoost (local, ~30 min)
 
@@ -201,24 +209,49 @@ name.
 Without `--adsb-v3`, the same script rebuilds v21 byte for byte
 (`stack_lgb_catcorr_adsbq_partial.parquet`).
 
-## 7. Learned ADS-B combiner → v26 (local, ~20 min)
-
-First run `src/link/adsb_pushback.py --v4 <the Sep–Dec days>` so the new
-days have v4 detections (step 2's pass 4 covers them if they were
-downloaded first). Then:
+## 7. Learned ADS-B combiner → v27 (local, ~40 min)
 
 ```
-python src/post/adsb_combiner.py --m12
+python src/post/adsb_combiner.py --full
 ```
 
-- This is v25's combiner, trained on the Jan+Jul 2025 holdout plus the
-  Sep–Dec days that pass the pre-registered thin-day rule (44 of 50).
-  Their stack prediction comes from the month-wise out-of-fold LightGBM
-  and CatBoost (`cache/oof/{lgb,cat}_mixed/`).
-- It writes `data/submissions/smart-jigsaw_m12.parquet`, uploaded as v26
-  (`reports/adsb_combiner_12m_preregistration.md`).
+- This is v25's restricted combiner, trained on two sets of rows:
+  - the Jan+Jul 2025 holdout;
+  - the 115 rest-of-2025 days that pass the pre-registered thin-day rule.
+- The stack prediction for those days comes from the month-wise
+  out-of-fold LightGBM and CatBoost (`cache/oof/{lgb,cat}_mixed/`).
+- It writes `data/submissions/smart-jigsaw_v27.parquet` (262.13).
+  Pre-registrations: `reports/adsb_combiner_12m_preregistration.md` and
+  `reports/adsb_combiner_fullyear_preregistration.md`.
+- `--m12` builds v26 (Sep-Dec days only, 262.70).
 
-### v25 (previous best)
+## 8. Neighbour-state corrector → v30 (local, ~40 min)
+
+```
+python src/post/neighbour_state.py --v2
+```
+
+Departures close together in time share errors that the base models
+miss (§70). This step adds **28 label-free neighbour features** to every
+departure, at ±15/30/60 min, by airport and by runway:
+- neighbours' network-manager off-block error relative to the stack;
+- neighbours' ADS-B pushback error, from flights with an observed pushback;
+- neighbours' delay;
+- arrivals' taxi-in excess.
+
+How v30 uses them:
+- A LightGBM corrector on `taxi − stack` is trained on the holdout plus the
+  115 days. It's applied only to rows **without** ADS-B information.
+- Its correction is **demeaned per (airport, UTC day)**. It can only
+  redistribute error within a day, never move an airport's level.
+- Rows with ADS-B information keep v27's value. The step reads
+  `data/submissions/smart-jigsaw_v27.parquet`.
+- Output: `data/submissions/smart-jigsaw_v30.parquet` (261.40).
+  Pre-registrations: `reports/neighbour_state_preregistration.md` and
+  `reports/neighbour_state_v2_preregistration.md`.
+- Without `--v2` it builds the rejected v29.
+
+### v25 (an earlier best)
 
 ```
 python src/post/adsb_combiner.py --restricted
@@ -254,12 +287,16 @@ Upload with `python -m src.post.upload <file>` (credentials in `.env`, see
 | v23 | + inferred stands and gated fallback match (v3 detections) | 269.50 |
 | v24 | + learned ADS-B combiner (v4 detections) | 265.66 |
 | v25 | combiner restricted to rows with ADS-B information | 264.39 |
-| **v26** | combiner retrained with Sep–Dec 2025 ADS-B | **262.70** |
+| v26 | combiner retrained with Sep–Dec 2025 ADS-B | 262.70 |
+| v27 | combiner retrained with all of 2025's ADS-B sample | 262.13 |
+| **v30** | + within-day neighbour-state corrector on rows without ADS-B | **261.40** |
 
-Rejected submissions (v18, v20, v22) are explained in PROGRESS.md §46 and
-§55.
+Rejected submissions:
+- v18, v20 and v22: PROGRESS.md §46 and §55;
+- v28 (a LIRF-specific combiner, 262.36): §66;
+- v29 (neighbour state without the within-day constraint, 262.33): §71.
 
-## Earlier stages (not needed for v25)
+## Earlier stages (not needed for v30)
 
 These stages produced the reports that shaped the design:
 
