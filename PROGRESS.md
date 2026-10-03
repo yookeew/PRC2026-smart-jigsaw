@@ -4356,3 +4356,22 @@ results there.
 - **Next:** a forward-in-time test (train on early 2025, score on late
   2025, and the reverse) to measure the decay and set the strength from
   data, not from the board.
+
+## 73. Neighbour transfer decay within 2025 -- none; no v31 (2026-10-03)
+
+`reports/neighbour_decay_preregistration.md`,
+`tests/neighbour_decay_test.py`.
+- **Setup:** v30's corrector fit on 3 months, scored 1 month away (near)
+  and 5-8 months away (far), forward and backward.
+- **Far α:** 0.80 and 2.37; near α: 0.62 and 1.08. There's no decay with
+  temporal distance inside 2025, so per the rule there's no v31.
+- **v29/v30's ~0.5 board scale is 2026-specific** (2025 -> 2026 data
+  differences), not an adjacent-month artefact of the gate.
+
+**Side scoping (OOF months, LTFM/LFPG), new shared-state proxies over the
+current set** (cross-fit even/odd RMS; control LTFM 216.3/293.1, LFPG
+238.8/234.4):
+- Arrivals' landing vs NM ARVT_3 and vs ARVT_1, neighbours' EOBT delay,
+  the NM-realised queue and the delay trend: all ±1, none consistent.
+- Neighbours' raw NM taxi (T - AOBT_3) mean ±15 min: LTFM 215.5/286.5,
+  LFPG 238.9/233.0. That's one direction only, so it's weak.

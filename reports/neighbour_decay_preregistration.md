@@ -60,3 +60,23 @@ temporal); per-airport α_far.
 ## Amendments
 
 (none)
+
+## Results (2026-10-03, `tests/neighbour_decay_test.py`, log `logs/neighbour_decay_test.log`; run after the pre-registration commit)
+
+**DECISION: no v31.** Far α is 0.801 (forward) and 2.369 (backward), so
+it isn't < 0.8 in both directions.
+
+| direction | fit (rows, best_iter) | near α (RMS change) | far α (RMS change) |
+|---|---|---|---|
+| forward | Feb-Apr (194,558, 45) | May 0.615 (−0.32%) | Oct-Dec 0.801 (−1.40%) |
+| backward | Oct-Dec (173,387, 90) | Sep 1.078 (−0.88%) | Feb-Apr 2.369 (−2.28%) |
+
+- **No temporal decay within 2025.** The far months transfer at least as
+  well as the near ones; in the backward direction the correction is
+  even too *small* (the 3-month fits are underfit, best_iter 45 / 90).
+- **Per-airport far α:** forward LFPG 0.55, EGLL 0.49, the rest ~0.8-1.8;
+  backward 0.9-3.8.
+- **Conclusion:** within 2025, the neighbour relationships don't decay
+  with temporal distance. v29/v30's ~0.5 board scale is 2026-specific,
+  i.e. cause (ii): something differs between the 2025 data and 2026, not
+  a time-distance effect. Per the rule, no v31 and no shrinkage.
