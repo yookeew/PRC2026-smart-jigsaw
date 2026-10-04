@@ -1,0 +1,27 @@
+OOF stack weights: [0.577 0.428]
+rows 2,084,967 (OOF 1,740,628, holdout 344,339); features 33
+global: best_iter 1983
+  EDDF: best_iter 466
+  EDDM: best_iter 322
+  EGLL: best_iter 149
+  EHAM: best_iter 206
+  LEBL: best_iter 64
+  LEMD: best_iter 447
+  LFPG: best_iter 369
+  LIRF: best_iter 454
+  LSZH: best_iter 150
+  LTFM: best_iter 921
+catboost not installed: three-model arm skipped
+
+arm              body      Jan      Jul   trimmed
+stack          212.99   194.85   226.71    264.70
+single         209.17   192.88   221.57    263.60
+per-airport    208.61   191.54   221.56    262.55
+ensemble2      207.81   191.05   220.54    261.79
+Traceback (most recent call last):
+  File "C:\Users\yuqiw\prc2025\tests\ctx_ensemble_test.py", line 101, in <module>
+    main()
+  File "C:\Users\yuqiw\prc2025\tests\ctx_ensemble_test.py", line 94, in main
+    e, sgl = arms["ensemble"], arms["single"]
+             ~~~~^^^^^^^^^^^^
+KeyError: 'ensemble'

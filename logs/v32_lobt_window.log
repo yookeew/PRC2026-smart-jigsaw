@@ -1,0 +1,3 @@
+rows moved: 94 of 344,841; up 73, mean |shift| 611 s
+by airport: {'EDDF': 3, 'EDDM': 2, 'EGLL': 2, 'EHAM': 25, 'LEBL': 3, 'LEMD': 5, 'LFPG': 28, 'LIRF': 1, 'LSZH': 2, 'LTFM': 23}
+wrote smart-jigsaw_v32.parquet

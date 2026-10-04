@@ -1,0 +1,19 @@
+rows 344,339
+slice                    lgb_nb   +ADS-B   delta  v32 chain
+body pooled              215.71   206.00   -9.70     199.59
+body Jan                 197.75   187.27  -10.49     181.55
+body Jul                 229.32   220.12   -9.20     213.18
+trimmed (<=5h)           269.02   260.80   -8.22     248.81
+full                     331.92   325.00   -6.92     316.76
+  body EDDF              177.16   165.84  -11.32     160.29
+  body EDDM              166.43   134.20  -32.23     116.58
+  body EGLL              223.30   218.83   -4.47     218.04
+  body EHAM              163.45   130.56  -32.89     115.78
+  body LEBL              219.56   199.75  -19.81     194.29
+  body LEMD              176.46   175.09   -1.37     169.91
+  body LFPG              229.67   229.93   +0.27     232.70
+  body LIRF              345.30   339.95   -5.35     319.41
+  body LSZH              168.90   141.22  -27.68     132.47
+  body LTFM              238.89   239.49   +0.60     236.73
+
+STAGE A: pooled body gain 9.70 (Jan 10.49, Jul 9.20) -> PASS -> stage B

@@ -70,6 +70,7 @@ OUT = ROOT / "cache" / "adsb_pushback"
 OUT_V3 = ROOT / "cache" / "adsb_pushback_v3"   # --v3: inferred stands + fallback (§56)
 OUT_V4 = ROOT / "cache" / "adsb_pushback_v4"   # --v4: v3 + fallback for matched, untiered rows (§57)
 OUT_V5 = ROOT / "cache" / "adsb_pushback_v5"   # --v5: v4 + runway-ending runs as matches (§60)
+OUT_V6 = ROOT / "cache" / "adsb_pushback_v6"   # --v6: v4 + stand-free fields (adsb_standfree prereg)
 RUNWAYS = ROOT / "data" / "external" / "runways.csv"
 
 SURFACE_GS = 40.0
@@ -138,8 +139,54 @@ def departures(day: dt.date) -> pl.DataFrame:
                           mvt_ts=pl.col("MVT_TIME_UTC_mvt").dt.epoch("ms") / 1000.0))
 
 
+# ---- v6 stand-free fields (reports/adsb_standfree_preregistration.md). The tiers above need
+# the run to come within R_STAND of the own stand's coordinates; these don't use the stand.
+# Pushback is read as the end of the run's last long stop (a stationary stretch of at least
+# LONG_STOP_S: the stand dwell, wherever the stand is), or the run's first moving sample.
+LONG_STOP_S = 180.0
+SHORT_STOP_S = 30.0
+V6_FIELDS = {"adsb_move0_ts": pl.Float64, "adsb_stop_end_ts": pl.Float64, "adsb_stop_dur_s": pl.Float64,
+             "adsb_stop_own_m": pl.Float64, "adsb_n_stops_after": pl.Int64, "adsb_gap_max_s": pl.Float64}
+
+
+def _stops(ts: np.ndarray, gs: np.ndarray) -> list[tuple[int, int]]:
+    """(first, last) sample indices of the run's stationary stretches (gs <= STATIONARY_GS)."""
+    st = gs <= STATIONARY_GS
+    out, i, n = [], 0, len(ts)
+    while i < n:
+        if not st[i]:
+            i += 1
+            continue
+        j = i
+        while j + 1 < n and st[j + 1]:
+            j += 1
+        out.append((i, j))
+        i = j + 1
+    return out
+
+
+def stand_free(ts: np.ndarray, gs: np.ndarray, d_own: np.ndarray | None) -> dict:
+    mv = np.flatnonzero(gs > STATIONARY_GS)
+    stops = _stops(ts, gs)
+    dur = [ts[j] - ts[i] + (ts[j + 1] - ts[j] if j + 1 < len(ts) else 0.0) for i, j in stops]
+    longs = [k for k, d in enumerate(dur) if d >= LONG_STOP_S]
+    out = {"adsb_move0_ts": float(ts[mv[0]]) if len(mv) else None,
+           "adsb_stop_end_ts": None, "adsb_stop_dur_s": None, "adsb_stop_own_m": None,
+           "adsb_n_stops_after": None,
+           "adsb_gap_max_s": float(np.diff(ts).max()) if len(ts) > 1 else 0.0}
+    if longs:
+        k = longs[-1]
+        i, j = stops[k]
+        out.update(adsb_stop_end_ts=float(ts[j + 1] if j + 1 < len(ts) else ts[j]),
+                   adsb_stop_dur_s=float(dur[k]),
+                   adsb_stop_own_m=None if d_own is None else float(d_own[j]),
+                   adsb_n_stops_after=int(sum(1 for kk in range(k + 1, len(stops)) if dur[kk] >= SHORT_STOP_S)))
+    return out
+
+
 def detect_day(day: dt.date, pos: pl.DataFrame, fallback: bool = False,
-               fb_matched: bool = False, rwy: pl.DataFrame | None = None) -> pl.DataFrame:
+               fb_matched: bool = False, rwy: pl.DataFrame | None = None,
+               v6: bool = False) -> pl.DataFrame:
     adsb = load_day(day)
     mv = attach_stand_coords(departures(day), pos)
     cov = dict(adsb.filter(pl.col("gs") < SURFACE_GS).group_by("airport")
@@ -154,7 +201,8 @@ def detect_day(day: dt.date, pos: pl.DataFrame, fallback: bool = False,
                                      adsb_first_ts=None, adsb_first_gs=None,
                                      adsb_first_own_m=None, adsb_min_own_m=None,
                                      adsb_pb_gap_s=None, adsb_pb_dist_m=None,
-                                     adsb_pb_gs=None) for r in recs}
+                                     adsb_pb_gs=None,
+                                     **({k: None for k in V6_FIELDS} if v6 else {})) for r in recs}
         sub = adsb.filter(pl.col("airport") == ap)
         ap_pos = pos.filter(pl.col("airport") == ap)
         if sub.height and ap_pos.height:
@@ -193,6 +241,8 @@ def detect_day(day: dt.date, pos: pl.DataFrame, fallback: bool = False,
                     row.update(adsb_matched=True, adsb_takeoff_gap_s=float(to - mts),
                                adsb_n_pts=len(ts), adsb_first_ts=float(ts[0]),
                                adsb_first_gs=float(gs[0]))
+                    if v6:
+                        row.update(stand_free(ts, gs, d_own))
                     if d_own is not None:
                         row.update(adsb_first_own_m=float(d_own[0]),
                                    adsb_min_own_m=float(d_own.min()))
@@ -213,6 +263,8 @@ def detect_day(day: dt.date, pos: pl.DataFrame, fallback: bool = False,
                 _fallback(recs, res, sub, lat0, fb_matched)
         out.extend(res.values())
     schema = SCHEMA_V5 if rwy is not None else SCHEMA_V3 if fallback else SCHEMA
+    if v6:
+        schema = {**schema, **V6_FIELDS}
     return pl.DataFrame(out, schema=schema)
 
 
@@ -391,8 +443,8 @@ def _fallback(recs: list[dict], res: dict, sub: pl.DataFrame, lat0: float, fb_ma
 
 
 def main(days: list[dt.date] | None = None, v3: bool = False, v4: bool = False,
-         v5: bool = False) -> None:
-    v4 = v4 or v5
+         v5: bool = False, v6: bool = False) -> None:
+    v4 = v4 or v5 or v6
     v3 = v3 or v4
     rwy = pl.read_csv(RUNWAYS) if v5 else None
     pos = stand_positions(load_stands())
@@ -401,10 +453,10 @@ def main(days: list[dt.date] | None = None, v3: bool = False, v4: bool = False,
         from src.ingest.stand_infer import load_inferred
         inf = load_inferred().join(pos.select("airport", "key"), on=["airport", "key"], how="anti")
         pos = pl.concat([pos, inf])
-        out_dir = OUT_V5 if v5 else OUT_V4 if v4 else OUT_V3
+        out_dir = OUT_V6 if v6 else OUT_V5 if v5 else OUT_V4 if v4 else OUT_V3
     out_dir.mkdir(parents=True, exist_ok=True)
     for day in days or available_days():
-        df = detect_day(day, pos, fallback=v3, fb_matched=v4, rwy=rwy)
+        df = detect_day(day, pos, fallback=v3, fb_matched=v4, rwy=rwy, v6=v6)
         df.write_parquet(out_dir / f"day={day.isoformat()}.parquet")
         n_tier = df.filter(pl.col("adsb_tier").is_in(["appear", "dwell"])).height
         print(f"{day}: {df.height:,} DEP, matched {df['adsb_matched'].sum():,}, "
@@ -417,4 +469,5 @@ def load_all() -> pl.DataFrame:
 
 if __name__ == "__main__":
     days = [dt.date.fromisoformat(a) for a in sys.argv[1:] if not a.startswith("--")]
-    main(days or None, v3="--v3" in sys.argv, v4="--v4" in sys.argv, v5="--v5" in sys.argv)
+    main(days or None, v3="--v3" in sys.argv, v4="--v4" in sys.argv, v5="--v5" in sys.argv,
+         v6="--v6" in sys.argv)

@@ -1,0 +1,24 @@
+OOF stack weights: [0.577 0.428]
+rows 2,084,967 (OOF 1,740,628, holdout 344,339); features 33
+global: best_iter 1323
+  EDDF: best_iter 558
+  EDDM: best_iter 518
+  EGLL: best_iter 200
+  EHAM: best_iter 429
+  LEBL: best_iter 174
+  LEMD: best_iter 529
+  LFPG: best_iter 416
+  LIRF: best_iter 209
+  LSZH: best_iter 156
+  LTFM: best_iter 745
+catboost: best_iter 2545
+
+arm              body      Jan      Jul   trimmed
+stack          212.99   194.85   226.71    264.70
+single         207.97   190.57   221.16    262.65
+per-airport    207.59   189.77   221.06    262.12
+ensemble2      206.91   189.36   220.19    261.26
+catboost       208.25   190.38   221.76    273.30
+ensemble       206.74   189.17   220.04    263.82
+DECISION ensemble2: vs single body gain {'pooled': 1.0634239521634186, 'Jan': 1.2058830715564852, 'Jul': 0.9682907356229009} -> ADOPT
+DECISION ensemble: vs single body gain {'pooled': 1.2270677042376121, 'Jan': 1.3962562908824054, 'Jul': 1.1139512592942822} -> REJECT
