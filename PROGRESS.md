@@ -4356,3 +4356,59 @@ results there.
 - **Next:** a forward-in-time test (train on early 2025, score on late
   2025, and the reverse) to measure the decay and set the strength from
   data, not from the board.
+
+## 73. Neighbour transfer decay within 2025 -- none; no v31 (2026-10-03)
+
+`reports/neighbour_decay_preregistration.md`,
+`tests/neighbour_decay_test.py`.
+- **Setup:** v30's corrector fit on 3 months, scored 1 month away (near)
+  and 5-8 months away (far), forward and backward.
+- **Far α:** 0.80 and 2.37; near α: 0.62 and 1.08. There's no decay with
+  temporal distance inside 2025, so per the rule there's no v31.
+- **v29/v30's ~0.5 board scale is 2026-specific** (2025 -> 2026 data
+  differences), not an adjacent-month artefact of the gate.
+
+**Side scoping (OOF months, LTFM/LFPG), new shared-state proxies over the
+current set** (cross-fit even/odd RMS; control LTFM 216.3/293.1, LFPG
+238.8/234.4):
+- Arrivals' landing vs NM ARVT_3 and vs ARVT_1, neighbours' EOBT delay,
+  the NM-realised queue and the delay trend: all ±1, none consistent.
+- Neighbours' raw NM taxi (T - AOBT_3) mean ±15 min: LTFM 215.5/286.5,
+  LFPG 238.9/233.0. That's one direction only, so it's weak.
+
+## 74. Model-free neighbour features in the base LightGBM -- both gates PASS; v31 built (2026-10-04)
+
+`reports/base_neighbour_preregistration.md`, `src/features/neighbour_feats.py`,
+`src/models/run_neighbour_base.py`.
+- **Idea:** feed the §70 shared-state signals into the base LightGBM as 13
+  label-free features, learned from all ~1.7M training rows, instead of
+  correcting afterwards only (§71-72).
+  - The features: neighbours' NM taxi, neighbours' delay, the within-day
+    anomaly and arrivals' taxi-in excess.
+- **Stage B (stack level):** pooled trimmed −1.97 (P 0.000), Jan −2.15,
+  Jul −1.87, full −1.60. LightGBM alone 273.63 -> 271.99.
+- **OOF folds:** better in all 10 months, by −1.9 to −5.3. Pooled (labels
+  ≤ 5 h): 234.49 -> 231.51.
+- **Stage C (v30's method, full chain):** pooled trimmed −1.36 (P 0.000),
+  Jan −1.93, Jul −1.03 (P 0.012), full −1.05.
+  - LTFM −5.0, EGLL −2.0, LFPG −1.5; EHAM +0.45, LIRF +0.11.
+  - About 70% of the stage-B gain survives the overlap with v30's
+    corrector.
+- **Ranking inputs:** the 13 features have the same coverage in 2026 as in
+  2025 (0.7-4.8% missing). Means are close.
+- **Prod refit:** 2,685 s. RMS 51 s from the old `lgb_mixed`, mean +1.9 s.
+- **v31:** v30's chain with the new LightGBM.
+  - Built with `PRC_LGB=lgb_mixed_nb`, then:
+    - `stack_submit.py --cat-corrected --adsb-v3`;
+    - `adsb_combiner.py --full` (-> `smart-jigsaw_v27nb`);
+    - `neighbour_state.py --v2`.
+  - Production stack weights: 0.49 / 0.52 (v30: 0.46 / 0.56).
+  - Combiner best_iter 3,451; neighbour corrector best_iter 538 (v30:
+    1,134).
+  - Logs: `logs/v31_{stack,combiner,neighbour}.log`.
+- **v31 vs v30:** RMS 28.9 s, mean +0.9 s. LIRF moves most (48.6), then
+  LTFM (43.3); the other airports move 15-31.
+- **Rule:** keep iff the board < 261.40 (v30).
+
+**Board (2026-10-04): v31 = 259.89 (−1.51 vs v30). ADOPTED; new best** (~1.1x
+the stage-C holdout gain).

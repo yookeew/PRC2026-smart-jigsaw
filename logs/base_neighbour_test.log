@@ -1,0 +1,32 @@
+holdout rows with both predictions: 344,339
+  lgb alone: trimmed RMSE 273.63
+  lgb_nb alone: trimmed RMSE 271.99
+  NNLS ['lgb', 'catcorr'] fit on 2025-01: [0.515 0.483]
+  NNLS ['lgb', 'catcorr'] fit on 2025-07: [0.368 0.659]
+  NNLS ['lgb_nb', 'catcorr'] fit on 2025-01: [0.542 0.455]
+  NNLS ['lgb_nb', 'catcorr'] fit on 2025-07: [0.425 0.601]
+
+=== STAGE B: stack(lgb_nb, catcorr) vs stack(lgb, catcorr) ===
+ TRIMMED (decides):
+  A  Jul (fit Jan)             base= 295.34  new= 293.47  delta= -1.87  CI[-2.90,-0.93]  P(worse)=0.000
+  B  Jan (fit Jul)             base= 230.93  new= 228.77  delta= -2.15  CI[-3.85,-1.13]  P(worse)=0.000
+  POOLED trimmed               base= 268.51  new= 266.55  delta= -1.97  CI[-2.89,-1.16]  P(worse)=0.000
+ FULL (guard):
+  POOLED full                  base= 331.72  new= 330.12  delta= -1.60  CI[-2.47,-0.91]  P(worse)=0.000
+
+PRIMARY DECISION: ADOPT -> build, board A/B
+shape: (10, 5)
+| ADEP_mvt | base   | new    | changed | delta |
+| ---      | ---    | ---    | ---     | ---   |
+| str      | f64    | f64    | u32     | f64   |
+|----------|--------|--------|---------|-------|
+| EDDF     | 189.74 | 188.62 | 36830   | -1.11 |
+| EDDM     | 182.82 | 181.03 | 27091   | -1.78 |
+| EGLL     | 285.26 | 282.08 | 40210   | -3.18 |
+| EHAM     | 194.03 | 193.52 | 40949   | -0.51 |
+| LEBL     | 223.08 | 221.09 | 28985   | -1.99 |
+| LEMD     | 178.76 | 176.89 | 35328   | -1.87 |
+| LFPG     | 268.17 | 267.12 | 39588   | -1.05 |
+| LIRF     | 554.20 | 554.19 | 26499   | -0.01 |
+| LSZH     | 205.74 | 204.58 | 22289   | -1.16 |
+| LTFM     | 265.42 | 258.61 | 46539   | -6.81 |

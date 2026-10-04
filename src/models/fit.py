@@ -692,7 +692,7 @@ def run(engine: str = "lgb", feat_dir: Path = FEAT_DIR, name: str | None = None,
         valid_month: str = VALID_MONTH, refit_scale: float = 1.1,
         loss: str = "huber", huber_alpha: float = HUBER_ALPHA, submit: bool = True,
         target: str = "flip", seed: int = 42, ev_out: str | Path | None = None,
-        rank_out: str | Path | None = None):
+        rank_out: str | Path | None = None, resume: bool = False):
     """target="flip" fits the regressor on pushback delay `d` and reconstructs
     taxi = offset - d_hat. target="direct" fits the regressor on `taxi`
     itself, skipping the reconstruction subtraction. target="mixed" fits BOTH
@@ -730,6 +730,18 @@ def run(engine: str = "lgb", feat_dir: Path = FEAT_DIR, name: str | None = None,
     # real Jan->Jul gap instead of hiding it behind a continuous 12-month timeline,
     # which is what let a real bug (mins_since_cfg_change bridging the gap) hide
     # behind a good holdout RMSE.
+    meta_path = Path(ev_out).with_suffix(".rounds.json") if ev_out is not None else None
+    if resume and meta_path is not None and meta_path.exists() and Path(ev_out).exists():
+        # holdout phase already done by an earlier (interrupted) call: reuse its
+        # predictions and early-stopping round counts, go straight to the refit
+        import json
+        r = json.loads(meta_path.read_text())
+        fits = {t: (None, None, r["best"][t]) for t in targets_to_fit}
+        clf_best, ev = r["clf_best"], pl.read_parquet(ev_out)
+        print(f"resume: holdout phase loaded from {ev_out} (best {r['best']}, clf {clf_best})", flush=True)
+        return _refit_and_submit(engine, feat_dir, name, feats, lab, fits, clf_best, ev, targets_to_fit,
+                                 fitter, objective, alpha, eta, rounds, valid_month, loss, huber_alpha,
+                                 target, seed, refit_scale, rank_out, t0)
     fp = fit_predict_months(
         engine, feats, lab, TRAIN_MONTHS,
         feats_ho.join(ho_lab.select("MVT_ID_mvt"), on="MVT_ID_mvt"),
@@ -775,7 +787,10 @@ def run(engine: str = "lgb", feat_dir: Path = FEAT_DIR, name: str | None = None,
     if ev_out is not None:  # persist the holdout predictions before the long refit phase
         Path(ev_out).parent.mkdir(parents=True, exist_ok=True)
         ev.write_parquet(ev_out)
-        print(f"wrote holdout predictions -> {ev_out}", flush=True)
+        import json
+        meta_path.write_text(json.dumps({"best": {t: int(fits[t][2]) for t in targets_to_fit},
+                                         "clf_best": int(clf_best)}))
+        print(f"wrote holdout predictions -> {ev_out} (+ round counts {meta_path.name})", flush=True)
 
     best_iter_report = "/".join(f"{t}={fits[t][2]}" for t in targets_to_fit)
     if not submit:
@@ -788,6 +803,17 @@ def run(engine: str = "lgb", feat_dir: Path = FEAT_DIR, name: str | None = None,
         print(f"total {time.time() - t0:.0f}s (holdout-only, no submission)")
         return fits, ev
 
+    return _refit_and_submit(engine, feat_dir, name, feats, lab, fits, clf_best, ev, targets_to_fit,
+                             fitter, objective, alpha, eta, rounds, valid_month, loss, huber_alpha,
+                             target, seed, refit_scale, rank_out, t0)
+
+
+def _refit_and_submit(engine, feat_dir, name, feats, lab, fits, clf_best, ev, targets_to_fit,
+                      fitter, objective, alpha, eta, rounds, valid_month, loss, huber_alpha,
+                      target, seed, refit_scale, rank_out, t0):
+    """Second half of run(): refit on all 2025 with the holdout's round counts, predict the
+    ranking set, write the submission. Only `fits[t][2]` (best iteration) is read from fits."""
+    best_iter_report = "/".join(f"{t}={fits[t][2]}" for t in targets_to_fit)
     # refit on all 2025 + ranking submission, no early stopping — reuse the
     # iteration count early stopping found, nudged up for the larger data.
     priors_a = fit_priors(lab)

@@ -1,0 +1,15 @@
+oof fold 2025-02: fit on 9 months, valid 2025-06, predict 143,732 rows
+holdout fit 2074s  best_iter=8000  loss=huber  target=flip
+holdout fit 2819s  best_iter=2935  loss=huber  target=direct
+echo clf fit 3007s  best_iter=398  base_rate=0.054
+oof fold 2025-02: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_mixed_nb\fold=2025-02.parquet (143,732 rows, 3485s, best {'best_iter_flip': 8000, 'best_iter_direct': 2935} clf=398)
+oof fold 2025-03: fit on 9 months, valid 2025-06, predict 164,449 rows
+holdout fit 2088s  best_iter=7998  loss=huber  target=flip
+holdout fit 2862s  best_iter=3187  loss=huber  target=direct
+echo clf fit 3052s  best_iter=395  base_rate=0.054
+oof fold 2025-03: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_mixed_nb\fold=2025-03.parquet (164,449 rows, 3444s, best {'best_iter_flip': 7998, 'best_iter_direct': 3187} clf=395)
+oof fold 2025-04: fit on 9 months, valid 2025-06, predict 175,288 rows
+=== resumed Sun Oct  4 09:25:33 RST 2026
+oof fold 2025-02: exists, skipping
+oof fold 2025-03: exists, skipping
+oof fold 2025-04: fit on 9 months, valid 2025-06, predict 175,288 rows

@@ -1,0 +1,4 @@
+resume: holdout phase loaded from C:\Users\yuqiw\prc2025\cache\eval\lgb_mixed_nb_holdout_ev.parquet (best {'flip': 7996, 'direct': 2896}, clf 397)
+wrote lgb_mixed_nb.parquet  n=344,841  median=958.0
+wrote reports\eval\lgb_mixed_nb.md
+total 2685s
