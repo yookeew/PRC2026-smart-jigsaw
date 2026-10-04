@@ -63,7 +63,7 @@ def oof_frame() -> pl.DataFrame:
     det = pl.concat([pl.read_parquet(p) for p in paths]).select("MVT_ID_mvt", *V.DET_COLS, "adsb_fallback")
     pr = None
     for e in ("lgb", "cat"):
-        s = pl.read_parquet(OOF / f"{e}_mixed" / "*.parquet").select(pl.col("MVT_ID_mvt").cast(pl.Int64),
+        s = pl.read_parquet(OOF / (os.environ.get("PRC_LGB", "lgb_mixed") if e == "lgb" else f"{e}_mixed") / "*.parquet").select(pl.col("MVT_ID_mvt").cast(pl.Int64),
                                                                        pl.col("pred").alias(e))
         pr = s if pr is None else pr.join(s, on="MVT_ID_mvt")
     mv = (pl.scan_parquet(str(RAW / "training_*.parquet")).filter(pl.col("PHASE_mvt") == "DEP")

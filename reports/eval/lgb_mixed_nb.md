@@ -1,7 +1,7 @@
 # Holdout eval — lgb_mixed_nb
 
-- engine: **lgb**   |   generated: 2026-10-03 22:43
-- target mixed  |  loss huber (alpha=800.0)  |  eta 0.02  |  rounds ceiling 8000  |  early-stopped at flip=7996/direct=2896 (inner-valid 2025-06)  |  full-refit rounds ?
+- engine: **lgb**   |   generated: 2026-10-04 18:08
+- target mixed  |  loss huber (alpha=800.0)  |  eta 0.02  |  rounds ceiling 8000  |  early-stopped at flip=7996/direct=2896 (inner-valid 2025-06)  |  full-refit rounds flip=8796/direct=3186
 - holdout = 2025-01, 2025-07 (fit on the other 10 months of 2025)
 - rows scored: 344,339 (all true taxi >= 0; no upper-bound exclusion -- the real board scores these rows too, see 'By AOBT_3_flt lane' below)
 - target d clipped to [30, 7200] s in training; taxi predictions clipped to [0, 10800] s
@@ -72,3 +72,9 @@ Supersedes the has_aobt3 lane above as the primary echo-lane diagnostic -- see f
 | min | p10 | p50 | p90 | max | n@floor | n@ceil |
 | --- | --- | --- | --- | --- | --- | --- |
 | 0 | 612 | 947 | 1467 | 90726 | 6 | 42 |
+
+## Submission file (ranking, Jan+Jul 2026)
+
+| rows | min | p10 | median | mean | p90 | max | n@floor | n@ceil |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 344,841 | 0 | 632 | 958 | 1037 | 1495 | 109966 | 3 | 42 |

@@ -57,12 +57,17 @@ DET = ROOT / "cache" / ("adsb_pushback_v3" if ADSB_V3 else "adsb_pushback")
 CAT_CORRECTED = "--cat-corrected" in sys.argv
 ENGINES = ["lgb", "catcorr" if CAT_CORRECTED else "cat"]
 PRE = ("stack_lgb_catcorr" if CAT_CORRECTED else "stack_lgb_cat") + ("_v3" if ADSB_V3 else "")
+# PRC_LGB swaps the LightGBM run (e.g. lgb_mixed_nb, reports/base_neighbour_preregistration.md);
+# outputs then get an "_nb" suffix after the stack name.
+LGB = os.environ.get("PRC_LGB", "lgb_mixed")
+if LGB != "lgb_mixed":
+    PRE += "_nb"
 CEIL, LIRF_CEIL = 10800, 140000   # models.fit CEIL / LIRF_RAW_CEIL
 
 
 def _ev(engine: str) -> pl.DataFrame:
-    p = EVAL / f"{engine}_mixed_holdout_ev.parquet"
-    if engine == "lgb" and not p.exists():
+    p = EVAL / f"{LGB if engine == 'lgb' else engine + '_mixed'}_holdout_ev.parquet"
+    if engine == "lgb" and LGB == "lgb_mixed" and not p.exists():
         p = EVAL / "prod_mixed_holdout_ev.parquet"
     return pl.read_parquet(p).select(pl.col("MVT_ID_mvt").cast(pl.Int64), "ADEP_mvt", "taxi",
                                      pl.col("pred").alias(engine))
@@ -153,7 +158,7 @@ def main() -> None:
     # ---- ranking: stack the engines' submissions
     rk = None
     for e in ENGINES:
-        s = pl.read_parquet(SUB / f"{e}_mixed.parquet").select(
+        s = pl.read_parquet(SUB / f"{LGB if e == 'lgb' else e + '_mixed'}.parquet").select(
             pl.col("MVT_ID_mvt").cast(pl.Int64), pl.col("TAXITIME_SEC_mvt").cast(pl.Float64).alias(e))
         rk = s if rk is None else rk.join(s, on="MVT_ID_mvt", how="inner")
     rk = rk.join(_mvt_ts(RANKING), on="MVT_ID_mvt", how="left")

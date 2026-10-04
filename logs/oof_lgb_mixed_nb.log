@@ -9,3 +9,7 @@ holdout fit 2862s  best_iter=3187  loss=huber  target=direct
 echo clf fit 3052s  best_iter=395  base_rate=0.054
 oof fold 2025-03: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_mixed_nb\fold=2025-03.parquet (164,449 rows, 3444s, best {'best_iter_flip': 7998, 'best_iter_direct': 3187} clf=395)
 oof fold 2025-04: fit on 9 months, valid 2025-06, predict 175,288 rows
+=== resumed Sun Oct  4 09:25:33 RST 2026
+oof fold 2025-02: exists, skipping
+oof fold 2025-03: exists, skipping
+oof fold 2025-04: fit on 9 months, valid 2025-06, predict 175,288 rows

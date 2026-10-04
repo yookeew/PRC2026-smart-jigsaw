@@ -39,8 +39,12 @@ from post import adsb_combiner as PC  # noqa: E402
 
 SUB = ROOT / "data" / "submissions"
 V2 = "--v2" in sys.argv
-V27 = SUB / "smart-jigsaw_v27.parquet"
-V29 = SUB / ("smart-jigsaw_v30.parquet" if V2 else "smart-jigsaw_v29.parquet")
+# PRC_LGB=lgb_mixed_nb (reports/base_neighbour_preregistration.md stage C): the chain on the
+# LightGBM with the neighbour features -> v27nb in, smart-jigsaw_v31.parquet out (--v2 only).
+NB = os.environ.get("PRC_LGB", "lgb_mixed") != "lgb_mixed"
+V27 = SUB / ("smart-jigsaw_v27nb.parquet" if NB else "smart-jigsaw_v27.parquet")
+V29 = SUB / ("smart-jigsaw_v31.parquet" if NB else "smart-jigsaw_v30.parquet" if V2 else "smart-jigsaw_v29.parquet")
+assert not NB or V2, "the neighbour-feature chain is only pre-registered with --v2"
 RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
 TEMPLATE = ROOT / "data" / "ranking" / "submitting.parquet"
 ENG = ["lgb", "catcorr"]

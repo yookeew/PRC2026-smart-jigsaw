@@ -33,7 +33,9 @@ AIRPORTS = ["LTFM", "EGLL"]
 
 
 def load() -> pl.DataFrame:
-    ev = {e: pl.read_parquet(EVAL / f"{e}_mixed_holdout_ev.parquet") for e in ("lgb", "catcorr")}
+    # PRC_LGB swaps the LightGBM run (e.g. lgb_mixed_nb, reports/base_neighbour_preregistration.md)
+    names = {"lgb": os.environ.get("PRC_LGB", "lgb_mixed"), "catcorr": "catcorr_mixed"}
+    ev = {e: pl.read_parquet(EVAL / f"{names[e]}_holdout_ev.parquet") for e in ("lgb", "catcorr")}
     df = ev["lgb"].select(pl.col("MVT_ID_mvt").cast(pl.Int64), "ADEP_mvt", pl.col("ym").cast(pl.Utf8),
                           pl.col("taxi").cast(pl.Float64), pl.col("pred").alias("lgb")).join(
         ev["catcorr"].select(pl.col("MVT_ID_mvt").cast(pl.Int64), pl.col("pred").alias("catcorr")),

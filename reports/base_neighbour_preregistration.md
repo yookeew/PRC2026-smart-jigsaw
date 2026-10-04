@@ -99,3 +99,29 @@ hyperparameter variants.
   LIRF −0.01.
 - **Stage C started:** `src/models/run_neighbour_base.py oof` (log
   `logs/oof_lgb_mixed_nb.log`).
+
+## Results — stage C (2026-10-04, `tests/base_neighbour_chain_test.py`, log `logs/base_neighbour_chain_test.log`)
+
+**Stage C: PASS -> build v31.**
+- **OOF folds:** all 10 in `cache/oof/lgb_mixed_nb/`, no missing rows.
+  - LightGBM alone, OOF months (labels ≤ 5 h): 234.49 -> 231.51.
+  - Better in every month, by −1.9 to −5.3.
+- **New OOF stack weights:** [0.659, 0.350] (was [0.564, 0.445]).
+- **Corrector best_iter:** 1,331 / 832 (base 696 / 1,059).
+
+| trimmed RMSE (v30 method) | base | new LightGBM | delta | 95% CI | P(worse) |
+|---|---|---|---|---|---|
+| A: Jul (fit Jan) | 282.72 | 281.69 | −1.03 | [−1.98, −0.12] | 0.012 |
+| B: Jan (fit Jul) | 212.66 | 210.73 | −1.93 | [−3.84, −0.66] | 0.000 |
+| pooled | 253.85 | 252.50 | −1.36 | [−2.28, −0.55] | 0.000 |
+| guard: pooled full | 320.72 | 319.67 | −1.05 | [−1.94, −0.44] | 0.001 |
+
+- **Per airport (trimmed):** LTFM −5.01, EGLL −2.04, LFPG −1.54, LEMD
+  −1.22, LSZH −1.18, EDDM −1.06, EDDF −0.84, LEBL −0.79, LIRF +0.11,
+  EHAM +0.45.
+- **About 70% of the stage-B gain survives the full chain** (−1.36 vs −1.97);
+  the overlap with v30's corrector was expected.
+- **Next:** `run_neighbour_base.py prod` (log `logs/lgb_mixed_nb_prod.log`),
+  then the v31 chain build; keep iff board < 261.40.
+
+**Board (2026-10-04): v31 = 259.89, −1.51 vs v30 (261.40). Kept.**

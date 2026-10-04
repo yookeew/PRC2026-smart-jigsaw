@@ -51,9 +51,15 @@ V5 = "--v5" in sys.argv
 FULLYEAR = "--full" in sys.argv
 M12 = "--m12" in sys.argv or FULLYEAR
 RESTRICTED = "--restricted" in sys.argv or V2 or V5 or M12
-V23 = SUB / "smart-jigsaw_v23.parquet"
+# PRC_LGB=lgb_mixed_nb (reports/base_neighbour_preregistration.md): the LightGBM with the
+# neighbour features; reads the matching v23-method stack and writes "<name>nb" (v27 -> v27nb).
+LGB = os.environ.get("PRC_LGB", "lgb_mixed")
+NB = LGB != "lgb_mixed"
+V23 = SUB / ("stack_lgb_catcorr_v3_nb_adsbq_partial_fb.parquet" if NB else "smart-jigsaw_v23.parquet")
 V24 = SUB / ("smart-jigsaw_v27.parquet" if FULLYEAR else "smart-jigsaw_m12.parquet" if M12 else "smart-jigsaw_v26.parquet" if (V2 or V5) else "smart-jigsaw_v25.parquet" if RESTRICTED
              else "smart-jigsaw_v24.parquet")
+if NB:
+    V24 = V24.with_name(V24.stem + "nb.parquet")
 ENG = ["lgb", "catcorr"]
 DET_DIR = ROOT / "cache" / ("adsb_pushback_v5" if V5 else "adsb_pushback_v4")
 CEIL, LIRF_CEIL = 10800, 140000
@@ -62,7 +68,7 @@ CEIL, LIRF_CEIL = 10800, 140000
 def ranking_frame() -> pl.DataFrame:
     rk = None
     for e in ENG:
-        s = pl.read_parquet(SUB / f"{e}_mixed.parquet").select(
+        s = pl.read_parquet(SUB / f"{LGB if e == 'lgb' else e + '_mixed'}.parquet").select(
             pl.col("MVT_ID_mvt").cast(pl.Int64), pl.col("TAXITIME_SEC_mvt").cast(pl.Float64).alias(e))
         rk = s if rk is None else rk.join(s, on="MVT_ID_mvt", how="inner")
     mv = (pl.read_parquet(RANKING).filter(pl.col("PHASE_mvt") == "DEP")
