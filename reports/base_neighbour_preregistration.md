@@ -79,3 +79,23 @@ hyperparameter variants.
 ## Amendments
 
 (none)
+
+## Results — stage B (2026-10-03, `tests/base_neighbour_test.py`, log `logs/base_neighbour_test.log`; run after commit 222150c)
+
+**Stage B: PASS -> stage C.**
+- **Holdout fit:** `logs/lgb_mixed_nb_holdout.log`, 4,669 s; best_iter
+  flip 7,996, direct 2,896; clf 397.
+- **LightGBM alone (trimmed):** 273.63 -> 271.99.
+
+| trimmed RMSE (stack with catcorr) | base | + neighbour features | delta | 95% CI | P(worse) |
+|---|---|---|---|---|---|
+| A: Jul (fit Jan) | 295.34 | 293.47 | −1.87 | [−2.90, −0.93] | 0.000 |
+| B: Jan (fit Jul) | 230.93 | 228.77 | −2.15 | [−3.85, −1.13] | 0.000 |
+| pooled | 268.51 | 266.55 | −1.97 | [−2.89, −1.16] | 0.000 |
+| guard: pooled full | 331.72 | 330.12 | −1.60 | [−2.47, −0.91] | 0.000 |
+
+- **Per airport (trimmed):** LTFM −6.81, EGLL −3.18, LEBL −1.99, LEMD
+  −1.87, EDDM −1.78, LSZH −1.16, EDDF −1.11, LFPG −1.05, EHAM −0.51,
+  LIRF −0.01.
+- **Stage C started:** `src/models/run_neighbour_base.py oof` (log
+  `logs/oof_lgb_mixed_nb.log`).
