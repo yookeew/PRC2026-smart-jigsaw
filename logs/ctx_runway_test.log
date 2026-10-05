@@ -1,0 +1,31 @@
+block-7 shift, 2025 vs 2026 (SMD per month):
+  rw_cad20       Jan +0.021  Jul +0.010
+  rw_cad20_apt   Jan +0.005  Jul -0.005
+  rw_gap_prev    Jan +0.008  Jul -0.003
+  rw_gap_next    Jan +0.008  Jul -0.003
+  rw_share60     Jan +0.004  Jul -0.012
+  rw_arr30       Jan -0.025  Jul -0.094
+  rw_dom_change  Jan -0.036  Jul +0.010
+  rw_heavy_q     Jan +0.033  Jul +0.002
+OOF stack weights: [0.577 0.428]
+rows 2,084,967 (OOF 1,740,628, holdout 344,339); features 41
+  control: global best_iter 1323
+  treatment: global best_iter 1829
+
+slice (holdout)        control  treatment   delta
+body pooled             206.91     206.09   -0.81
+body Jan                189.36     188.31   -1.05
+body Jul                220.19     219.54   -0.65
+trimmed                 261.26     260.01   -1.26
+  body EDDF             173.46     172.74   -0.72
+  body EDDM             159.28     158.15   -1.13
+  body EGLL             217.18     216.82   -0.37
+  body EHAM             156.05     155.52   -0.53
+  body LEBL             215.60     214.47   -1.13
+  body LEMD             170.24     169.15   -1.09
+  body LFPG             224.20     223.12   -1.08
+  body LIRF             315.72     315.93   +0.21
+  body LSZH             164.35     162.60   -1.75
+  body LTFM             230.10     228.78   -1.31
+
+STAGE 1: body gain {'pooled': 0.8138758278885518, 'Jan': 1.0512408019157533, 'Jul': 0.6514156290126323} -> PROCEED to stage 2

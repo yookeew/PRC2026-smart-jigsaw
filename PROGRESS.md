@@ -4468,3 +4468,65 @@ the stage-C holdout gain).
     - arrival taxi-in;
     - AOBT_3 (flat at ~900 s on those days, so likely back-computed by NM);
     - METAR (all within-month |r| ≤ 0.03).
+
+**Board (2026-10-05): v35 = 255.46 (−1.32 vs v34). ADOPTED; new best.**
+- About 80% of the −1.60 holdout body gain transferred, against ~20% for v34. That is consistent with the drift fix having been the problem.
+
+**Jump hunt, continued (2026-10-05; exploratory, scratch scripts, nothing built):**
+- **Hourly signals** (cross-fitted Jan<->Jul against a control corrector):
+  - arrival holding (landing − ARVT_1/ARVT_3, landed/scheduled ratio);
+  - hourly regulated-flight share (LOBT − EOBT_1 > 10 min, LOBT − IOBT);
+  - inbound-delay proxy.
+  - Each is slightly better in Jan and worse in Jul. All fail.
+- **2025-vs-2026 shift:**
+  - Jan 2026 is a winter-storm month: METAR snow hours 376 vs 84 in Jan 2025, concentrated at EHAM/LSZH/LTFM/EDDF/EDDM.
+  - In Jan 2026, MVT−SCHED > 2 h roughly doubles at those airports, and EHAM's NM-missing rate goes 1.6% -> 5.0%.
+  - Our holdout never sees this.
+- **Weather screen on 12 months of out-of-sample corrector residuals** (leave-one-month-out on months 1/2/3/11/12): METAR does not beat the control. Snow-hour residuals in 2025 are unbiased (+15 s), so the existing inputs (MVT−SCHED, AOBT_3) already carry the de-icing delay. Weather REJECTED as a lever.
+
+## 79. Corrector block 7: runway state (idea from outgoing-boat, own definitions) -- v36 (2026-10-05)
+
+- Files: `reports/ctx_runway_preregistration.md`, `runway_block` in `tests/context_corrector_test.py` (enabled by `CTX_RWY=1`), test `tests/ctx_runway_test.py`.
+- Columns:
+  - runway cadence over the last 20 takeoffs (runway and airport);
+  - gaps to the previous / next takeoff on the same runway;
+  - the runway's share of the last hour's takeoffs;
+  - landings on the same runway;
+  - dominant-runway change;
+  - heavy departures queued on the runway.
+- Seam guard: gaps > 6 h and cadence > 1 h are set to null, because the ranking frame jumps from 31 Jan to 1 Jul.
+- 2025-vs-2026 SMD of every column is ≤ 0.09.
+- **Stage 1** (ensemble2 in both arms): body −0.81 (Jan −1.05, Jul −0.65), trimmed −1.26. PROCEED.
+- **Stage 2 vs v35's chain:**
+  - body −0.46 (Jan −0.50, Jul −0.43), trimmed −0.59, full −0.49;
+  - LIRF +1.30, the other 9 airports improve;
+  - ADOPT under this pre-registration's rule. The script's printed REJECT comes from an older rule.
+- **Build v36:**
+  1. `CTX_ENS=2 CTX_RWY=1 src/post/ctx_corrector.py` -> `ctxcorr2r.parquet`, best_iter 2,188.
+  2. With `PRC_LGB=ctxcorr2r`, the v35 chain:
+     - `stack_submit --cat-corrected --adsb-v3`
+     - `adsb_combiner --full`
+     - `neighbour_state --v2`
+     - `lobt_window`
+     - `nm_lines` -> `smart-jigsaw_v36.parquet`
+  - Logs: `logs/ctxcorr2r_prod.log`, `logs/v36_*.log`. RMS difference from v35: 25.4 s.
+- **Low predictions.** v36 has 17 rows under 120 s (minimum 0); v35 had 13 (minimum 51).
+  - They come from the neighbour/combiner stages, not the corrector (corrector minimum 115 s): LSZH NM-unmatched rows and EHAM late-pushback ADS-B rows.
+  - Effect ≤ ~0.01 RMSE. A physical floor is a candidate for a later pre-registered fix.
+- **Rule:** keep iff board < 255.46.
+
+**Board (2026-10-05): v36 = 254.51 (−0.95 vs v35). ADOPTED; new best.** About 2× the −0.46 holdout body gain transferred.
+
+## 80. Corrector categorical-encoding bug (v34–v36), fixed -> v37 (2026-10-05)
+
+- `apt_c`, `stand_pfx` (and the new `al_op`) were built with Polars `Categorical -> to_physical()`. Those codes follow order of first appearance per frame.
+- Training vs ranking frame: airports agreed by luck; only 17 of 140 shared stand prefixes did.
+- So v34–v36 applied the corrector to 2026 rows with scrambled stand-prefix codes. The holdout gates could not see it, because holdout rows sit in the training frame.
+- **Fix:** `code()` in `tests/context_corrector_test.py` uses a sorted vocabulary over 2025 + 2026 departures. Unseen values become null.
+- **v37** = v36's recipe rebuilt with the fix. Logs: `logs/ctxcorr2r_fix_prod.log`, `logs/v37_*.log`. Rule: keep iff board < 254.51.
+- **OPDI check (2026-10-05).** OPDI is organiser-approved open data. Its `exit-parking_position` events, on 4–13 Jul 2025:
+  - cover LSZH (92%) and almost nothing else;
+  - fire a median ~5 min after the true off-block.
+  - Not used.
+
+**Board (2026-10-05): v37 = 254.01 (−0.50 vs v36). ADOPTED; new best.** This is the stand-prefix encoding fix on its own: it was invisible on the holdout and worth half a point on 2026.

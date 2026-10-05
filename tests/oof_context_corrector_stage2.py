@@ -27,7 +27,7 @@ import oof_context_corrector_test as O  # noqa: E402
 from post import nm_lines as NL  # noqa: E402
 
 ENS = os.environ.get("CTX_ENS") == "2"   # reports/ctx_ensemble_preregistration.md: global + per-airport mean
-NAME = "ctxcorr2" if ENS else "ctxcorr"
+NAME = ("ctxcorr2" if ENS else "ctxcorr") + ("r" if os.environ.get("CTX_RWY") == "1" else "") + ("a" if os.environ.get("CTX_AIR") == "1" else "")
 EV = ROOT / "cache" / "eval" / f"{NAME}_holdout_ev.parquet"
 OOFD = ROOT / "cache" / "oof" / NAME
 BLOCKS = [(2, 3), (4, 5), (6, 8), (9, 10), (11, 12)]

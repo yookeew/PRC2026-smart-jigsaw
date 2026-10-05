@@ -1,0 +1,46 @@
+OOF stack weights: [0.577 0.428]
+rows 2,084,967 (OOF 1,740,628, holdout 344,339); features 41
+holdout corrector: best_iter 1994
+OOF block (2, 3): best_iter 1350
+OOF block (4, 5): best_iter 1556
+OOF block (6, 8): best_iter 1053
+OOF block (9, 10): best_iter 1753
+OOF block (11, 12): best_iter 2034
+thin-day rule: 115 days kept, 7 dropped
+shape: (7, 5)
+| day        | status   | bad_members | points | med        |
+| ---        | ---      | ---         | ---    | ---        |
+| str        | str      | i64         | i64    | f64        |
+|------------|----------|-------------|--------|------------|
+| 2025-08-10 | tolerant | 1           | 211018 | 1.572131e6 |
+| 2025-10-04 | ok       | 0           | 0      | 1672691.5  |
+| 2025-10-07 | tolerant | 1           | 206056 | 1672691.5  |
+| 2025-11-19 | tolerant | 1           | 142500 | 1.549465e6 |
+| 2025-11-22 | tolerant | 1           | 247284 | 1.549465e6 |
+| 2025-12-10 | tolerant | 1           | 671427 | 1586008.5  |
+| 2025-12-28 | tolerant | 1           | 251232 | 1586008.5  |
+OOF-month ADS-B rows: 660,242 on 115 days (['2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12']); OOF stack weights [1.009 0.   ]
+  corrector fit 2025-01: best_iter 439
+  corrector fit 2025-07: best_iter 452
+treatment OOF stack weights [1.009 0.   ]
+  corrector fit 2025-01: best_iter 623
+  corrector fit 2025-07: best_iter 907
+
+slice                 v33 method  +ctx corrector   delta
+body pooled               195.04          194.58   -0.46
+body Jan                  176.80          176.30   -0.50
+body Jul                  208.74          208.31   -0.43
+trimmed                   246.60          246.01   -0.59
+full                      305.20          304.71   -0.49
+  body EDDF               157.17          156.41   -0.76
+  body EDDM               114.47          113.78   -0.69
+  body EGLL               212.57          211.95   -0.62
+  body EHAM               113.77          113.60   -0.17
+  body LEBL               192.73          192.55   -0.19
+  body LEMD               166.86          166.01   -0.86
+  body LFPG               226.16          225.61   -0.55
+  body LIRF               312.09          313.39   +1.30
+  body LSZH               130.62          129.80   -0.82
+  body LTFM               229.83          228.39   -1.43
+
+STAGE 2: body gain {'pooled': 0.4568270137300203, 'Jan': 0.49902286311981925, 'Jul': 0.43026487229491295} -> REJECT

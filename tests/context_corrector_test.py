@@ -24,6 +24,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from post import nm_lines as NL  # noqa: E402
 
 RAW = ROOT / "data" / "raw"
+RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
 HOLDOUT = ROOT / "cache" / "eval" / "v31_chain_holdout.parquet"
 REFS = ["SCHED_TIME_UTC_mvt", "LOBT_flt", "IOBT_flt", "EOBT_1_flt", "AOBT_3_flt"]
 CELL_MIN, CELL_CLIP = 30, 7200.0
@@ -31,6 +32,32 @@ PARAMS = dict(objective="regression", num_leaves=63, learning_rate=0.05, min_dat
               feature_fraction=0.9, lambda_l2=10.0, seed=42, deterministic=True, force_row_wise=True,
               verbose=-1, max_bin=127)
 TRIM = 18000
+RWY = os.environ.get("CTX_RWY") == "1"    # block 7, reports/ctx_runway_preregistration.md
+AIR = os.environ.get("CTX_AIR") == "1"    # block 8, reports/ctx_airline_preregistration.md
+FEATS = ROOT / "cache" / "features_nb"
+AIR_MIN = 30
+_AIR_TAB: dict = {}                        # airline table from the labelled frame, reused for the ranking frame
+
+
+_VOCAB: dict = {}
+
+
+def _prefix(apt: pl.Series, stand: pl.Series) -> pl.Series:
+    return apt + "|" + stand.str.extract(r"^([A-Za-z]+)", 1).fill_null(stand.str.slice(0, 1))
+
+
+def code(values: pl.Series, key: str) -> pl.Series:
+    """Stable integer codes from a sorted vocabulary over all 2025 + 2026 departures. Categorical
+    physical codes follow order of appearance, so the training and ranking frames disagreed
+    (stand prefixes: 17 of 140 matched; found 2026-10-05). Unseen values -> null."""
+    if key not in _VOCAB:
+        d = pl.concat([pl.scan_parquet(src).filter(pl.col("PHASE_mvt") == "DEP")
+                       .select(apt=pl.col("ADEP_mvt"), stand=pl.col("STAND_mvt").fill_null("?"),
+                               op=pl.col("AIRCRAFT_OPERATOR_flt").fill_null("?")).collect()
+                       for src in (str(RAW / "training_*.parquet"), str(RANKING))])
+        v = {"apt": d["apt"], "stand_pfx": _prefix(d["apt"], d["stand"]), "op": d["op"]}[key]
+        _VOCAB[key] = {x: i for i, x in enumerate(sorted(v.unique().to_list()))}
+    return values.replace_strict(_VOCAB[key], default=None, return_dtype=pl.Int64).cast(pl.Float64)
 
 
 def ep(c: str) -> pl.Expr:
@@ -48,9 +75,12 @@ def movements(src) -> tuple[pl.DataFrame, pl.DataFrame]:
         arvt1=ep("ARVT_1_flt"), arvt3=ep("ARVT_3_flt"),
         ades_eq=(pl.col("ADES_mvt") == pl.col("ADES_flt")).cast(pl.Float64),
         div=(pl.col("ADES_flt") != pl.col("ADES_FILED_flt")).cast(pl.Float64),
-        type_eq=(pl.col("AIRCRAFT_TYPE_mvt") == pl.col("AIRCRAFT_TYPE_flt")).cast(pl.Float64)).collect())
+        type_eq=(pl.col("AIRCRAFT_TYPE_mvt") == pl.col("AIRCRAFT_TYPE_flt")).cast(pl.Float64),
+        heavy=pl.col("WK_TBL_CAT_flt").is_in(["H", "J"]).fill_null(False),
+        op=pl.col("AIRCRAFT_OPERATOR_flt").fill_null("?")).collect())
     arr = (lf.filter(pl.col("PHASE_mvt") == "ARR").select(
-        apt=pl.col("ADES_mvt"), L=ep("MVT_TIME_UTC_mvt"), B=ep("BLOCK_TIME_UTC_mvt")).collect())
+        apt=pl.col("ADES_mvt"), L=ep("MVT_TIME_UTC_mvt"), B=ep("BLOCK_TIME_UTC_mvt"),
+        rwy=pl.col("RUNWAY_mvt").fill_null("?")).collect())
     return dep, arr
 
 
@@ -104,6 +134,81 @@ def time_blocks(dep: pl.DataFrame, arr: pl.DataFrame, p: np.ndarray) -> pl.DataF
     return pl.DataFrame(out)
 
 
+def runway_block(dep: pl.DataFrame, arr: pl.DataFrame) -> pl.DataFrame:
+    """Block 7: runway state at takeoff T from takeoff/landing times, runways, AOBT_3 and wake
+    category only (reports/ctx_runway_preregistration.md)."""
+    n = dep.height
+    out = {k: np.full(n, np.nan) for k in ("rw_cad20", "rw_cad20_apt", "rw_gap_prev", "rw_gap_next", "rw_share60",
+                                           "rw_arr30", "rw_dom_change", "rw_heavy_q")}
+    apt, rwy = dep["apt"].to_numpy(), dep["rwy"].to_numpy()
+    T, A3, hv = dep["T"].to_numpy(), dep["t_AOBT_3_flt"].to_numpy(), dep["heavy"].to_numpy()
+    for a in np.unique(apt):
+        ia = np.flatnonzero(apt == a)
+        Ts = np.sort(T[ia])
+        k = np.searchsorted(Ts, T[ia], "right") - 1                     # index of this takeoff (last tie)
+        out["rw_cad20_apt"][ia] = np.where(k >= 20, (Ts[k] - Ts[np.maximum(k - 20, 0)]) / 20.0, np.nan)
+        n60 = _cnt(Ts, T[ia]) - _cnt(Ts, T[ia] - 3600)
+        ar = arr.filter(pl.col("apt") == a)
+        # dominant departure runway per 30-min bin of this airport
+        b = (T[ia] // 1800).astype(np.int64)
+        bins = pl.DataFrame({"b": b, "r": rwy[ia]}).group_by("b", "r").agg(c=pl.len()).sort("c", descending=True).unique("b", keep="first")
+        dom = dict(zip(bins["b"].to_list(), bins["r"].to_list()))
+        out["rw_dom_change"][ia] = [float(dom.get(x) != dom.get(x - 2)) if dom.get(x - 2) is not None else np.nan for x in b]
+        for r in np.unique(rwy[ia]):
+            ir = ia[rwy[ia] == r]
+            Tr = np.sort(T[ir])
+            kr = np.searchsorted(Tr, T[ir], "right") - 1
+            out["rw_cad20"][ir] = np.where(kr >= 20, (Tr[kr] - Tr[np.maximum(kr - 20, 0)]) / 20.0, np.nan)
+            lo = np.searchsorted(Tr, T[ir], "left")                     # first takeoff at this time
+            out["rw_gap_prev"][ir] = np.where(lo >= 1, T[ir] - Tr[np.maximum(lo - 1, 0)], np.nan)
+            out["rw_gap_next"][ir] = np.where(kr + 1 < len(Tr), Tr[np.minimum(kr + 1, len(Tr) - 1)] - T[ir], np.nan)
+            out["rw_share60"][ir] = (_cnt(Tr, T[ir]) - _cnt(Tr, T[ir] - 3600)) / np.maximum(n60[np.searchsorted(ia, ir)], 1)
+            Lr = np.sort(ar.filter(pl.col("rwy") == r)["L"].drop_nulls().to_numpy())
+            out["rw_arr30"][ir] = _cnt(Lr, T[ir]) - _cnt(Lr, T[ir] - 1800)
+            # heavy departures queued on the runway: AOBT_3 <= t < takeoff, both counts over the same set
+            both = hv[ir] & ~np.isnan(A3[ir]) & (A3[ir] <= T[ir])
+            a3h, Th = np.sort(A3[ir][both]), np.sort(T[ir][both])
+            out["rw_heavy_q"][ir] = _cnt(a3h, T[ir], "left") - _cnt(Th, T[ir], "left")
+    # the ranking frame jumps from 31 Jan to 1 Jul: gaps across that seam (and dead runways) are not state
+    for k, cap in (("rw_gap_prev", 21600), ("rw_gap_next", 21600), ("rw_cad20", 3600), ("rw_cad20_apt", 3600)):
+        out[k][out[k] > cap] = np.nan
+    return pl.DataFrame(out)
+
+
+def airline_block(dep: pl.DataFrame, p: np.ndarray) -> pl.DataFrame:
+    """Block 8: airline statistics of the stack residual and the copy pattern, leave-one-month-out, plus the
+    stand-rotation columns of the base feature cache (reports/ctx_airline_preregistration.md)."""
+    d = dep.select("MVT_ID_mvt", "apt", "op", "m", "y", "nm", "T", "t_SCHED_TIME_UTC_mvt").with_columns(
+        r=(pl.col("y") - pl.Series(p)).clip(-3600, 3600),
+        cp=((pl.col("y") - (pl.col("T") - pl.col("t_SCHED_TIME_UTC_mvt"))).abs() <= 60).cast(pl.Float64))
+    labelled = d["y"].null_count() < d.height
+    if labelled:
+        src = d.filter(pl.col("y").is_not_null() & (pl.col("y") <= TRIM) & ~pl.col("nm"))
+        g = src.group_by("apt", "op", "m").agg(sr=pl.col("r").sum(), sc=pl.col("cp").sum(), n=pl.len())
+        _AIR_TAB["g"] = g
+    g = _AIR_TAB["g"]
+    tot = g.group_by("apt", "op").agg(Sr=pl.col("sr").sum(), Sc=pl.col("sc").sum(), N=pl.col("n").sum())
+    x = d.join(tot, on=["apt", "op"], how="left")
+    if labelled:   # remove the row's own month
+        x = x.join(g, on=["apt", "op", "m"], how="left").with_columns(
+            Sr=pl.col("Sr") - pl.col("sr").fill_null(0), Sc=pl.col("Sc") - pl.col("sc").fill_null(0),
+            N=pl.col("N") - pl.col("n").fill_null(0))
+    ok = pl.col("N") >= AIR_MIN
+    out = x.select(al_res=pl.when(ok).then(pl.col("Sr") / pl.col("N")), al_copy=pl.when(ok).then(pl.col("Sc") / pl.col("N")),
+                   al_n=pl.col("N").cast(pl.Float64),
+                   al_op=code(x["op"], "op"))
+    rot = (pl.concat([pl.scan_parquet(FEATS / f) .select("MVT_ID_mvt", "inbound_arr_delay", "sched_ground", "actual_ground", "link_confidence")
+                      for f in ("train2025.parquet", "ranking.parquet")], how="vertical_relaxed")
+           .with_columns(pl.col("MVT_ID_mvt").cast(pl.Int64)).unique("MVT_ID_mvt").collect())
+    sec = lambda c: (pl.col(c).dt.total_seconds() if rot.schema[c] == pl.Duration else pl.col(c)).cast(pl.Float64)
+    rot = rot.select("MVT_ID_mvt", ro_inb_delay=sec("inbound_arr_delay"), ro_sched_ground=sec("sched_ground"),
+                     ro_actual_ground=sec("actual_ground"),
+                     ro_link_conf=pl.col("link_confidence").cast(pl.Utf8).replace({"high": "2", "med": "1", "low": "0"}).cast(pl.Float64, strict=False))
+    rr = dep.select("MVT_ID_mvt").join(rot, on="MVT_ID_mvt", how="left")
+    assert rr.height == dep.height
+    return pl.concat([out, rr.drop("MVT_ID_mvt")], how="horizontal")
+
+
 def cell_table(train: pl.DataFrame) -> list[tuple[list[str], pl.DataFrame]]:
     t = train.filter(pl.col("y").is_not_null()).with_columns(yc=pl.col("y").clip(upper_bound=CELL_CLIP))
     out = []
@@ -127,11 +232,10 @@ def apply_cells(df: pl.DataFrame, tables) -> pl.DataFrame:
 def build(dep: pl.DataFrame, arr: pl.DataFrame, p: np.ndarray, cells) -> tuple[pl.DataFrame, list[str], list[str]]:
     T = dep["T"]
     g = {c: T - dep[f"t_{c}"] for c in REFS}
-    base = pl.DataFrame({"p": p, "apt_c": dep["apt"].cast(pl.Categorical).to_physical().cast(pl.Float64),
+    base = pl.DataFrame({"p": p, "apt_c": code(dep["apt"], "apt"),
                          "hour": ((dep["T"] % 86400) / 3600.0), "g_aobt3": g["AOBT_3_flt"], "g_sched": g["SCHED_TIME_UTC_mvt"]})
     ctrl = list(base.columns)
-    prefix = dep["apt"] + "|" + dep["stand"].str.extract(r"^([A-Za-z]+)", 1).fill_null(dep["stand"].str.slice(0, 1))
-    b1 = pl.DataFrame({"stand_pfx": prefix.cast(pl.Categorical).to_physical().cast(pl.Float64)})
+    b1 = pl.DataFrame({"stand_pfx": code(_prefix(dep["apt"], dep["stand"]), "stand_pfx")})
     b2 = apply_cells(dep, cells).with_columns(cel_rel=pl.Series(p) - pl.col("cel_p50"))
     dur_p = dep["arvt1"] - dep["t_EOBT_1_flt"]; dur_r = dep["arvt3"] - dep["t_AOBT_3_flt"]
     b3 = pl.DataFrame({"nm_dur_plan": dur_p, "nm_dur_real": dur_r, "nm_dur_dif": dur_r - dur_p,
@@ -142,8 +246,9 @@ def build(dep: pl.DataFrame, arr: pl.DataFrame, p: np.ndarray, cells) -> tuple[p
     b4 = pl.DataFrame(dist).with_columns(absd["dist_min"],
                                          n_plans=pl.sum_horizontal([g[c].is_not_null().cast(pl.Float64) for c in REFS]))
     b56 = time_blocks(dep, arr, p)
-    X = pl.concat([base, b1, b2, b3, b4, b56], how="horizontal")
-    return X, ctrl, ["apt_c", "stand_pfx"]
+    parts = [base, b1, b2, b3, b4, b56] + ([runway_block(dep, arr)] if RWY else []) + ([airline_block(dep, p)] if AIR else [])
+    X = pl.concat(parts, how="horizontal")
+    return X, ctrl, ["apt_c", "stand_pfx"] + (["al_op"] if AIR else [])
 
 
 def fit_apply(X: np.ndarray, y: np.ndarray, fit: np.ndarray, inner: np.ndarray, app: np.ndarray, cats: list[int]):
