@@ -1,0 +1,6 @@
+stack weights (OOF months): [0.577 0.428]
+training rows 2,062,591 of 2,084,967 (12 months); features 41
+corrector (ensemble2): global best_iter 2188
+ranking: RMS change vs stack 76.2 s; mean -5.8 s
+wrote ctxcorr2r.parquet
+rewrote ctxcorr2r_holdout_ev.parquet with the chain columns

@@ -1,0 +1,12 @@
+holdout fit 1951s  best_iter=7997  loss=huber  target=flip
+holdout fit 3195s  best_iter=4040  loss=huber  target=direct
+echo clf fit 3448s  best_iter=450  base_rate=0.055
+echo clf holdout  precision=0.685  recall=0.097  n_true_echo=17349  n_pred_echo=2448
+OVERALL RMSE 327.5 s  (n=344,339)
+  EDDF:179  EDDM:155  EGLL:282  EHAM:174  LEBL:202  LEMD:176  LFPG:578  LIRF:652  LSZH:186  LTFM:258
+  2025-01:347  2025-07:311
+  False:1909  True:227
+  False:305  True:1448
+wrote holdout predictions -> C:\Users\yuqiw\prc2025\cache\eval\lgb_mixed_nba_holdout_ev.parquet (+ round counts lgb_mixed_nba_holdout_ev.rounds.json)
+wrote reports\eval\lgb_mixed_nba.md
+total 4861s (holdout-only, no submission)

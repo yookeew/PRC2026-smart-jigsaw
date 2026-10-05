@@ -61,7 +61,7 @@ PRE = ("stack_lgb_catcorr" if CAT_CORRECTED else "stack_lgb_cat") + ("_v3" if AD
 # outputs then get an "_nb" suffix after the stack name.
 LGB = os.environ.get("PRC_LGB", "lgb_mixed")
 if LGB != "lgb_mixed":
-    PRE += "_nb"
+    PRE += "_nb" if LGB == "lgb_mixed_nb" else f"_{LGB}"
 CEIL, LIRF_CEIL = 10800, 140000   # models.fit CEIL / LIRF_RAW_CEIL
 
 

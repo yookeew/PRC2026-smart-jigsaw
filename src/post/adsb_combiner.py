@@ -55,11 +55,12 @@ RESTRICTED = "--restricted" in sys.argv or V2 or V5 or M12
 # neighbour features; reads the matching v23-method stack and writes "<name>nb" (v27 -> v27nb).
 LGB = os.environ.get("PRC_LGB", "lgb_mixed")
 NB = LGB != "lgb_mixed"
-V23 = SUB / ("stack_lgb_catcorr_v3_nb_adsbq_partial_fb.parquet" if NB else "smart-jigsaw_v23.parquet")
+TAG = "nb" if LGB == "lgb_mixed_nb" else LGB
+V23 = SUB / (f"stack_lgb_catcorr_v3_{TAG}_adsbq_partial_fb.parquet" if NB else "smart-jigsaw_v23.parquet")
 V24 = SUB / ("smart-jigsaw_v27.parquet" if FULLYEAR else "smart-jigsaw_m12.parquet" if M12 else "smart-jigsaw_v26.parquet" if (V2 or V5) else "smart-jigsaw_v25.parquet" if RESTRICTED
              else "smart-jigsaw_v24.parquet")
 if NB:
-    V24 = V24.with_name(V24.stem + "nb.parquet")
+    V24 = V24.with_name(V24.stem + f"{TAG}.parquet")
 ENG = ["lgb", "catcorr"]
 DET_DIR = ROOT / "cache" / ("adsb_pushback_v5" if V5 else "adsb_pushback_v4")
 CEIL, LIRF_CEIL = 10800, 140000

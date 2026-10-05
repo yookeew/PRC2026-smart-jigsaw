@@ -1,0 +1,27 @@
+(Deprecated in version 1.42.1)
+  X = pl.concat([base, b1, b2, b3, b4, b56], how="horizontal")
+rows 344,339, treatment features 33, control 5
+null share: {'g_aobt3': 0.015, 'nm_dur_plan': 0.015, 'nm_dur_real': 0.015, 'nm_dur_dif': 0.015, 'nm_dur_ratio': 0.015, 'nm_ades_eq': 0.015, 'nm_div': 0.015, 'nm_type_eq': 0.015, 'dist_lobt': 0.015, 'dist_iobt': 0.015, 'dist_eobt': 0.015, 'dist_aobt': 0.015}
+  control fit month 1: best_iter 33
+  control fit month 7: best_iter 32
+  treatment fit month 1: best_iter 224
+  treatment fit month 7: best_iter 176
+
+slice                    input p   control  treatment   t - c
+body pooled               199.59    204.18     201.57   -2.61
+body Jan                  181.55    186.80     183.26   -3.54
+body Jul                  213.18    217.34     215.36   -1.98
+trimmed                   248.84    253.01     251.38   -1.64
+full                      307.02    310.42     309.05   -1.37
+  body EDDF               160.29    165.12     163.03   -2.09
+  body EDDM               116.58    118.54     118.93   +0.39
+  body EGLL               218.04    225.10     221.73   -3.37
+  body EHAM               115.78    116.72     118.72   +2.00
+  body LEBL               194.29    196.34     195.40   -0.94
+  body LEMD               169.91    171.86     169.69   -2.18
+  body LFPG               232.70    236.39     235.39   -1.00
+  body LIRF               319.41    320.58     319.10   -1.48
+  body LSZH               132.47    134.28     134.98   +0.70
+  body LTFM               236.73    249.45     239.63   -9.82
+
+DECISION: body gain vs control 2.61 (Jan 3.54, Jul 1.98) -> ADOPT

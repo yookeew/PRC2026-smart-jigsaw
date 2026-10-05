@@ -1,0 +1,24 @@
+(Deprecated in version 1.42.1)
+  return pl.concat([base, extra.select(NEW)], how="horizontal")
+v6 fields present: holdout 0.410, stop 0.099; OOF days 0.506
+control fits: {'fit 2025-01+OOF': {'best_iter': 4024, 'n_train': 751577}, 'fit 2025-07+OOF': {'best_iter': 2191, 'n_train': 784704}}
+treatment fits: {'fit 2025-01+OOF': {'best_iter': 4518, 'n_train': 751577}, 'fit 2025-07+OOF': {'best_iter': 2212, 'n_train': 784704}}
+
+slice                        control  +stand-free   delta
+body served, pooled           145.05       144.24   -0.82
+body served, Jan              127.90       127.24   -0.65
+body served, Jul              158.89       157.95   -0.94
+body all rows                 205.02       204.77   -0.25
+trimmed all rows              257.22       256.97   -0.25
+full all rows                 322.65       322.45   -0.20
+  body served EDDF            150.39       150.02   -0.37
+  body served EDDM             83.85        81.66   -2.19
+  body served EGLL            194.55       194.42   -0.13
+  body served EHAM            115.17       113.44   -1.72
+  body served LEBL            186.24       185.64   -0.61
+  body served LEMD            166.31       166.54   +0.23
+  body served LFPG            222.61       222.61   -0.00
+  body served LSZH            113.19       112.31   -0.88
+  body served LTFM            313.57       317.25   +3.68
+
+DECISION: served body gain 0.82 (Jan 0.65, Jul 0.94) -> REJECT

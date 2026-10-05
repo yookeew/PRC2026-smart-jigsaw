@@ -1,0 +1,23 @@
+OOF stack weights: [0.577 0.428]
+rows 2,084,967 (OOF 1,740,628, holdout 344,339); features 33
+  control: best_iter 311
+  treatment: best_iter 1983
+
+slice (holdout)          stack s   control  treatment   t - s   t - c
+body pooled               212.99    212.25     209.17   -3.82   -3.08
+body Jan                  194.85    194.11     192.88   -1.97   -1.23
+body Jul                  226.71    225.97     221.57   -5.14   -4.40
+trimmed                   264.70    263.97     263.60   -1.10   -0.37
+full                      328.67    328.11     327.49   -1.18   -0.62
+  body EDDF               175.59    177.44     174.94   -0.65   -2.50
+  body EDDM               164.97    164.14     161.33   -3.64   -2.82
+  body EGLL               221.29    221.17     219.76   -1.53   -1.42
+  body EHAM               161.37    161.04     158.60   -2.77   -2.45
+  body LEBL               218.36    218.09     215.96   -2.40   -2.14
+  body LEMD               175.53    173.51     171.62   -3.91   -1.90
+  body LFPG               227.11    228.99     227.81   +0.70   -1.18
+  body LIRF               333.22    324.96     318.38  -14.84   -6.58
+  body LSZH               167.19    167.04     165.58   -1.62   -1.46
+  body LTFM               238.75    239.64     233.37   -5.38   -6.27
+
+STAGE 1: vs stack {'pooled': 3.819027681773946, 'Jan': 1.9719678779128742, 'Jul': 5.1392223516219815}, vs control {'pooled': 3.0783768707231047, 'Jan': 1.2253558458496911, 'Jul': 4.399235492310851} -> PROCEED to stage 2

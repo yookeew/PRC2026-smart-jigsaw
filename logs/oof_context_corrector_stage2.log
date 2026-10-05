@@ -1,0 +1,33 @@
+OOF stack weights: [0.577 0.428]
+rows 2,084,967 (OOF 1,740,628, holdout 344,339); features 33
+holdout corrector: best_iter 1983
+OOF block (2, 3): best_iter 1306
+OOF block (4, 5): best_iter 1534
+OOF block (6, 8): best_iter 1138
+OOF block (9, 10): best_iter 1298
+OOF block (11, 12): best_iter 1306
+OOF-month ADS-B rows: 660,242 on 115 days (['2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12']); OOF stack weights [0.564 0.445]
+  corrector fit 2025-01: best_iter 696
+  corrector fit 2025-07: best_iter 1059
+treatment OOF stack weights [0.931 0.077]
+  corrector fit 2025-01: best_iter 1043
+  corrector fit 2025-07: best_iter 811
+
+slice                 v33 method  +ctx corrector   delta
+body pooled               201.33          196.64   -4.69
+body Jan                  182.52          179.18   -3.34
+body Jul                  215.47          209.82   -5.65
+trimmed                   249.84          247.59   -2.25
+full                      307.77          305.94   -1.83
+  body EDDF               161.46          158.52   -2.95
+  body EDDM               117.80          115.76   -2.04
+  body EGLL               220.56          214.96   -5.60
+  body EHAM               115.88          114.49   -1.39
+  body LEBL               195.06          192.93   -2.13
+  body LEMD               171.26          168.45   -2.80
+  body LFPG               234.51          229.19   -5.32
+  body LIRF               319.72          311.69   -8.03
+  body LSZH               132.85          131.25   -1.60
+  body LTFM               241.56          233.16   -8.40
+
+STAGE 2: body gain {'pooled': 4.687700485983839, 'Jan': 3.3400804654369836, 'Jul': 5.64809483792186} -> ADOPT
