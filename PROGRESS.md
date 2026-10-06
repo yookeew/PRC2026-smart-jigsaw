@@ -4530,3 +4530,102 @@ the stage-C holdout gain).
   - Not used.
 
 **Board (2026-10-05): v37 = 254.01 (−0.50 vs v36). ADOPTED; new best.** This is the stand-prefix encoding fix on its own: it was invisible on the holdout and worth half a point on 2026.
+
+## 81. Corrector block 8: airline + stand rotation (2026-10-05)
+
+- Files: `reports/ctx_airline_preregistration.md`, `airline_block` in `tests/context_corrector_test.py` (enabled by `CTX_AIR=1`), test `tests/ctx_airline_test.py`.
+- **Stage 1:** body −1.55 (Jan −1.79, Jul −1.40), trimmed −1.90. Max |SMD| 0.14.
+- **Stage 2 vs v37's chain:** body −1.82 (Jan −2.56, Jul −1.32), trimmed −2.73, full −2.18; all 10 airports improve. **ADOPT.**
+- Production not run yet (user's call). To build v38:
+  1. `CTX_ENS=2 CTX_RWY=1 CTX_AIR=1 src/post/ctx_corrector.py`
+  2. the chain with `PRC_LGB=ctxcorr2ra`.
+- **Built v38** (2026-10-05):
+  1. `CTX_ENS=2 CTX_RWY=1 CTX_AIR=1 src/post/ctx_corrector.py` -> `ctxcorr2ra.parquet`, best_iter 2,755.
+  2. The chain with `PRC_LGB=ctxcorr2ra` -> `smart-jigsaw_v38.parquet`.
+  - Logs: `logs/ctxcorr2ra_prod.log`, `logs/v38_*.log`.
+  - v38 vs v37: RMS 31.9 s, mean +0.95 s. Biggest movers: LIRF 70 s, LTFM 45 s, LFPG 30 s.
+  - 20 rows under 120 s (minimum 0; v37: 13, minimum 25). Same neighbour/ADS-B mechanism as §79.
+  - Rule: keep iff board < 254.01.
+- **Board (2026-10-05): v38 = 254.12 (+0.11 vs v37). NOT adopted; v37 (254.01) stays best.** A −1.82 holdout body gain did not transfer.
+- **Why v38 failed: a holdout-label leak in the airline table.** In the gates, the table included the Jan/Jul 2025 holdout residuals.
+  - Clean re-test (holdout months kept out of the table): rotation-only body −0.11, rotation + airline −0.44. Both STOP; block 8 is REJECTED.
+  - v37 stays the production recipe.
+  - **Lesson:** any label-derived statistic used in a gate must exclude the holdout months entirely, not only the row's own month.
+
+## 82. Gap analysis vs outgoing-boat; corrector block 9 (ADS-B track state) -- v40 (2026-10-06)
+
+- **Today's dead ends** (scratch scripts, no training):
+  - `MVT_ID_mvt` / row-order leak: IDs follow schedule order within daily batches; rows are sorted by takeoff.
+  - Timestamp provenance flags (round-second takeoffs, AOBT_3 seconds): residual shifts of a few seconds.
+  - Return-to-stand and repeated flight numbers: returns have *short* taxi times.
+- **Board-score blending rejected on principle.** An exact identity gives the RMSE of any blend of past submissions from their board scores, and it would have fitted weights to the hidden labels. Not used.
+- **outgoing-boat comparison** (their public repo, 243.95):
+  - Board/holdout ratio is the same as ours (0.827 vs 0.835), so their lead shows on our holdout.
+  - With their slice definitions:
+    - `sem_loteria`: ours 244.7 vs theirs 229.2;
+    - false alarms: 9.0% vs 5.9% of SSE;
+    - EDDF: 164.2 vs 146.0;
+    - LIRF: 570.6 vs 543.1.
+  - The LIRF part is the NM-unmatched 1–6 h over-hedge (same cells as v22). Not pursued: v22 lost on the board.
+- **Block 9** (`reports/ctx_adsb_preregistration.md`): v4 ADS-B detector fields as corrector inputs, enabled by `CTX_ADSB=1`. Their idea; our definitions.
+  - Shift check: nothing dropped.
+  - Stage 1 (vs no ADS-B): body −12.56.
+  - **Stage 2 vs v37's chain:** body −1.26 (Jan −0.80, Jul −1.58), trimmed −0.97, full −0.73; 9 of 10 airports improve. **ADOPT.**
+- **v40** = `smart-jigsaw_v40.parquet`: RMS 32.2 s from v37. Rule: keep iff board < 254.01.
+- v39 was a teammate's file (~255, not adopted).
+
+**Board (2026-10-06): v40 = 254.12 (+0.11 vs v37). NOT adopted; v37 (254.01) stays best.**
+- The −1.26 holdout body gain did not transfer.
+- The pre-registered suspect is the 2025→2026 shift in matched-track mix by airport (EGLL, LEMD, EDDM, LIRF).
+- Second corrector block in a row with a good holdout gain and no board gain (v38: label leak; v40: coverage shift).
+
+## 83. Base regressor: clip long labels + L2 (outgoing-boat's base recipe) -- arm c REJECTED (2026-10-06)
+
+- `reports/base_label_clip_preregistration.md`, `src/models/run_label_clip.py`.
+- Option `PRC_LABEL_CLIP=1` in `src/models/fit.py`: keep taxi > 7,200 rows with the target clipped instead of dropping them. The default is unchanged.
+- **Arm c (clip + L2) vs the cached `lgb_mixed_nb` base:**
+  - body +2.96 (Jan +3.11, Jul +2.86);
+  - full +8.14;
+  - disrupted days +31.44;
+  - worse at all 10 airports.
+  - L2 early-stops at 1,049 / 1,516 rounds against Huber's 7,996 / 2,896.
+  - Confirms §22: **Huber stays.**
+- **Arm b (clip + Huber): dropped, not run.** Clipping touches only 584 of 2.08M rows, so it cannot reach the 1.0 s bar. Question closed.
+  - Run it with `.venv/Scripts/python.exe -u src/models/run_label_clip.py b` when the laptop is on mains power, then `compare b`.
+
+## 84. Hour-level shared error is exhausted on v37's chain (2026-10-06, scratch, no training)
+
+- **Question:** the §78 oracle put ~14 points in airport-hour mean residuals, so why did the neighbour features (`nbq`) dent it so little?
+- **Re-measured on v37's chain**, trimmed holdout 246.01, means leave-one-out (excluding the row itself):
+
+| oracle | trimmed RMSE |
+|---|---|
+| A: every row gets its true hour mean | 243.87 (−2.1) |
+| B: only rows without an observed pushback | 244.36 |
+| C: observed rows' true residuals passed to the others, best shrinkage | 245.90 |
+| D: the same with ADS-B estimates instead of truth | 246.32 |
+
+- **§78's 14 points** were on an older chain and probably included each row's own residual in its mean.
+- **What's left:** ~2 points, mostly in LTFM/EGLL/LFPG hours with almost no observed neighbours.
+- **Conclusion:** hour-level transfer is done. The remaining error is per-flight.
+
+## 85. Corrector member average (v37 + v40 correctors) -- REJECTED, not submitted (2026-10-06)
+
+- `reports/ctx_member_avg_preregistration.md`, `tests/ctx_member_avg_test.py`.
+- Equal-weight mean of `ctxcorr2r` and `ctxcorr2rb` through v37's chain.
+- **Gate tightened before any result:** the average must beat *both* members.
+- **Result:** holdout body vs v37 −0.75; vs v40 +0.51 (Jan −0.06, Jul +0.90). It lands between the members. **REJECT.**
+- Members differ by 90 s RMS on 2026 against 68 s on the holdout, consistent with the 2026 ADS-B coverage shift.
+
+## 86. ADS-B corrector block at coverage-stable airports only -- v41 built (2026-10-06)
+
+- `reports/ctx_adsb_stable_preregistration.md`, `tests/ctx_adsb_stable_test.py`.
+- **Treatment:** v40's corrector at EHAM/LSZH/EDDF/LEBL, v37's elsewhere, through v37's chain.
+- **Stage 2 vs v37's chain:** body −0.45 (Jan −0.64, Jul −0.32); trimmed +0.05, full +0.06. **ADOPT** under the rule.
+- **v41:** RMS 24.9 s from v37. Keep iff board < 254.01; a null result closes block 9.
+
+**Board (2026-10-06): v41 = 253.68 (−0.33 vs v37). ADOPTED; new best.**
+- About 73% of the holdout body gain transferred.
+- v40's failure was most likely the airports whose ADS-B coverage shifts between 2025 and 2026.
+- **New production recipe:** `ctxsel` (v40's corrector at EHAM/LSZH/EDDF/LEBL, v37's elsewhere) through v37's chain.
+- **Lesson:** gate any ADS-B-dependent change per airport on 2025-vs-2026 coverage similarity, not only on pooled holdout gain.

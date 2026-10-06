@@ -1,0 +1,23 @@
+matched rate per airport (2025 Jan/Jul -> 2026 Jan/Jul):
+  EDDF  Jan 0.68 -> 0.50   Jul 0.73 -> 0.63
+  EDDM  Jan 0.97 -> 0.99   Jul 0.37 -> 0.98
+  EGLL  Jan 0.16 -> 0.57   Jul 0.07 -> 0.98
+  EHAM  Jan 0.97 -> 1.00   Jul 1.00 -> 1.00
+  LEBL  Jan 0.95 -> 0.85   Jul 0.76 -> 0.88
+  LEMD  Jan 0.00 -> 0.96   Jul 0.04 -> 0.45
+  LFPG  Jan 0.00 -> 0.09   Jul 0.13 -> 0.10
+  LIRF  Jan 0.00 -> 0.57   Jul 0.72 -> 0.00
+  LSZH  Jan 0.73 -> 0.85   Jul 0.70 -> 0.85
+  LTFM  Jan 0.00 -> 0.00   Jul 0.00 -> 0.00
+block-9 shift among matched rows, 2025 vs 2026 (SMD per month; |SMD| > 0.25 -> drop):
+  ab_taxi            Jan +0.100  Jul +0.038
+  ab_L               Jan +0.104  Jul +0.150
+  ab_first_gs        Jan -0.046  Jul -0.215
+  ab_first_own_m     Jan +0.072  Jul -0.050
+  ab_min_own_m       Jan +0.062  Jul -0.034
+  ab_n_pts           Jan +0.188  Jul +0.099
+  ab_takeoff_gap_s   Jan +0.067  Jul +0.082
+  ab_pb_gap_s        Jan -0.005  Jul -0.040
+  ab_pb_dist_m       Jan +0.016  Jul -0.026
+  ab_pb_gs           Jan -0.064  Jul -0.038
+CTX_ADSB_DROP=

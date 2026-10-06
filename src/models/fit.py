@@ -82,6 +82,20 @@ ECHO_WIDE_CEIL = 140000
 # other airport's reconstruction is byte-identical to before.
 LIRF_RAW_CEIL = ECHO_WIDE_CEIL
 LABEL_LO, LABEL_HI = 30, 7200
+# PRC_LABEL_CLIP=1 (reports/base_label_clip_preregistration.md): keep the rows with taxi > LABEL_HI and
+# clip their target at LABEL_HI instead of dropping them. For the flip target that is
+# d + max(taxi - LABEL_HI, 0), i.e. the d implied by the clipped taxi. Default (unset) is unchanged.
+LABEL_CLIP = os.environ.get("PRC_LABEL_CLIP") == "1"
+
+
+def _train_target(taxi: np.ndarray, d: np.ndarray, t: str) -> tuple[np.ndarray, np.ndarray]:
+    """(rows used to fit the regressor, its target) for target t in {flip, direct}."""
+    if LABEL_CLIP:
+        keep = taxi >= LABEL_LO
+        excess = np.clip(taxi - LABEL_HI, 0, None)
+        return keep, (d + excess if t == "flip" else taxi - excess)
+    keep = (taxi >= LABEL_LO) & (taxi <= LABEL_HI)
+    return keep, (d if t == "flip" else taxi)
 
 # Training budget. ROUNDS is a ceiling — early stopping on an inner-validation
 # month (VALID_MONTH, carved out of the training split) picks the real count,
@@ -573,12 +587,11 @@ def fit_predict_months(engine: str, feats: pl.DataFrame, lab: pl.DataFrame,
     d_tr = tr_lab["d"].to_numpy()
     taxi_tr = tr_lab["taxi"].to_numpy()
     ym_tr = tr_lab["ym"].to_numpy()
-    keep = (taxi_tr >= LABEL_LO) & (taxi_tr <= LABEL_HI)
     iv = ym_tr == valid_month
-    tr_mask, va_mask = keep & ~iv, keep & iv
     fits = {}
     for t in targets_to_fit:
-        y_tr = d_tr if t == "flip" else taxi_tr
+        keep, y_tr = _train_target(taxi_tr, d_tr, t)
+        tr_mask, va_mask = keep & ~iv, keep & iv
         _mem(f"before holdout fit ({t})")
         m, pf, bi = fitter(
             Xtr[tr_mask], y_tr[tr_mask], cats,
@@ -823,13 +836,12 @@ def _refit_and_submit(engine, feat_dir, name, feats, lab, fits, clf_best, ev, ta
     genc_a = fit_group_encodings(lab_a)
     Xall, names_a, cats_a, cats_map = _matrix(f_all)
     _mem("refit: Xall matrix")
-    keep = lab_a["taxi"].is_between(LABEL_LO, LABEL_HI).to_numpy()
     d_all_lab = lab_a["d"].to_numpy()
     taxi_all_lab = lab_a["taxi"].to_numpy()
     fits_a = {}
     for t in targets_to_fit:
         full_rounds = max(200, int(round(fits[t][2] * refit_scale)))
-        y_all = d_all_lab if t == "flip" else taxi_all_lab
+        keep, y_all = _train_target(taxi_all_lab, d_all_lab, t)
         m_a, p_a, _ = fitter(Xall[keep], y_all[keep], cats_a,
                              eta=eta, rounds=full_rounds, es=0, valid=None,
                              objective=objective, alpha=alpha, seed=seed)

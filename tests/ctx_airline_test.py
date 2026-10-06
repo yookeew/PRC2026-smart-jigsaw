@@ -12,6 +12,7 @@ import os
 os.environ.setdefault("POLARS_UNKNOWN_EXTENSION_TYPE_BEHAVIOR", "load_as_storage")
 os.environ["CTX_RWY"] = "1"
 os.environ["CTX_AIR"] = "1"
+os.environ["CTX_AIR_EXCL"] = "1,7"   # amendment 2026-10-05: holdout months never enter the airline table
 
 import sys
 from pathlib import Path
@@ -55,8 +56,9 @@ def main() -> None:
     fit = (~is_ho) & (~nm) & (y <= O.TRIM) & ~lr
     app = is_ho & ~lr
     win = P["win"]
+    rot_cols = [c for c in cols if not c.startswith("al_")]
     res = {}
-    for arm, cc in (("control", ctrl_cols), ("treatment", cols)):
+    for arm, cc in (("control", ctrl_cols), ("rotation", rot_cols), ("treatment", cols)):
         X = P["X_full"].select(cc).to_numpy().astype(np.float64)
         cats = [cc.index(c) for c in P["catn"] if c in cc]
         c, best = CC.fit_apply_ens(X, y - s, fit, inner, app, cats, apt)
@@ -65,16 +67,17 @@ def main() -> None:
         print(f"  {arm}: global best_iter {best}", flush=True)
     body = is_ho & (~nm) & (y <= 3600)
     r = lambda q, k: float(np.sqrt(np.mean((y - q)[k] ** 2)))
-    print(f"\n{'slice (holdout)':20s} {'control':>9s} {'treatment':>10s} {'delta':>7s}")
+    print(f"\n{'slice (holdout)':20s} {'control':>9s} {'rotation':>9s} {'treatment':>10s} {'rot-c':>7s} {'t-c':>7s}")
     rows = [("body pooled", body), ("body Jan", body & (m == 1)), ("body Jul", body & (m == 7)),
             ("trimmed", is_ho & (y <= O.TRIM))] + [(f"  body {a}", body & (apt == a)) for a in sorted(set(apt))]
     for name, k in rows:
-        a1, a2 = r(res["control"], k), r(res["treatment"], k)
-        print(f"{name:20s} {a1:9.2f} {a2:10.2f} {a2 - a1:+7.2f}")
-    g = {n: r(res["control"], k) - r(res["treatment"], k) for n, k in (("pooled", body), ("Jan", body & (m == 1)), ("Jul", body & (m == 7)))}
+        a1, a0, a2 = r(res["control"], k), r(res["rotation"], k), r(res["treatment"], k)
+        print(f"{name:20s} {a1:9.2f} {a0:9.2f} {a2:10.2f} {a0 - a1:+7.2f} {a2 - a1:+7.2f}")
     tk = is_ho & (y <= O.TRIM)
-    ok = g["pooled"] >= 0.5 and g["Jan"] > 0 and g["Jul"] > 0 and r(res["treatment"], tk) <= r(res["control"], tk)
-    print(f"\nSTAGE 1: body gain {g} -> {'PROCEED to stage 2' if ok else 'STOP'}")
+    for arm in ("rotation", "treatment"):
+        g = {n: r(res["control"], k) - r(res[arm], k) for n, k in (("pooled", body), ("Jan", body & (m == 1)), ("Jul", body & (m == 7)))}
+        ok = g["pooled"] >= 0.5 and g["Jan"] > 0 and g["Jul"] > 0 and r(res[arm], tk) <= r(res["control"], tk)
+        print(f"STAGE 1 {arm}: body gain {g} -> {'PROCEED to stage 2' if ok else 'STOP'}")
 
 
 if __name__ == "__main__":
