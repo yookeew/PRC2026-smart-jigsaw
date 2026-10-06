@@ -4629,3 +4629,17 @@ the stage-C holdout gain).
 - v40's failure was most likely the airports whose ADS-B coverage shifts between 2025 and 2026.
 - **New production recipe:** `ctxsel` (v40's corrector at EHAM/LSZH/EDDF/LEBL, v37's elsewhere) through v37's chain.
 - **Lesson:** gate any ADS-B-dependent change per airport on 2025-vs-2026 coverage similarity, not only on pooled holdout gain.
+
+## 87. Findings from the `lower-rmse` branch (never merged to main; recorded here 2026-10-06)
+
+Work done on the `lower-rmse` branch on 2026-10-05 (its PROGRESS §87–§92). Its version numbers overlap main's: that branch built v39–v44 (v40 uploaded), main built v38–v41. **Next free version number for either line: v45.**
+
+- **§87 audit (context corrector on NM-unmatched rows).** The context corrector (`ctxcorr2r`: ensemble2 + runway block + the sorted-vocabulary encoding fix) is trained on NM-matched rows only (`FLIGHT_ID_mvt` not null) but applied to NM-unmatched rows.
+  - On those rows 16 inputs (g_aobt3, nm_dur_*, dist_lobt/iobt/eobt/aobt, ret_overdue_*, ret_active_rwy, nm_div/type_eq/ades_eq) are always null, and never null in training, so it extrapolates down untrained NaN branches.
+  - Its shift there is a flat level with no row-level signal (12 months out of sample: correlation with the realised residual ≈ 0; LIRF shift +454 s vs realised −563 s).
+  - Out of sample on the training months (two-month-block OOF fits), applying it to NM-unmatched rows: **LIRF worse in 9/10 months (+553M SSE)**, LTFM better (−426M), LEBL/LFPG slightly worse; pooled about neutral.
+- **v40 (that branch's file)** = v37 with the corrector's shift removed, after the chain, on the 357 LIRF NM-unmatched ranking rows. It passed every holdout test but **scored 255.40 vs v37's 254.01**. It is the fifth LIRF miss (v20, §42, v22, v28, v40).
+  - **TEAM RULE: no change may alter LIRF NM-unmatched departures.**
+  - (Main's own v40, §82, is a different file: 254.12.)
+- **Dress rehearsal.** Every stage refit without the holdout, with inputs built in ranking mode: no ranking-mode bugs. The context corrector, combiner, neighbour stage and nm_lines all help out of sample. Refitting nm_lines / lobt_window on the training months only made things worse (§91 there; v42 not built).
+- **Withdrawn:** a leaderboard-fitted rescaling of stages (v41/v41b on that branch) was built and withdrawn without being submitted, because it learns from the ranking process. Files built there and never uploaded: v39, v41–v44.
