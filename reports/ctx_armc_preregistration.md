@@ -89,7 +89,16 @@ Nothing is uploaded. Nothing is fitted to board scores. All fits use 2025 only; 
 
 ## Amendments
 
-(none)
+**A1 (2026-10-06, before any arm result): the gate's base is rebuilt on this machine.**
+- Rebuilding the teammate's `ctxcorr2rb` inputs here with their unchanged code (`oof_context_corrector_stage2.build_inputs`, `CTX_ENS=2 CTX_RWY=1 CTX_ADSB=1`) gives holdout `best_iter` 1,404 against 1,835 in `logs/ctx_adsb_stage2.log`. So LightGBM is not bit-reproducible across our two machines.
+- The `ctxcorr2r` holdout/OOF files in the local cache came from the teammate's machine.
+- Comparing arms fitted here against members fitted there would mix machine noise into the delta.
+- **Base of the gate = `ctxc0sel`:**
+  - `ctxc0r` = the BASE `r` recipe through `src/post/ctx_armc.py` with `ARMC_ARM=c0`, which leaves the rows and inputs unchanged;
+  - `ctxc0rb` = the `ctxcorr2rb` inputs rebuilt here with the teammate's code;
+  - combined per airport as `ctxsel`.
+- The base chain's body/trimmed/full are printed next to the teammate's `ctxsel` gate numbers (194.13 / 246.06 / 304.77) as a reproduction check.
+- The production BASE file (v41) is rebuilt from the teammate's `ctxcorr2r.parquet` ranking file plus `ctxcorr2rb` refit here; see Results for how close it is.
 
 ## Results
 
