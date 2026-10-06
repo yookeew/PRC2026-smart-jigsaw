@@ -102,4 +102,74 @@ Nothing is uploaded. Nothing is fitted to board scores. All fits use 2025 only; 
 
 ## Results
 
-(pending)
+(2026-10-06. Logs: `logs/ctx_armc_gate.log`, `logs/ctx_armc_oos.log`, `logs/ctx_armc_diag.log`, `logs/armc_*`, `logs/v41rebuild_*`, `logs/v45_*`.)
+
+**Reproduction.**
+- **Gate base** (`ctxc0sel`, built here) through v41's chain: body / trimmed / full = 194.20 / 245.95 / 304.75. The teammate's `ctxsel` gate gave 194.13 / 246.06 / 304.77.
+- **Machine noise at the corrector stage:** `ctxc0r` vs the teammate's `ctxcorr2r` holdout file differs by 19.4 s RMS (trimmed 260.54 vs 260.17).
+- **Production BASE rebuild** (`smart-jigsaw_v41_rebuild.parquet`: teammate's `ctxcorr2r.parquet` + `ctxcorr2rb` refit here, `ctxsel`, v41's chain):
+  - 25.6 s RMS from v37 (teammate's v41: 24.9 s);
+  - 7 rows under 120 s, minimum 98 (v41: 13, minimum 6);
+  - window moved 43 rows (v41: 44); nm_lines changed 96 + 4 rows (same).
+  - The uploaded v41 file is not on this machine, so a byte comparison was not possible.
+  - `nm_lines.py`'s holdout printout needs `cache/eval/v31_chain_holdout.parquet`, which is missing here. It was skipped with `src/post/nm_lines_nocheck.py`; the fit is unchanged.
+
+**Gate** (treatment − base; LIRF NM-unmatched rows copied, 397 holdout rows, max |diff| 0):
+
+| check | C1 | C2 |
+|---|---|---|
+| body pooled / Jan / Jul | −0.25 / −0.45 / −0.12 | −0.20 / −0.44 / −0.04 |
+| trimmed pooled (P worse) | **−0.91 (0.000)** | −0.88 (0.003) |
+| trimmed Jan / Jul | −1.59 / −0.53 | −1.58 / −0.50 |
+| full pooled (P worse) | **−0.80 (0.000)** | −0.84 (0.001) |
+| full Jan / Jul | −1.08 / −0.54 | −1.22 / −0.49 |
+| full without the 5 largest-gain days | −0.41 | −0.51 |
+| NM-unmatched non-LIRF full (P worse) | −7.08 (0.001) | −8.59 (0.001) |
+| rules 1–5 | all PASS | all PASS |
+
+- **NM-unmatched non-LIRF rows under C1, per airport:** EDDF −17.7, EDDM −49.0, EGLL −36.0, EHAM −27.7, LEBL −0.3, LEMD −20.6, LFPG −6.2, LSZH +2.7, LTFM +13.5.
+- **Trimmed RMSE under C1, per airport:** EHAM −3.66, EGLL −3.30, LFPG −2.25, EDDM −1.24; LSZH +0.65, LTFM +0.69; LIRF 0.00.
+- **C2 vs C1, pooled trimmed:** +0.03, P(worse) 0.558. **Both arms pass, so C1 is preferred: ADOPT C1.**
+- About 64% of C1's full-RMSE SSE gain is on NM-unmatched non-LIRF rows; the rest is on matched rows through the refit.
+
+**Out-of-sample check** (10 training months, OOF blocks; corrector vs uncorrected stack on NM-unmatched non-line rows):
+- BASE corrector (`ctxc0sel`): pooled +170M. LIRF +679M (1/10 months better); LTFM −387M.
+- **C1: pooled −1,839M.** ≥ 7/10 months better at EDDF, EGLL, EHAM, LEBL, LEMD, LFPG, LSZH. Not at:
+  - EDDM 6/10 (−63M);
+  - LTFM 5/10 (−1,124M, concentrated in a few months);
+  - LIRF 2/10 (−10M; copied from the BASE anyway).
+- C2 is about the same as C1.
+
+**2026 ranking diagnostics** (5,187 NM-unmatched served rows):
+- **Rows with a never-seen input null pattern: 13.6% -> 0.1%** (C1 and C2).
+- **Corrector shift vs the stack, mean / RMS (s), BASE -> C1:**
+  - EDDF +79/135 -> +92/255;
+  - EDDM +51/103 -> +391/563;
+  - EGLL −11/102 -> +227/407;
+  - EHAM +168/340 -> +522/889;
+  - LEBL +126/239 -> +78/235;
+  - LEMD +53/143 -> +119/176;
+  - LFPG +242/287 -> +240/511;
+  - LIRF +690/826 -> −499/1,222 (overwritten by the BASE copy);
+  - LSZH +47/210 -> +108/356;
+  - LTFM +84/163 -> +205/564.
+- **Risk flag: EHAM, January 2026.**
+  - NM-unmatched rows 2–6 h late: 466 in Jan 2026 against 68 in Jan 2025.
+  - Corrector shift +974 s, against +74 s for the same delay bin in 2025 (realised there: +90 s).
+  - The cell is the winter-storm month (§78), barely represented on the holdout.
+  - Label-free context:
+    - In Jan 2025, NM-unmatched 2–6 h-late departures averaged 1,682 s against 910 s for matched ones.
+    - In Jan 2026, matched rows' T − AOBT_3 is about 31% above Jan 2025 in that bin.
+    - v45's median there (2,168 s; v41 1,486 s) is in that range.
+  - Plausible, not verified. Reported, not decisive under this pre-registration.
+- **LSZH.** v45 has 35 LSZH NM-unmatched rows under 120 s (minimum 0). That is learned: 20.6% of 2025 LSZH NM-unmatched labels are under 60 s (p10 = 0), and rows are selected on the prediction, never the label.
+
+**Build: `data/submissions/smart-jigsaw_v45.parquet`** (`ctxc1sel` through v41's chain, then `src/post/armc_build.py` against `smart-jigsaw_v41_rebuild.parquet`).
+- Checks: 344,841 rows; MVT_ID set = template; no nulls or negatives; the 383 LIRF NM-unmatched rows are identical to the BASE rebuild (the chain had moved 357 of them).
+- **vs the BASE rebuild:** RMS 43.7 s, mean +1.66 s.
+  - NM-matched: RMS 25.8 s. Mostly corrector refit noise; the same-machine refit noise alone is ~19 s.
+  - NM-unmatched: RMS 286.5 s.
+  - By airport, NM-unmatched RMS / mean: EHAM 449 / +253, LTFM 315 / +23, LFPG 283 / +55, EDDM 258 / +120, EGLL 225 / +85, LSZH 161 / +40, EDDF 159 / −8, LEMD 95 / +29, LEBL 77 / −27, LIRF 0.
+- 39 rows under 120 s (minimum 0); BASE rebuild 7.
+
+**Caveat.** The cluster bootstrap measures day-to-day sampling only, not model-refit noise. Refit noise is ~0.4 trimmed at the corrector stage across machines; same-machine refit noise was not measured.

@@ -1,0 +1,14 @@
+OOF stack weights: [0.577 0.428]
+rows 2,084,967 (OOF 1,740,628, holdout 344,339); features 58
+C:\Users\zhang\smart-jigsaw\src\post\ctx_armc.py:86: DeprecationWarning: the default behavior of `how='horizontal'` for `concat` is deprecated and will require equal heights in the next breaking release. Use `how='horizontal_extend'` to keep the current behavior.
+(Deprecated in version 1.42.1)
+  X = pl.concat([X, echo], how="horizontal")
+ctxc2rb: features 61; trainable rows 1,740,247 (BASE 1,723,569, NM-unmatched added 16,678)
+  ec_rate null share 0.012; mean 0.010
+holdout corrector: best_iter 1590
+OOF block (2, 3): best_iter 1294
+OOF block (4, 5): best_iter 742
+OOF block (6, 8): best_iter 1952
+OOF block (9, 10): best_iter 1347
+OOF block (11, 12): best_iter 1309
+wrote ctxc2rb_holdout_ev.parquet and cache\oof\ctxc2rb

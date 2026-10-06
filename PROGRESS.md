@@ -4643,3 +4643,25 @@ Work done on the `lower-rmse` branch on 2026-10-05 (its PROGRESS §87–§92). I
   - (Main's own v40, §82, is a different file: 254.12.)
 - **Dress rehearsal.** Every stage refit without the holdout, with inputs built in ranking mode: no ranking-mode bugs. The context corrector, combiner, neighbour stage and nm_lines all help out of sample. Refitting nm_lines / lobt_window on the training months only made things worse (§91 there; v42 not built).
 - **Withdrawn:** a leaderboard-fitted rescaling of stages (v41/v41b on that branch) was built and withdrawn without being submitted, because it learns from the ranking process. Files built there and never uploaded: v39, v41–v44.
+
+## 88. Context corrector Arm C (NM-unmatched rows in training) on v41's chain -- C1 gate PASS; v45 built (2026-10-06)
+
+- `reports/ctx_armc_preregistration.md` (committed before any result; amendment A1 = gate base rebuilt on this machine), `src/post/ctx_armc.py`, `tests/ctx_armc_test.py`, `src/post/armc_build.py`, `src/post/nm_lines_nocheck.py`.
+- **BASE = v41 (253.68)**, recipe `ctxsel`. Part 0 coverage check: main had none of (a) NM-unmatched rows in the corrector, (b) an indicator, (c) an operator echo block (only the rejected `al_copy`), or (d) any NM-unmatched bypass.
+- **C1** = both corrector members also trained on NM-unmatched non-line rows with stack ≤ 7,200 s (selected on the prediction), plus `nm_unmatched`.
+- **C2** = C1 + per-(airport, operator) delayed-echo rate. The rate is null on every NM-unmatched row, because their operator is null.
+- **Gate vs the BASE chain (same machine):**
+  - **C1: trimmed −0.91 (P 0.000), full −0.80, body −0.25.** Jan −1.59 / Jul −0.53 trimmed; −0.41 full without the 5 best days; NM-unmatched non-LIRF −7.08 (P 0.001).
+  - C2 about the same (C2 vs C1 +0.03).
+  - **Both pass all five rules: ADOPT C1.**
+- **Out of sample (10 training months):** on NM-unmatched rows the corrector goes from +170M SSE (harmful, LIRF-driven) to −1,839M.
+- **2026:** never-seen input null patterns on NM-unmatched rows 13.6% -> 0.1%.
+- **Risk:** EHAM Jan 2026 NM-unmatched rows 2–6 h late get +974 s (2025: +74 s). It is the storm month, with 7× the holdout count. Plausible from label-free context; untested by the gate.
+- **v45** = `smart-jigsaw_v45.parquet`: LIRF NM-unmatched rows copied from the BASE (team rule). RMS 43.7 s from the BASE rebuild: matched 25.8 s (mostly refit noise), unmatched 286.5 s.
+  - The BASE here is a rebuild: the uploaded v41 file is not on this machine. Its LIRF NM-unmatched rows may differ slightly from the uploaded v41's.
+  - To copy from the real file: `src/post/armc_build.py smart-jigsaw_v41.parquet chain_ctxc1sel_final.parquet smart-jigsaw_v45.parquet`.
+- **Rule:** keep iff board < 253.68. Not uploaded.
+- **Build:**
+  1. Inputs: `ARMC_ARM=c1 CTX_ENS=2 CTX_RWY=1 [CTX_ADSB=1] src/post/ctx_armc.py inputs`, then `prod`, then `ARMC_ARM=c1 src/post/ctx_armc.py sel`.
+  2. With `PRC_LGB=ctxc1sel`, v41's chain (`nm_lines_nocheck.py` in place of `nm_lines.py`) -> `chain_ctxc1sel_final.parquet`.
+  3. `armc_build.py`.

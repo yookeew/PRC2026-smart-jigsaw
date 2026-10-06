@@ -1,0 +1,11 @@
+Tue Oct  6 17:11:03 WEST 2026
+OOF stack weights: [0.577 0.428]
+rows 2,084,967 (OOF 1,740,628, holdout 344,339); features 58
+holdout corrector: best_iter 1404
+OOF block (2, 3): best_iter 1549
+OOF block (4, 5): best_iter 1214
+OOF block (6, 8): best_iter 1605
+OOF block (9, 10): best_iter 1848
+OOF block (11, 12): best_iter 1710
+elapsed 993
+Tue Oct  6 17:27:37 WEST 2026

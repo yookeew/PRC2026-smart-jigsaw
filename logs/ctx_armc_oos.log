@@ -1,0 +1,37 @@
+NM-unmatched non-line OOF rows: 16,903
+
+ctxc0sel: corrector vs stack on NM-unmatched rows; pooled dSSE +170M; shift mean +96.2 s RMS 219.3 s
+   EDDF  better in  8/10 months  dSSE      -7.9M   >= 7/10
+   EDDM  better in  9/10 months  dSSE     -25.8M   >= 7/10
+   EGLL  better in  9/10 months  dSSE     -35.7M   >= 7/10
+   EHAM  better in 10/10 months  dSSE     -55.7M   >= 7/10
+   LEBL  better in  8/10 months  dSSE      -3.1M   >= 7/10
+   LEMD  better in  3/10 months  dSSE      -0.2M
+   LFPG  better in  4/10 months  dSSE      +6.3M
+   LIRF  better in  1/10 months  dSSE    +679.1M
+   LSZH  better in  6/10 months  dSSE      +0.1M
+   LTFM  better in 10/10 months  dSSE    -386.9M   >= 7/10
+
+ctxc1sel: corrector vs stack on NM-unmatched rows; pooled dSSE -1839M; shift mean +75.3 s RMS 431.6 s
+   EDDF  better in 10/10 months  dSSE     -33.4M   >= 7/10
+   EDDM  better in  6/10 months  dSSE     -62.8M
+   EGLL  better in 10/10 months  dSSE    -121.6M   >= 7/10
+   EHAM  better in 10/10 months  dSSE     -89.2M   >= 7/10
+   LEBL  better in  9/10 months  dSSE     -36.5M   >= 7/10
+   LEMD  better in  7/10 months  dSSE      -5.7M   >= 7/10
+   LFPG  better in 10/10 months  dSSE    -326.2M   >= 7/10
+   LIRF  better in  2/10 months  dSSE      -9.7M
+   LSZH  better in  7/10 months  dSSE     -30.4M   >= 7/10
+   LTFM  better in  5/10 months  dSSE   -1124.1M
+
+ctxc2sel: corrector vs stack on NM-unmatched rows; pooled dSSE -1841M; shift mean +74.9 s RMS 424.7 s
+   EDDF  better in 10/10 months  dSSE     -33.3M   >= 7/10
+   EDDM  better in  6/10 months  dSSE     -61.9M
+   EGLL  better in 10/10 months  dSSE    -128.3M   >= 7/10
+   EHAM  better in 10/10 months  dSSE     -89.2M   >= 7/10
+   LEBL  better in  9/10 months  dSSE     -36.6M   >= 7/10
+   LEMD  better in  8/10 months  dSSE      -6.6M   >= 7/10
+   LFPG  better in 10/10 months  dSSE    -328.5M   >= 7/10
+   LIRF  better in  3/10 months  dSSE     -83.6M
+   LSZH  better in  7/10 months  dSSE     -29.7M   >= 7/10
+   LTFM  better in  5/10 months  dSSE   -1043.0M
