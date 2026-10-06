@@ -34,8 +34,16 @@ PARAMS = dict(objective="regression", num_leaves=63, learning_rate=0.05, min_dat
 TRIM = 18000
 RWY = os.environ.get("CTX_RWY") == "1"    # block 7, reports/ctx_runway_preregistration.md
 AIR = os.environ.get("CTX_AIR") == "1"    # block 8, reports/ctx_airline_preregistration.md
+ADSB = os.environ.get("CTX_ADSB") == "1"  # block 9, reports/ctx_adsb_preregistration.md
+DET4 = ROOT / "cache" / "adsb_pushback_v4"
+AB_TIERS = ["none", "appear", "dwell", "pass", "fb_dwell", "fb_appear"]
+AB_DROP = [c for c in os.environ.get("CTX_ADSB_DROP", "").split(",") if c]   # shift-check drops (pre-registration rule)
+_DET: dict = {}
 FEATS = ROOT / "cache" / "features_nb"
 AIR_MIN = 30
+# months kept out of the airline table (gates: "1,7" so holdout labels never enter it, as for the cells);
+# production leaves it empty and uses all 12 months
+AIR_EXCL = [int(x) for x in os.environ.get("CTX_AIR_EXCL", "").split(",") if x]
 _AIR_TAB: dict = {}                        # airline table from the labelled frame, reused for the ranking frame
 
 
@@ -183,7 +191,7 @@ def airline_block(dep: pl.DataFrame, p: np.ndarray) -> pl.DataFrame:
         cp=((pl.col("y") - (pl.col("T") - pl.col("t_SCHED_TIME_UTC_mvt"))).abs() <= 60).cast(pl.Float64))
     labelled = d["y"].null_count() < d.height
     if labelled:
-        src = d.filter(pl.col("y").is_not_null() & (pl.col("y") <= TRIM) & ~pl.col("nm"))
+        src = d.filter(pl.col("y").is_not_null() & (pl.col("y") <= TRIM) & ~pl.col("nm") & ~pl.col("m").is_in(AIR_EXCL))
         g = src.group_by("apt", "op", "m").agg(sr=pl.col("r").sum(), sc=pl.col("cp").sum(), n=pl.len())
         _AIR_TAB["g"] = g
     g = _AIR_TAB["g"]
@@ -207,6 +215,29 @@ def airline_block(dep: pl.DataFrame, p: np.ndarray) -> pl.DataFrame:
     rr = dep.select("MVT_ID_mvt").join(rot, on="MVT_ID_mvt", how="left")
     assert rr.height == dep.height
     return pl.concat([out, rr.drop("MVT_ID_mvt")], how="horizontal")
+
+
+def adsb_block(dep: pl.DataFrame, p: np.ndarray) -> pl.DataFrame:
+    """Block 9: ADS-B track state from the v4 detector (reports/ctx_adsb_preregistration.md). Rows of
+    days that were never fetched have ab_avail = 0 and null track columns."""
+    if "d" not in _DET:
+        _DET["d"] = (pl.concat([pl.read_parquet(f) for f in sorted(DET4.glob("day=*.parquet"))], how="diagonal")
+                     .with_columns(pl.col("MVT_ID_mvt").cast(pl.Int64)).unique("MVT_ID_mvt"))
+    x = dep.select("MVT_ID_mvt", "T").join(_DET["d"], on="MVT_ID_mvt", how="left")
+    assert x.height == dep.height
+    f = lambda c: pl.col(c).cast(pl.Float64)
+    out = x.select(
+        ab_avail=pl.col("airport").is_not_null().cast(pl.Float64),
+        ab_cov=f("adsb_day_coverage"), ab_matched=f("adsb_matched"), ab_fallback=f("adsb_fallback"),
+        ab_tier=pl.when(pl.col("airport").is_not_null()).then(
+            pl.col("adsb_tier").fill_null("none").replace_strict({t: i for i, t in enumerate(AB_TIERS)}, default=0,
+                                                                 return_dtype=pl.Float64)),
+        ab_taxi=pl.col("T") - pl.col("adsb_pushback_ts"), ab_L=pl.col("T") - pl.col("adsb_first_ts"),
+        ab_first_gs="adsb_first_gs", ab_first_own_m="adsb_first_own_m", ab_min_own_m="adsb_min_own_m",
+        ab_n_pts=f("adsb_n_pts"), ab_takeoff_gap_s="adsb_takeoff_gap_s",
+        ab_pb_gap_s="adsb_pb_gap_s", ab_pb_dist_m="adsb_pb_dist_m", ab_pb_gs="adsb_pb_gs",
+    ).with_columns(ab_taxi_rel=pl.col("ab_taxi") - pl.Series(p), ab_L_rel=pl.col("ab_L") - pl.Series(p))
+    return out.drop(AB_DROP)
 
 
 def cell_table(train: pl.DataFrame) -> list[tuple[list[str], pl.DataFrame]]:
@@ -246,7 +277,8 @@ def build(dep: pl.DataFrame, arr: pl.DataFrame, p: np.ndarray, cells) -> tuple[p
     b4 = pl.DataFrame(dist).with_columns(absd["dist_min"],
                                          n_plans=pl.sum_horizontal([g[c].is_not_null().cast(pl.Float64) for c in REFS]))
     b56 = time_blocks(dep, arr, p)
-    parts = [base, b1, b2, b3, b4, b56] + ([runway_block(dep, arr)] if RWY else []) + ([airline_block(dep, p)] if AIR else [])
+    parts = ([base, b1, b2, b3, b4, b56] + ([runway_block(dep, arr)] if RWY else []) + ([airline_block(dep, p)] if AIR else [])
+             + ([adsb_block(dep, p)] if ADSB else []))
     X = pl.concat(parts, how="horizontal")
     return X, ctrl, ["apt_c", "stand_pfx"] + (["al_op"] if AIR else [])
 

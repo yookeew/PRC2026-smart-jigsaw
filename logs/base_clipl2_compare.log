@@ -1,0 +1,21 @@
+arm c (lgb_mixed_nb_clipl2) vs arm a (lgb_mixed_nb)
+slice                      a         c    delta
+body pooled           215.86    218.82    +2.96
+body Jan              197.82    200.93    +3.11
+body Jul              229.53    232.39    +2.86
+trimmed (<=5h)        271.99    276.55    +4.55
+full                  334.33    342.47    +8.14
+disrupted days        500.91    532.35   +31.44
+other days            320.23    325.99    +5.75
+  body EDDF           177.54    178.49    +0.95
+  body EDDM           166.45    168.73    +2.27
+  body EGLL           223.46    226.25    +2.78
+  body EHAM           163.49    164.58    +1.10
+  body LEBL           219.84    220.46    +0.62
+  body LEMD           176.57    176.86    +0.29
+  body LFPG           230.02    233.42    +3.40
+  body LIRF           345.38    357.91   +12.54
+  body LSZH           169.04    170.21    +1.17
+  body LTFM           238.91    240.26    +1.35
+
+SCREEN: body gain {'pooled': -2.9570197535181535, 'Jan': -3.107344547931831, 'Jul': -2.864357716220013}, full not worse False -> does not qualify

@@ -1,0 +1,31 @@
+block-8 shift, 2025 vs 2026 (SMD per month):
+  al_res         Jan +0.028  Jul +0.011
+  al_copy        Jan -0.003  Jul +0.017
+  al_n           Jan -0.006  Jul -0.007
+  ro_inb_delay   Jan +0.139  Jul -0.055
+  ro_sched_ground Jan +0.016  Jul +0.116
+  ro_actual_ground Jan +0.016  Jul +0.116
+  ro_link_conf   Jan -0.019  Jul -0.024
+OOF stack weights: [0.577 0.428]
+rows 2,084,967 (OOF 1,740,628, holdout 344,339); features 49
+  control: global best_iter 1492
+  rotation: global best_iter 2376
+  treatment: global best_iter 2532
+
+slice (holdout)        control  rotation  treatment   rot-c     t-c
+body pooled             205.97    205.86     205.53   -0.11   -0.44
+body Jan                188.32    188.12     187.73   -0.20   -0.59
+body Jul                219.32    219.27     218.98   -0.05   -0.34
+trimmed                 259.88    260.28     257.29   +0.41   -2.59
+  body EDDF             172.71    172.45     172.47   -0.26   -0.23
+  body EDDM             158.20    157.98     158.74   -0.22   +0.54
+  body EGLL             216.79    216.36     216.02   -0.43   -0.77
+  body EHAM             155.64    155.25     155.67   -0.39   +0.03
+  body LEBL             214.65    214.55     214.58   -0.10   -0.07
+  body LEMD             169.24    169.01     168.90   -0.24   -0.34
+  body LFPG             222.80    222.72     222.54   -0.08   -0.26
+  body LIRF             315.76    316.80     314.35   +1.03   -1.41
+  body LSZH             162.58    162.66     162.54   +0.08   -0.05
+  body LTFM             228.16    227.66     227.32   -0.50   -0.84
+STAGE 1 rotation: body gain {'pooled': 0.11369621994734302, 'Jan': 0.1995786698996369, 'Jul': 0.054096889580705465} -> STOP
+STAGE 1 treatment: body gain {'pooled': 0.43961846072457433, 'Jan': 0.5884090241103479, 'Jul': 0.33758086571995705} -> STOP

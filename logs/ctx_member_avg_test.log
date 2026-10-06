@@ -1,0 +1,64 @@
+holdout: members differ by 68.4 s RMS
+oof fold=02-03.parquet: members differ by 43.2 s RMS
+oof fold=04-05.parquet: members differ by 42.0 s RMS
+oof fold=06-08.parquet: members differ by 45.0 s RMS
+oof fold=09-10.parquet: members differ by 46.7 s RMS
+oof fold=11-12.parquet: members differ by 47.6 s RMS
+ranking: members differ by 90.3 s RMS
+thin-day rule: 115 days kept, 7 dropped
+shape: (7, 5)
+| day        | status   | bad_members | points | med        |
+| ---        | ---      | ---         | ---    | ---        |
+| str        | str      | i64         | i64    | f64        |
+|------------|----------|-------------|--------|------------|
+| 2025-08-10 | tolerant | 1           | 211018 | 1.572131e6 |
+| 2025-10-04 | ok       | 0           | 0      | 1672691.5  |
+| 2025-10-07 | tolerant | 1           | 206056 | 1672691.5  |
+| 2025-11-19 | tolerant | 1           | 142500 | 1.549465e6 |
+| 2025-11-22 | tolerant | 1           | 247284 | 1.549465e6 |
+| 2025-12-10 | tolerant | 1           | 671427 | 1586008.5  |
+| 2025-12-28 | tolerant | 1           | 251232 | 1586008.5  |
+OOF-month ADS-B rows: 660,242 on 115 days (['2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12']); OOF stack weights [1.009 0.   ]
+  corrector fit 2025-01: best_iter 623
+  corrector fit 2025-07: best_iter 907
+treatment OOF stack weights [1.01 0.  ]
+  corrector fit 2025-01: best_iter 620
+  corrector fit 2025-07: best_iter 927
+
+slice                 v33 method  +ctx corrector   delta
+body pooled               194.58          193.83   -0.75
+body Jan                  176.30          175.44   -0.86
+body Jul                  208.31          207.63   -0.68
+trimmed                   246.01          245.71   -0.30
+full                      304.71          304.52   -0.19
+  body EDDF               156.41          155.35   -1.06
+  body EDDM               113.78          112.75   -1.03
+  body EGLL               211.95          211.49   -0.46
+  body EHAM               113.60          112.18   -1.42
+  body LEBL               192.55          191.83   -0.71
+  body LEMD               166.01          165.85   -0.16
+  body LFPG               225.61          224.86   -0.75
+  body LIRF               313.39          312.69   -0.70
+  body LSZH               129.80          128.16   -1.64
+  body LTFM               228.39          227.59   -0.81
+
+STAGE 2: body gain {'pooled': 0.7521844657267991, 'Jan': 0.8605796042601526, 'Jul': 0.6817105358358901} -> REJECT
+
+slice                 v37      v40      avg  avg-v37  avg-v40
+body pooled        194.58   193.32   193.83    -0.75    +0.51
+body Jan           176.30   175.50   175.44    -0.86    -0.06
+body Jul           208.31   206.73   207.63    -0.68    +0.90
+trimmed            246.01   245.04   245.71    -0.30    +0.67
+full               304.71   303.98   304.52    -0.19    +0.54
+  body EDDF        156.41   154.91   155.35    -1.06    +0.44
+  body EDDM        113.78   113.00   112.75    -1.03    -0.25
+  body EGLL        211.95   211.59   211.49    -0.46    -0.10
+  body EHAM        113.60   110.85   112.18    -1.42    +1.33
+  body LEBL        192.55   191.39   191.83    -0.71    +0.44
+  body LEMD        166.01   166.16   165.85    -0.16    -0.31
+  body LFPG        225.61   225.16   224.86    -0.75    -0.29
+  body LIRF        313.39   309.14   312.69    -0.70    +3.55
+  body LSZH        129.80   127.28   128.16    -1.64    +0.88
+  body LTFM        228.39   227.83   227.59    -0.81    -0.24
+
+AMENDED GATE (beats both members, pooled/Jan/Jul): REJECT

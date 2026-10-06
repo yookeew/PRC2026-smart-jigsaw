@@ -1,0 +1,12 @@
+holdout fit 390s  best_iter=1049  loss=l2  target=flip
+holdout fit 5670s  best_iter=1516  loss=l2  target=direct
+echo clf fit 5818s  best_iter=397  base_rate=0.055
+echo clf holdout  precision=0.692  recall=0.098  n_true_echo=17349  n_pred_echo=2452
+OVERALL RMSE 342.5 s  (n=344,339)
+  EDDF:190  EDDM:186  EGLL:284  EHAM:199  LEBL:222  LEMD:178  LFPG:576  LIRF:713  LSZH:208  LTFM:259
+  2025-01:355  2025-07:332
+  False:2004  True:237
+  False:316  True:1604
+wrote holdout predictions -> C:\Users\yuqiw\prc2025\cache\eval\lgb_mixed_nb_clipl2_holdout_ev.parquet (+ round counts lgb_mixed_nb_clipl2_holdout_ev.rounds.json)
+wrote reports\eval\lgb_mixed_nb_clipl2.md
+total 5877s (holdout-only, no submission)

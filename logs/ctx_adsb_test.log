@@ -1,0 +1,24 @@
+dropped by the shift check: none
+OOF stack weights: [0.577 0.428]
+rows 2,084,967 (OOF 1,740,628, holdout 344,339); features 58
+ab_avail share: training rows 0.398, holdout 1.000
+  control: global best_iter 2263
+  treatment: global best_iter 1851
+
+slice (holdout)        control  treatment   delta
+body pooled             205.99     193.42  -12.56
+body Jan                188.32     174.05  -14.27
+body Jul                219.35     207.90  -11.46
+trimmed                 259.97     248.60  -11.37
+  body EDDF             172.70     156.55  -16.15
+  body EDDM             158.05     115.08  -42.97
+  body EGLL             216.76     209.26   -7.50
+  body EHAM             155.52     111.61  -43.90
+  body LEBL             214.37     192.12  -22.25
+  body LEMD             169.01     166.33   -2.68
+  body LFPG             223.06     223.25   +0.19
+  body LIRF             316.25     309.61   -6.65
+  body LSZH             162.58     128.71  -33.87
+  body LTFM             228.15     228.86   +0.71
+
+STAGE 1: body gain {'pooled': 12.564600190894595, 'Jan': 14.268629089325174, 'Jul': 11.455525232459394} -> PROCEED to stage 2

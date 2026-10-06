@@ -38,7 +38,7 @@ EVAL, OOF, SUB = ROOT / "cache" / "eval", ROOT / "cache" / "oof", ROOT / "data" 
 RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
 TEMPLATE = ROOT / "data" / "ranking" / "submitting.parquet"
 ENS = os.environ.get("CTX_ENS") == "2"
-NAME = ("ctxcorr2" if ENS else "ctxcorr") + ("r" if os.environ.get("CTX_RWY") == "1" else "") + ("a" if os.environ.get("CTX_AIR") == "1" else "")
+NAME = ("ctxcorr2" if ENS else "ctxcorr") + ("r" if os.environ.get("CTX_RWY") == "1" else "") + ("a" if os.environ.get("CTX_AIR") == "1" else "") + ("b" if os.environ.get("CTX_ADSB") == "1" else "")
 OUT = SUB / f"{NAME}.parquet"
 EV = EVAL / f"{NAME}_holdout_ev.parquet"
 TRIM = 18000
