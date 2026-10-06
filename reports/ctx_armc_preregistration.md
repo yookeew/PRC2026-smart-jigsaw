@@ -81,7 +81,7 @@ Definitions: `nm` = `FLIGHT_ID_mvt` is null (the corrector's own flag). `line_ro
 
 1. Production refit on 12 months (as `ctx_corrector.py`) of both members with the arm's change, then the `ctxsel` combination.
 2. v41's chain on it.
-3. Copy the BASE file's values onto LIRF NM-unmatched rows -> `data/submissions/smart-jigsaw_v45.parquet`.
+3. Copy the BASE file's values onto LIRF NM-unmatched rows -> `data/submissions/smart-jigsaw_v45.parquet` (renumbered v42 at build time; see Results).
 
 Checks: 344,841 rows; MVT_ID set equal to `submitting.parquet`; no nulls or negatives; LIRF NM-unmatched rows byte-identical to the BASE.
 
@@ -164,12 +164,19 @@ Nothing is uploaded. Nothing is fitted to board scores. All fits use 2025 only; 
   - Plausible, not verified. Reported, not decisive under this pre-registration.
 - **LSZH.** v45 has 35 LSZH NM-unmatched rows under 120 s (minimum 0). That is learned: 20.6% of 2025 LSZH NM-unmatched labels are under 60 s (p10 = 0), and rows are selected on the prediction, never the label.
 
-**Build: `data/submissions/smart-jigsaw_v45.parquet`** (`ctxc1sel` through v41's chain, then `src/post/armc_build.py` against `smart-jigsaw_v41_rebuild.parquet`).
+**First build (against the BASE rebuild; renamed `armc_c1_on_v41rebuild.parquet`, not a submission)** (`ctxc1sel` through v41's chain, then `src/post/armc_build.py` against `smart-jigsaw_v41_rebuild.parquet`).
 - Checks: 344,841 rows; MVT_ID set = template; no nulls or negatives; the 383 LIRF NM-unmatched rows are identical to the BASE rebuild (the chain had moved 357 of them).
 - **vs the BASE rebuild:** RMS 43.7 s, mean +1.66 s.
   - NM-matched: RMS 25.8 s. Mostly corrector refit noise; the same-machine refit noise alone is ~19 s.
   - NM-unmatched: RMS 286.5 s.
   - By airport, NM-unmatched RMS / mean: EHAM 449 / +253, LTFM 315 / +23, LFPG 283 / +55, EDDM 258 / +120, EGLL 225 / +85, LSZH 161 / +40, EDDF 159 / −8, LEMD 95 / +29, LEBL 77 / −27, LIRF 0.
 - 39 rows under 120 s (minimum 0); BASE rebuild 7.
+
+**Final build: `data/submissions/smart-jigsaw_v42.parquet`** (renumbered: the team is on v42; the `lower-rmse` files were renamed `lower-rmse_v*.parquet`). Same chain output, LIRF NM-unmatched rows copied from the uploaded v41 (supplied 2026-10-06; it matches the teammate's logs).
+- Checks: 344,841 rows; ID set = template; no nulls or negatives; the 383 LIRF NM-unmatched rows are byte-identical to v41.
+- **vs v41:** RMS 42.7 s, mean +1.32 s.
+  - NM-matched: 26.5 s.
+  - NM-unmatched: 271.9 s; by airport RMS / mean: EHAM 409 / +232, LTFM 316 / +16, LFPG 282 / +57, EDDM 256 / +118, EGLL 225 / +87, LSZH 163 / +54, EDDF 149 / +18, LEMD 97 / +27, LEBL 69 / −16, LIRF 0.
+- 39 rows under 120 s (minimum 0). **Keep iff board < 253.68.**
 
 **Caveat.** The cluster bootstrap measures day-to-day sampling only, not model-refit noise. Refit noise is ~0.4 trimmed at the corrector stage across machines; same-machine refit noise was not measured.

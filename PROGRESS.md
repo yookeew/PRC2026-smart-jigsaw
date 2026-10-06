@@ -4632,7 +4632,7 @@ the stage-C holdout gain).
 
 ## 87. Findings from the `lower-rmse` branch (never merged to main; recorded here 2026-10-06)
 
-Work done on the `lower-rmse` branch on 2026-10-05 (its PROGRESS §87–§92). Its version numbers overlap main's: that branch built v39–v44 (v40 uploaded), main built v38–v41. **Next free version number for either line: v45.**
+Work done on the `lower-rmse` branch on 2026-10-05 (its PROGRESS §87–§92). Its version numbers overlapped main's: that branch built v39–v44 (v40 uploaded), main built v38–v41. **Main's numbering is the team's (we are on v42):** the `lower-rmse` files were renamed `data/submissions/lower-rmse_v39/v40/v42/v43.parquet` (2026-10-06) so they cannot be confused with main's versions.
 
 - **§87 audit (context corrector on NM-unmatched rows).** The context corrector (`ctxcorr2r`: ensemble2 + runway block + the sorted-vocabulary encoding fix) is trained on NM-matched rows only (`FLIGHT_ID_mvt` not null) but applied to NM-unmatched rows.
   - On those rows 16 inputs (g_aobt3, nm_dur_*, dist_lobt/iobt/eobt/aobt, ret_overdue_*, ret_active_rwy, nm_div/type_eq/ades_eq) are always null, and never null in training, so it extrapolates down untrained NaN branches.
@@ -4644,7 +4644,7 @@ Work done on the `lower-rmse` branch on 2026-10-05 (its PROGRESS §87–§92). I
 - **Dress rehearsal.** Every stage refit without the holdout, with inputs built in ranking mode: no ranking-mode bugs. The context corrector, combiner, neighbour stage and nm_lines all help out of sample. Refitting nm_lines / lobt_window on the training months only made things worse (§91 there; v42 not built).
 - **Withdrawn:** a leaderboard-fitted rescaling of stages (v41/v41b on that branch) was built and withdrawn without being submitted, because it learns from the ranking process. Files built there and never uploaded: v39, v41–v44.
 
-## 88. Context corrector Arm C (NM-unmatched rows in training) on v41's chain -- C1 gate PASS; v45 built (2026-10-06)
+## 88. Context corrector Arm C (NM-unmatched rows in training) on v41's chain -- C1 gate PASS; v42 built (2026-10-06)
 
 - `reports/ctx_armc_preregistration.md` (committed before any result; amendment A1 = gate base rebuilt on this machine), `src/post/ctx_armc.py`, `tests/ctx_armc_test.py`, `src/post/armc_build.py`, `src/post/nm_lines_nocheck.py`.
 - **BASE = v41 (253.68)**, recipe `ctxsel`. Part 0 coverage check: main had none of (a) NM-unmatched rows in the corrector, (b) an indicator, (c) an operator echo block (only the rejected `al_copy`), or (d) any NM-unmatched bypass.
@@ -4657,11 +4657,13 @@ Work done on the `lower-rmse` branch on 2026-10-05 (its PROGRESS §87–§92). I
 - **Out of sample (10 training months):** on NM-unmatched rows the corrector goes from +170M SSE (harmful, LIRF-driven) to −1,839M.
 - **2026:** never-seen input null patterns on NM-unmatched rows 13.6% -> 0.1%.
 - **Risk:** EHAM Jan 2026 NM-unmatched rows 2–6 h late get +974 s (2025: +74 s). It is the storm month, with 7× the holdout count. Plausible from label-free context; untested by the gate.
-- **v45** = `smart-jigsaw_v45.parquet`: LIRF NM-unmatched rows copied from the BASE (team rule). RMS 43.7 s from the BASE rebuild: matched 25.8 s (mostly refit noise), unmatched 286.5 s.
-  - The BASE here is a rebuild: the uploaded v41 file is not on this machine. Its LIRF NM-unmatched rows may differ slightly from the uploaded v41's.
-  - To copy from the real file: `src/post/armc_build.py smart-jigsaw_v41.parquet chain_ctxc1sel_final.parquet smart-jigsaw_v45.parquet`.
+- **v42** = `smart-jigsaw_v42.parquet` (`logs/v42_build.log`): the C1 chain with LIRF NM-unmatched rows (383) copied byte-identically from the uploaded v41 (team rule).
+  - vs v41: RMS 42.7 s, mean +1.32 s. NM-matched RMS 26.5 s (mostly refit noise); NM-unmatched RMS 271.9 s (EHAM 409 / +232, LTFM 316, LFPG 282, EDDM 256).
+  - 39 rows under 120 s (minimum 0, LSZH NM-unmatched; see the pre-registration).
+  - The uploaded v41 file (supplied 2026-10-06) matches its logs: 24.9 s from v37, 13 rows under 120 s. Our local rebuild was 12.5 s RMS from it.
+  - The same build against the rebuild was first written as v45, then renamed `armc_c1_on_v41rebuild.parquet`; it is not a submission.
 - **Rule:** keep iff board < 253.68. Not uploaded.
 - **Build:**
   1. Inputs: `ARMC_ARM=c1 CTX_ENS=2 CTX_RWY=1 [CTX_ADSB=1] src/post/ctx_armc.py inputs`, then `prod`, then `ARMC_ARM=c1 src/post/ctx_armc.py sel`.
   2. With `PRC_LGB=ctxc1sel`, v41's chain (`nm_lines_nocheck.py` in place of `nm_lines.py`) -> `chain_ctxc1sel_final.parquet`.
-  3. `armc_build.py`.
+  3. `armc_build.py smart-jigsaw_v41.parquet chain_ctxc1sel_final.parquet smart-jigsaw_v42.parquet`.
