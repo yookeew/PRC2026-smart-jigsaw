@@ -1,0 +1,7 @@
+holdout: 129,053 of 344,339 rows from ctxcorr2rb
+oof fold=02-03.parquet: 116,624 of 308,181 rows from ctxcorr2rb
+oof fold=04-05.parquet: 138,904 of 360,490 rows from ctxcorr2rb
+oof fold=06-08.parquet: 143,682 of 374,324 rows from ctxcorr2rb
+oof fold=09-10.parquet: 142,417 of 369,624 rows from ctxcorr2rb
+oof fold=11-12.parquet: 121,966 of 328,009 rows from ctxcorr2rb
+ranking: 127,729 of 344,841 rows from ctxcorr2rb
