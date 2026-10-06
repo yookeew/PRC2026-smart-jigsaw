@@ -42,8 +42,10 @@ sys.path.insert(0, str(ROOT / "tests"))
 ARM = os.environ.get("ARMC_ARM", "")
 assert ARM in ("c0", "c1", "c2"), "ARMC_ARM must be c0 (the BASE recipe, same machine), c1 or c2"
 MEMBER = "rb" if os.environ.get("CTX_ADSB") == "1" else "r"
-NAME = f"ctx{ARM}{MEMBER}"
-SEL = f"ctx{ARM}sel"
+BASE = os.environ.get("PRC_BASE", "lgb_mixed_nb")   # reports/base_comb_preregistration.md; read by O.prepare() too
+SUFFIX = "" if BASE == "lgb_mixed_nb" else "_" + BASE.removeprefix("lgb_").removesuffix("_nb")
+NAME = f"ctx{ARM}{MEMBER}{SUFFIX}"
+SEL = f"ctx{ARM}sel{SUFFIX}"
 EVAL, OOF, SUB = ROOT / "cache" / "eval", ROOT / "cache" / "oof", ROOT / "data" / "submissions"
 RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
 TEMPLATE = ROOT / "data" / "ranking" / "submitting.parquet"
@@ -132,7 +134,7 @@ def inputs() -> None:
     out = P["win"](np.clip(out, 0, None))
     ids = dep["MVT_ID_mvt"]
     ev = pl.DataFrame({"MVT_ID_mvt": ids.filter(pl.Series(is_ho)).cast(pl.Float64), "pred": out[is_ho]})
-    chain = pl.read_parquet(EVAL / "lgb_mixed_nb_holdout_ev.parquet").drop("pred")
+    chain = pl.read_parquet(EVAL / f"{BASE}_holdout_ev.parquet").drop("pred")
     ev = chain.join(ev, on="MVT_ID_mvt", how="inner")   # as ctx_corrector.py's "rewrote ... with the chain columns"
     assert ev.height == int(is_ho.sum()), (ev.height, int(is_ho.sum()))
     ev.write_parquet(EVAL / f"{NAME}_holdout_ev.parquet")
@@ -151,8 +153,8 @@ def prod() -> None:
     import context_corrector_test as CC
     from post import nm_lines as NL
     rd = lambda path, c, col="pred": pl.read_parquet(path).select(pl.col("MVT_ID_mvt").cast(pl.Int64), pl.col(col).cast(pl.Float64).alias(c))  # noqa: E731
-    oof = rd(OOF / "lgb_mixed_nb" / "*.parquet", "lgb").join(rd(OOF / "cat_mixed" / "*.parquet", "cat"), on="MVT_ID_mvt")
-    ho = rd(EVAL / "lgb_mixed_nb_holdout_ev.parquet", "lgb").join(rd(EVAL / "cat_mixed_holdout_ev.parquet", "cat"), on="MVT_ID_mvt")
+    oof = rd(OOF / BASE / "*.parquet", "lgb").join(rd(OOF / "cat_mixed" / "*.parquet", "cat"), on="MVT_ID_mvt")
+    ho = rd(EVAL / f"{BASE}_holdout_ev.parquet", "lgb").join(rd(EVAL / "cat_mixed_holdout_ev.parquet", "cat"), on="MVT_ID_mvt")
     lab = NL.frame(str(CC.RAW / "training_*.parquet")).select("MVT_ID_mvt", "y")
     oy = oof.join(lab, on="MVT_ID_mvt")
     w, _ = nnls(oy.select("lgb", "cat").to_numpy(), oy["y"].to_numpy())
@@ -187,7 +189,7 @@ def prod() -> None:
           f"features {len(cols)}", flush=True)
 
     # ranking rows
-    rk_l = pl.read_parquet(SUB / "lgb_mixed_nb.parquet").select(pl.col("MVT_ID_mvt").cast(pl.Int64), lgb=pl.col("TAXITIME_SEC_mvt").cast(pl.Float64))
+    rk_l = pl.read_parquet(SUB / f"{BASE}.parquet").select(pl.col("MVT_ID_mvt").cast(pl.Int64), lgb=pl.col("TAXITIME_SEC_mvt").cast(pl.Float64))
     rk_c = pl.read_parquet(SUB / "cat_mixed.parquet").select(pl.col("MVT_ID_mvt").cast(pl.Int64), cat=pl.col("TAXITIME_SEC_mvt").cast(pl.Float64))
     dep_r, arr_r = CC.movements(str(RANKING))
     rk = dep_r.select("MVT_ID_mvt").join(rk_l, on="MVT_ID_mvt", how="left").join(rk_c, on="MVT_ID_mvt", how="left")
@@ -237,7 +239,7 @@ def prod() -> None:
 def sel() -> None:
     """ctxsel's per-airport combination (tests/ctx_adsb_stable_test.py) of this arm's members."""
     import ctx_adsb_stable_test as ST
-    r, rb = f"ctx{ARM}r", f"ctx{ARM}rb"
+    r, rb = f"ctx{ARM}r{SUFFIX}", f"ctx{ARM}rb{SUFFIX}"
     apt = ST._airports()
     ev, n = ST._select(pl.read_parquet(EVAL / f"{r}_holdout_ev.parquet"), pl.read_parquet(EVAL / f"{rb}_holdout_ev.parquet"), "pred", apt)
     ev.write_parquet(EVAL / f"{SEL}_holdout_ev.parquet")

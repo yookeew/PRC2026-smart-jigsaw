@@ -4667,3 +4667,177 @@ Work done on the `lower-rmse` branch on 2026-10-05 (its PROGRESS §87–§92). I
   1. Inputs: `ARMC_ARM=c1 CTX_ENS=2 CTX_RWY=1 [CTX_ADSB=1] src/post/ctx_armc.py inputs`, then `prod`, then `ARMC_ARM=c1 src/post/ctx_armc.py sel`.
   2. With `PRC_LGB=ctxc1sel`, v41's chain (`nm_lines_nocheck.py` in place of `nm_lines.py`) -> `chain_ctxc1sel_final.parquet`.
   3. `armc_build.py smart-jigsaw_v41.parquet chain_ctxc1sel_final.parquet smart-jigsaw_v42.parquet`.
+
+<!-- §89–§93 were written on 2026-10-06 on the `neighbours` branch (commit 19d50f4) as §87–§91; renumbered here after
+the teammate's §87–§88. Their code, reports and logs were brought onto this branch on 2026-10-07. -->
+
+## 89. 2025->2026 drift map and a 2026-weighted gate (2026-10-06)
+
+- **Drift map** (`tests/drift_map.py`, `logs/drift_map.log`): an adversarial classifier on the corrector inputs, Jan+Jul 2025 vs Jan+Jul 2026.
+  - AUC 0.856.
+  - Drift is in combinations: stand prefix × airport carries 46% of the gain, while each alone has single-feature AUC ~0.505. ADS-B coverage columns follow.
+  - Holdout weights: EGLL 0.53, LEMD 0.58, LIRF 0.67 (the coverage-shifted airports) vs LEBL 1.51, LTFM 1.36. Effective sample size 53%.
+- **Weighted gate** (`cache/eval/iw_holdout.parquet`):
+  - v40 −1.26 → −0.95 (board +0.11);
+  - v41 −0.45 → −0.56 (board −0.33).
+  - Right direction, not enough to flip v40: the weights can't represent 2026 states with no 2025 analogue.
+- **Step 3** (weighted corrector training) **not pursued.**
+
+## 90. Leaderboard and public repos (2026-10-06)
+
+- **Leaderboard feed:** `https://prc-leaderboard.fly.dev/data.json` (best score, n and last time per team; no history). Needs `curl --ssl-no-revoke` on this machine.
+- **Snapshot 13:44 UTC:**
+  - we are 44th at 253.68;
+  - 29 teams are under 240; leader strong-crane 213.92;
+  - versatile-violin 36th at 244.97, about −10 in two days;
+  - kind-mango 34th at 243.69; outgoing-boat 35th at 243.95.
+- **kind-mango's README** (skylinkapi/prc-data-challenge-2026-kind-mango) has a measured board table:
+  - capping 2026 out-of-distribution extremes: −2.33;
+  - base without LIRF / y > 80k rows: −5.99;
+  - anchored member on y − (MVT − AOBT_3): −3.7;
+  - per-airport members: −0.22.
+- **Our check of the OOD-extreme lever:** not present in v41. Our >2 h predictions in 2026 match 2025's pattern, where 18/19 were right.
+- **One anomaly, not acted on:** 6 EHAM rows on 4–7 Jan 2026 (snow) are predicted 7.3–9.8k s with T − AOBT_3 ≈ 5,400. The 2025 precedent is 9 rows, with truth near AOBT_3 in 6. That's a 6-row rule found by inspection, so it's not built.
+
+## 91. Anchored base member (kind-mango's v74 idea) -- screen fails (2026-10-06)
+
+- `reports/base_anchored_preregistration.md`, `src/models/run_anchored.py`, `target="anchored"` in `fit.py`.
+- **Member:** LightGBM on taxi − clip(MVT − AOBT_3, 0, 7200), averaged ½/½ with the cached direct regressor on non-LIRF rows with AOBT_3.
+- **Base-level result:** body −0.58 (Jan −1.14, Jul −0.18), trimmed −1.30, full −1.06. Anchored alone is +1.33 on body.
+- Below the 1.0 bar. **Not pursued.**
+
+## 92. Direct base regressor without LIRF rows (kind-mango's v51 idea) -- screen fails (2026-10-06)
+
+- `reports/base_direct_nolirf_preregistration.md`, `src/models/run_direct_nolirf.py`, `target="direct_nolirf"`.
+- **Result:** body −0.30 (Jan −0.36, Jul −0.27), full −0.02; 8/9 changed airports better, LTFM +0.33. Below the 1.0 bar.
+- **Why small:** kind-mango's gain was mainly dropping labels > 80k s, which our base already excludes (> 7,200 s).
+- **Note:** §91 (anchored, −0.58) and §92 (−0.30) are small, consistent base-level gains in both months.
+  - The 1.0 bar for base changes was set by judgment, not measured: we have never measured how much a base gain survives the chain.
+
+## 93. Combined base (no-LIRF direct + anchored) through v41's chain -- IN PROGRESS, paused (2026-10-06)
+
+- `reports/base_comb_preregistration.md`.
+- Code: `src/models/run_comb_base.py` (fits / combine / compare) and `tests/base_comb_test.py` (corr 0 / corr 1 / chain).
+- `PRC_BASE` switch in `tests/oof_context_corrector_test.py`, `src/post/ctx_corrector.py` and `tests/oof_context_corrector_stage2.py` (default `lgb_mixed_nb`; outputs suffixed `_comb`).
+- v41's chain holdout saved as `cache/eval/v41_chain_holdout.parquet` (the comparison base).
+- **Done:** `lgb_direct_nolirf_nb` holdout + all 10 OOF folds.
+- **Not done:**
+  - `lgb_direct_nolirf_nb` production refit (interrupted);
+  - `lgb_anchored_nolirf_nb` holdout, 10 folds, production.
+- **Speed:** folds slowed from ~5 to 11–18 min each late in the run. The 2-hour background limit stopped the first job; paused at the user's request.
+- **To resume** (each command skips finished pieces):
+  1. `.venv/Scripts/python.exe -u src/models/run_comb_base.py fits` (~2–2.5 h; may need one restart)
+  2. `.venv/Scripts/python.exe -u src/models/run_comb_base.py combine`, then `... compare` (base-level result)
+  3. `PRC_BASE=lgb_comb_nb .venv/Scripts/python.exe -u tests/base_comb_test.py corr 0`, then `... corr 1`
+  4. `PRC_BASE=lgb_comb_nb PRC_LGB=ctxcorr2r .venv/Scripts/python.exe -u tests/base_comb_test.py chain`
+- **Production build (if the gate passes):** not yet scripted. It needs the `ctxcorr2r_comb` / `ctxcorr2rb_comb` production correctors (`PRC_BASE=lgb_comb_nb CTX_ENS=2 CTX_RWY=1 [CTX_ADSB=1] src/post/ctx_corrector.py`), the ctxsel selection on the ranking files, and v41's chain.
+
+## 94. State on `yuqiBranch`, relevance of the paused work, and next steps (2026-10-07)
+
+**Current best: v42** (Arm C, §88), board ≈ 249 per the team (exact score to be recorded in §88). v41 = 253.68.
+
+**What failed since v41 (all recorded above):**
+
+| § | idea | result |
+|---|---|---|
+| 83 | base: clip labels > 2 h + L2 loss | worse everywhere (body +2.96, full +8.14) |
+| 85 | average of the v37 and v40 correctors | between the two members; rejected |
+| 89 | rows weighted by 2026-likeness | weighted gate moves the right way but still passes v40 |
+| 91 | anchored base member, y − (MVT − AOBT_3) | body −0.58 < 1.0 bar |
+| 92 | direct regressor without LIRF rows | body −0.30 < 1.0 bar |
+| 84 | hour-level shared error | ~2 points left even for an oracle; closed |
+| 82 | blending past submissions by board score | rejected on principle |
+
+**Why v42's board gain was so large:**
+- Its holdout gain was small (full −0.80), against ≈ −4.7 on the board.
+- Volume isn't the reason: NM-unmatched non-LIRF rows are 1.42% of 2026 against 1.44% of 2025.
+- The 2026 rows are more extreme, though:
+  - 1,538 of them are > 2 h late, against 1,241 in 2025;
+  - EHAM Jan has 805 against 293 (the storm month).
+- Arm C removed a 2026-only extrapolation failure: 13.6% of those rows had never-seen null patterns, now 0.1%.
+- **v37** (encoding fix, invisible on the holdout), **v41** (coverage-stable airports) and **v42** are the same class of win: 2026 inputs that look like nothing in training.
+- **Lesson:** audit every trained stage for 2026-vs-training input mismatches. The holdout can't see them by construction, and they have been our largest recent board gains.
+
+**Base-feature audit (2026-10-07, scratch, no training):**
+- 70 of 344,841 ranking rows (0.02%) have a null pattern never seen in the 2025 base training rows.
+- The largest null-rate shifts are small: AOBT_3-derived columns 1.08% → 1.53%; stand-link columns 0.09% → 0.40%.
+- **The base is clean.**
+
+**Is the paused work (§93) still relevant? Mostly no, so it's deprioritised.**
+- **It only changes NM-matched non-LIRF rows**, the body population. Rows served by the median prior (NM-unmatched non-LIRF) and all LIRF rows are untouched. That's the population where board response has been weakest, while v42 shows the board rewards NM-unmatched fixes.
+- **It's built against v41's chain.** To test it on top of v42, the Arm C corrector (`src/post/ctx_armc.py`, which hard-codes `lgb_mixed_nb` in its readers) would need the `PRC_BASE` switch and a rebuild of its inputs on the new base. That's ~2.5 h of remaining fits plus ~2 h of correctors and chain, for an expected base-level −0.8 with unknown transfer.
+- **Keep the code** (`run_comb_base.py`, `base_comb_test.py`, the `PRC_BASE` switch; the direct member's holdout and 10 OOF folds are cached locally). Resume only if nothing better is left.
+
+**Next, in order:**
+1. **Input-mismatch audit of the remaining trained stages on 2026 rows** (cheap, no training): the ADS-B combiner, the neighbour-state corrector and the CatBoost member's inputs. For each, measure never-seen null patterns and categories, and out-of-range values per airport × NM match. Any stage with a v42-sized mismatch is the next candidate fix.
+2. **NM-unmatched non-LIRF rows, beyond Arm C.**
+   - The base still serves them a flat median prior (`use_prior` in `fit.py`); only the corrector now adapts to them.
+   - Candidates: a dedicated small model for these rows (gentle-octopus measured −55 s for a separate orphan model at their stage), and the EHAM Jan 2026 storm rows flagged in §88 (+974 s shift on 2–6 h-late rows).
+   - **Team rule holds: no change to LIRF NM-unmatched rows.**
+3. Only then, §93's combined base.
+
+## 95. Input-mismatch audit of the post-stages on 2026 rows (2026-10-07, no training)
+
+- `tests/stage_input_audit.py`, `logs/stage_input_audit.log`. Stack input = v41's corrector (v42's outputs aren't on this machine).
+- Compares each stage's training inputs with its 2026 inputs. Inputs only, no labels.
+- **ADS-B combiner** (applied to all non-LIRF rows):
+  - never-seen missing patterns 0 of 317,942; value ranges normal (worst EDDF `s` 3.7% outside the 2025 p0.5–p99.5);
+  - **thin EGLL support:** tier dwell 1,666 training rows → 10,402 in 2026, appear 1,861 → 9,229. About 19.6k EGLL 2026 rows get combiner corrections learned from few EGLL examples (EGLL detection was rare in 2025).
+  - Same mechanism as v40's failure.
+- **Neighbour-state part (b)** (applied to 2026 rows without ADS-B info):
+  - never-seen missing patterns 0.02%;
+  - **EDDF neighbour features out of range:** `nbq_*` / `nbp_*` 6–18% outside the 2025 range (`s` 5.3%); milder at LSZH and LEMD.
+  - Suspected cause: the features are built on the stack `s`, which is OOF in training and 12-month in production (cf. §72).
+  - The applied population shifts too: EDDM 15.9k → 149 rows, EHAM 2.7k → 45, EGLL 80k → 4.8k.
+- **Base features:** clean (§94).
+- **Follow-up checks, both negative (scratch):**
+  - **EGLL combiner.** In 2025 EGLL detections lag the truth badly (y − ADS-B taxi median +145 s appear / +301 s dwell; only 1–2% within 60 s).
+    - Label-free test in 2026, using ADS-B taxi − (T − AOBT_3), with 2025's truth − (T − AOBT_3) at EGLL = −55 s: EGLL goes −227 → −182 (appear) and −378 → −318 (dwell).
+    - So 2026 detections still lag by ~127 s / ~263 s. EHAM control is stable (−145 → −131, −253 → −249).
+    - The combiner keeps EGLL predictions +153 / +222 s above the ADS-B taxi: about right (≤ ~30 s high on appear). **No fix.**
+  - **EDDF neighbour drift.** The medians of p = (T − AOBT_3) − s (74 → 80) and q = ADS-B taxi − s (−40 → −42) don't move, so no stack shift.
+    - The spread grows (sd 187 → 238) and observed neighbours fall (13.5% → 5% of departures).
+    - Real 2026 conditions, and the count is a model input. **Not a bug.**
+  - **CatBoost features** (`cache/features/`): 5 of 344,841 never-seen null patterns. Clean.
+- **Conclusion:** no other v42-type input mismatch in base, CatBoost, combiner or neighbour stage. Arm C fixed the one that existed.
+
+## 96. Linear leaves in the direct base regressor -- screen fails (2026-10-07)
+
+- `reports/base_linear_tree_preregistration.md`, `src/models/run_direct_linear.py`, `PRC_LINEAR_TREE=1` in `fit.py` (default off).
+- **Result:** body +2.92 (Jan +2.84, Jul +2.99), full +1.00; worse at 8/9 airports (LEBL +11.6, EHAM +6.9, LTFM +6.2).
+- **Extrapolation:** raw out-of-range predictions 22× more frequent (−2,484 … 16,544 s on 2025 rows).
+- Large public gains (joyous-rainbow, kind-mango) came from weaker models. **Closed.**
+- **v42 inputs now on this machine** (from the teammate): `cache/eval/ctxc1sel_holdout_ev.parquet`, `cache/oof/ctxc1sel/`, `data/submissions/ctxc1sel.parquet`, `data/submissions/chain_ctxc1sel_final.parquet`.
+
+## 97. v42 holdout baseline; NM-unmatched non-LIRF rows analysed -- little left to take (2026-10-07)
+
+- **Baseline:** `tests/v42_holdout_baseline.py` → `cache/eval/v42_chain_holdout.parquet`.
+  - The teammate's `ctxc1sel` corrector through the stage-2 harness, LIRF NM-unmatched rows from v41's chain.
+  - vs v41: body −0.19, trimmed −0.86, full −0.69 (teammate's gate: −0.25 / −0.91 / −0.80; machine noise).
+  - NM-unmatched non-LIRF rows with y ≤ 5 h: 571.6 → 551.0.
+- **Where v42's NM-unmatched non-LIRF error sits** (holdout, 4,919 rows: 36.8% of SSE, of which 32 pp are rows > 5 h):
+  - **y ≤ 5 h: 4.7% of SSE.**
+  - **1–3 h late: 3,553 rows, 3.8% of SSE.** Copy rate 0.000; median truth 1,016 s vs median prediction 1,050 s; RMSE 586. A heavy tail of genuinely long taxis.
+  - **By ADS-B:** no ADS-B 3.3% of SSE (RMSE 643); matched without pushback 1.3% (507); observed pushback 0.2% (246).
+  - **EGLL is worst:** RMSE 1,062, median truth 24 min.
+- **No label-free signature found for the tail** (all of 2025, NM-unmatched non-LIRF):
+  - label = time since the inbound in-block (U_sec): 0.0% within 2 min in every taxi band;
+  - flight-number prefix (an airline proxy where the operator is null): out-of-month R² 0.040 over the airport mean, against 0.054 for aircraft type, which the base already has.
+- **Conclusion:** the remaining NM-unmatched non-LIRF error is mostly long taxis on rows with no NM record and no ADS-B. No information we hold explains them. **The dedicated-model idea (§94 step 2) is closed.**
+
+## 98. 2026 drift of predictions vs the AOBT_3 anchor and ADS-B -- no input mismatch (2026-10-07, no training)
+
+- **Idea:** with anchor a = MVT − AOBT_3, the truth's offset y − a per airport × month is a label-free yardstick. A 2026 prediction offset that leaves the 2025 range flags a possible 2026-only misreading, like the ones v37/v41/v42 fixed.
+- **Scripts / logs:** `tests/anchor_drift_check.py`, `tests/anchor_drift_triangulate.py`, `tests/anchor_drift_stages.py`, `tests/anchor_drift_shap.py`; `logs/anchor_drift_*.log`.
+- **Timestamp format:** AOBT_3 is whole minutes, so medians of y − a step by ~60 s. A clipped mean (±300 s) is used instead. Second-resolution shares of AOBT_3 / MVT / SCHED are the same in 2025 and 2026, so there is no format change.
+- **2025 truth offset:** moves 20–60 s across months at most airports. LSZH is the most stable (28–48 s).
+- **Flags (v42, 2026 vs 2025):**
+  - **LSZH:** +72 / +63 s vs anchor (truth +33 / +35). Against the ADS-B taxi (dwell/pass), +124 / +139 vs +55–63. The ADS-B − anchor relation is roughly stable.
+  - **EDDM, LTFM, EDDF January:** prediction offset +30 to +60 s.
+  - **LFPG July:** −37 vs +60. Only 12 ADS-B rows, and arrival taxi-in fell (610 → 581), so an AOBT_3 recording change is likely. Not actionable.
+- **Stage localisation:** the shifts are already in both base models (LightGBM and CatBoost, independently). The corrector and later stages don't add them.
+- **Feature attribution** (proxy base: same feature prep, Huber 800, direct target, 4 airports, reproduces the offsets; SHAP on 4,000 rows per airport × month):
+  - **January 2026 moves (+115 to +200 s)** are driven by the anchor itself (`aobt3_taxi` mean +26 to +97 s) and by larger departure delays (`aobt3_vs_eobt`, `sched_takeoff_offset` mean +375 to +560 s). Colder weather and 4–8× more snow add +6 to +10 s each.
+  - **July moves are small and spread across many features.**
+  - **No feature has an implausible 2026 value or a single dominant contribution.** These are real January 2026 conditions (cold, snowy, more delayed), read through relationships learned in 2025.
+- **Conclusion:** no input mismatch. The extra offset beyond the anchor reflects learned 2025 behaviour in delayed/snowy conditions. A bias fix would rest on assuming the 2025 offset holds in conditions 2025 rarely saw. That would be a guess, and LSZH is worth only about 0.2–0.6 s on the board anyway. **Closed, no change.**

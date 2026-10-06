@@ -1,0 +1,19 @@
+rows changed: 312,885 of 344,339; reconstruction check max |diff| 0 s
+slice                   base   no LIRF    delta
+body pooled           215.86    215.55    -0.30
+body Jan              197.82    197.47    -0.36
+body Jul              229.53    229.26    -0.27
+trimmed (<=5h)        271.99    271.97    -0.02
+full                  334.33    334.31    -0.02
+  body EDDF           177.54    177.50    -0.04
+  body EDDM           166.45    166.10    -0.35
+  body EGLL           223.46    222.64    -0.83
+  body EHAM           163.49    163.30    -0.19
+  body LEBL           219.84    218.85    -0.99
+  body LEMD           176.57    176.38    -0.18
+  body LFPG           230.02    229.13    -0.88
+  body LIRF           345.38    345.38    +0.00
+  body LSZH           169.04    168.93    -0.11
+  body LTFM           238.91    239.24    +0.33
+
+SCREEN: body gain {'pooled': 0.3046688041470418, 'Jan': 0.35518977383921424, 'Jul': 0.27054789823745296}, full not worse True -> does not qualify

@@ -38,10 +38,12 @@ EVAL, OOF, SUB = ROOT / "cache" / "eval", ROOT / "cache" / "oof", ROOT / "data" 
 RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
 TEMPLATE = ROOT / "data" / "ranking" / "submitting.parquet"
 ENS = os.environ.get("CTX_ENS") == "2"
-NAME = ("ctxcorr2" if ENS else "ctxcorr") + ("r" if os.environ.get("CTX_RWY") == "1" else "") + ("a" if os.environ.get("CTX_AIR") == "1" else "") + ("b" if os.environ.get("CTX_ADSB") == "1" else "")
+NAME = ("ctxcorr2" if ENS else "ctxcorr") + ("r" if os.environ.get("CTX_RWY") == "1" else "") + ("a" if os.environ.get("CTX_AIR") == "1" else "") + ("b" if os.environ.get("CTX_ADSB") == "1" else "") + (
+    "_" + os.environ["PRC_BASE"].removeprefix("lgb_").removesuffix("_nb") if os.environ.get("PRC_BASE", "lgb_mixed_nb") != "lgb_mixed_nb" else "")
 OUT = SUB / f"{NAME}.parquet"
 EV = EVAL / f"{NAME}_holdout_ev.parquet"
 TRIM = 18000
+BASE = os.environ.get("PRC_BASE", "lgb_mixed_nb")   # reports/base_comb_preregistration.md
 
 
 def _rd(path, c, col="pred"):
@@ -50,8 +52,8 @@ def _rd(path, c, col="pred"):
 
 def main() -> None:
     # ---- training rows: 12 months of out-of-sample stack predictions
-    oof = _rd(OOF / "lgb_mixed_nb" / "*.parquet", "lgb").join(_rd(OOF / "cat_mixed" / "*.parquet", "cat"), on="MVT_ID_mvt")
-    ho = _rd(EVAL / "lgb_mixed_nb_holdout_ev.parquet", "lgb").join(_rd(EVAL / "cat_mixed_holdout_ev.parquet", "cat"), on="MVT_ID_mvt")
+    oof = _rd(OOF / BASE / "*.parquet", "lgb").join(_rd(OOF / "cat_mixed" / "*.parquet", "cat"), on="MVT_ID_mvt")
+    ho = _rd(EVAL / f"{BASE}_holdout_ev.parquet", "lgb").join(_rd(EVAL / "cat_mixed_holdout_ev.parquet", "cat"), on="MVT_ID_mvt")
     w, _ = nnls(oof.join(NL.frame(str(CC.RAW / "training_*.parquet")).select("MVT_ID_mvt", "y"), on="MVT_ID_mvt")
                 .select("lgb", "cat").to_numpy(),
                 oof.join(NL.frame(str(CC.RAW / "training_*.parquet")).select("MVT_ID_mvt", "y"), on="MVT_ID_mvt")["y"].to_numpy())
@@ -81,7 +83,7 @@ def main() -> None:
     print(f"training rows {fit.sum():,} of {len(y):,} (12 months); features {len(cols)}")
 
     # ---- ranking rows
-    rk_l = pl.read_parquet(SUB / "lgb_mixed_nb.parquet").select(pl.col("MVT_ID_mvt").cast(pl.Int64), lgb=pl.col("TAXITIME_SEC_mvt").cast(pl.Float64))
+    rk_l = pl.read_parquet(SUB / f"{BASE}.parquet").select(pl.col("MVT_ID_mvt").cast(pl.Int64), lgb=pl.col("TAXITIME_SEC_mvt").cast(pl.Float64))
     rk_c = pl.read_parquet(SUB / "cat_mixed.parquet").select(pl.col("MVT_ID_mvt").cast(pl.Int64), cat=pl.col("TAXITIME_SEC_mvt").cast(pl.Float64))
     dep_r, arr_r = CC.movements(str(RANKING))
     rk = dep_r.select("MVT_ID_mvt").join(rk_l, on="MVT_ID_mvt", how="left").join(rk_c, on="MVT_ID_mvt", how="left")
@@ -125,7 +127,7 @@ def main() -> None:
     print(f"wrote {OUT.name}")
 
     # ---- holdout ev in the chain's format (pred = the stage-2 corrected stack, fit on the 10 OOF months)
-    base = pl.read_parquet(EVAL / "lgb_mixed_nb_holdout_ev.parquet").drop("pred")
+    base = pl.read_parquet(EVAL / f"{BASE}_holdout_ev.parquet").drop("pred")
     ev = pl.read_parquet(EV).select(pl.col("MVT_ID_mvt").cast(pl.Float64), "pred")
     base.join(ev, on="MVT_ID_mvt", how="inner").write_parquet(EV)
     print(f"rewrote {EV.name} with the chain columns")

@@ -1,0 +1,23 @@
+rows changed: 312,885 of 344,339; reconstruction check max |diff| 0 s
+slice                   base   no LIRF    delta
+body pooled           215.86    218.78    +2.92
+body Jan              197.82    200.66    +2.84
+body Jul              229.53    232.52    +2.99
+trimmed (<=5h)        271.99    273.23    +1.23
+full                  334.33    335.34    +1.00
+  body EDDF           177.54    181.60    +4.06
+  body EDDM           166.45    167.35    +0.90
+  body EGLL           223.46    221.25    -2.22
+  body EHAM           163.49    170.36    +6.88
+  body LEBL           219.84    231.39   +11.55
+  body LEMD           176.57    177.46    +0.89
+  body LFPG           230.02    230.49    +0.48
+  body LIRF           345.38    345.38    +0.00
+  body LSZH           169.04    170.54    +1.50
+  body LTFM           238.91    245.07    +6.16
+
+SCREEN: body gain {'pooled': -2.9233583098976794, 'Jan': -2.8412242496905833, 'Jul': -2.9943864436114325}, full not worse False -> does not qualify
+
+extrapolation: raw outside [0, 7200] on changed rows: cached 0.0003%, new 0.0067% (min -2484, max 16544) -> FAILS rule 4
+  label 20-40 min  (changed rows, info only): 264.5 -> 267.9
+  label 40 min-5 h (changed rows, info only): 1065.5 -> 1044.2

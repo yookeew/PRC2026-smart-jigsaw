@@ -86,10 +86,26 @@ LABEL_LO, LABEL_HI = 30, 7200
 # clip their target at LABEL_HI instead of dropping them. For the flip target that is
 # d + max(taxi - LABEL_HI, 0), i.e. the d implied by the clipped taxi. Default (unset) is unchanged.
 LABEL_CLIP = os.environ.get("PRC_LABEL_CLIP") == "1"
+# PRC_LINEAR_TREE=1 (reports/base_linear_tree_preregistration.md): linear models in the leaves of every
+# regression fit (not the echo classifier). Default (unset) is unchanged.
+LINEAR_TREE = os.environ.get("PRC_LINEAR_TREE") == "1"
+LINEAR_LAMBDA = 1.0
 
 
-def _train_target(taxi: np.ndarray, d: np.ndarray, t: str) -> tuple[np.ndarray, np.ndarray]:
-    """(rows used to fit the regressor, its target) for target t in {flip, direct}."""
+ANCHOR_CAP = 7200.0   # reports/base_anchored_preregistration.md: anchor = clip(MVT - AOBT_3, 0, ANCHOR_CAP)
+
+
+def _anchor(aobt3_taxi: np.ndarray) -> np.ndarray:
+    return np.clip(aobt3_taxi, 0, ANCHOR_CAP)   # NaN (no AOBT_3) stays NaN
+
+
+def _train_target(taxi: np.ndarray, d: np.ndarray, t: str,
+                  anchor: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray]:
+    """(rows used to fit the regressor, its target) for target t in {flip, direct, anchored}.
+    anchored: taxi - anchor, on the rows that have an AOBT_3 (reports/base_anchored_preregistration.md)."""
+    if t == "anchored":
+        keep = (taxi >= LABEL_LO) & (taxi <= LABEL_HI) & ~np.isnan(anchor)
+        return keep, taxi - np.nan_to_num(anchor)
     if LABEL_CLIP:
         keep = taxi >= LABEL_LO
         excess = np.clip(taxi - LABEL_HI, 0, None)
@@ -151,6 +167,8 @@ def _fit_lgb(X, y, cats, *, eta=ETA, rounds=ROUNDS, es=EARLY_STOP, valid=None, s
     )
     if alpha is not None:
         params["alpha"] = alpha
+    if LINEAR_TREE and metric == "rmse":   # regressors only (reports/base_linear_tree_preregistration.md)
+        params.update(linear_tree=True, linear_lambda=LINEAR_LAMBDA)
     ds = lgb.Dataset(X, label=y, categorical_feature=cats, free_raw_data=False)
     valid_sets, cbs = [], []
     if valid is not None and es:
@@ -549,7 +567,7 @@ def fit_predict_months(engine: str, feats: pl.DataFrame, lab: pl.DataFrame,
     order with MVT_ID_mvt, pred (final reconstructed taxi), echo_prob,
     taxi_model_raw, use_prior.
     """
-    if target not in ("flip", "direct", "mixed"):
+    if target not in ("flip", "direct", "mixed", "anchored", "direct_nolirf", "anchored_nolirf"):
         raise ValueError(f"target must be 'flip', 'direct', or 'mixed', got {target!r}")
     fit_months = tuple(fit_months)
     # leak guards (reports/oof_corrector_preregistration.md): the holdout months
@@ -587,10 +605,13 @@ def fit_predict_months(engine: str, feats: pl.DataFrame, lab: pl.DataFrame,
     d_tr = tr_lab["d"].to_numpy()
     taxi_tr = tr_lab["taxi"].to_numpy()
     ym_tr = tr_lab["ym"].to_numpy()
+    anchor_tr = _anchor(f_tr["aobt3_taxi"].cast(pl.Float64).to_numpy())
     iv = ym_tr == valid_month
     fits = {}
     for t in targets_to_fit:
-        keep, y_tr = _train_target(taxi_tr, d_tr, t)
+        keep, y_tr = _train_target(taxi_tr, d_tr, t.removesuffix("_nolirf"), anchor_tr)
+        if t.endswith("_nolirf"):   # reports/base_direct_nolirf_preregistration.md, base_comb_preregistration.md
+            keep = keep & (tr_lab["ADEP_mvt"] != "LIRF").to_numpy()
         tr_mask, va_mask = keep & ~iv, keep & iv
         _mem(f"before holdout fit ({t})")
         m, pf, bi = fitter(
@@ -624,7 +645,10 @@ def fit_predict_months(engine: str, feats: pl.DataFrame, lab: pl.DataFrame,
     def _recon(t):
         m, pf, _ = fits[t]
         raw = pf(m, Xpr[names])
-        raw_taxi = (pr_off - raw) if t == "flip" else raw
+        if t in ("anchored", "anchored_nolirf"):   # NaN where there is no AOBT_3 -- callers combine it with another member there
+            raw_taxi = _anchor(f_pr["aobt3_taxi"].cast(pl.Float64).to_numpy()) + raw
+        else:
+            raw_taxi = (pr_off - raw) if t == "flip" else raw
         return (_reconstruct_taxi(pr_off, raw_taxi, echo_prob, use_prior,
                                    prior_taxi, ceil), raw_taxi)
 
@@ -716,7 +740,7 @@ def run(engine: str = "lgb", feat_dir: Path = FEAT_DIR, name: str | None = None,
     other airport (e.g. EDDF 231->193, EHAM 231->200) -- see PROGRESS.md.
     The echo blend in _reconstruct_taxi applies identically regardless of
     target."""
-    if target not in ("flip", "direct", "mixed"):
+    if target not in ("flip", "direct", "mixed", "anchored", "direct_nolirf", "anchored_nolirf"):
         raise ValueError(f"target must be 'flip', 'direct', or 'mixed', got {target!r}")
     targets_to_fit = ("flip", "direct") if target == "mixed" else (target,)
     t0 = time.time()
@@ -841,7 +865,10 @@ def _refit_and_submit(engine, feat_dir, name, feats, lab, fits, clf_best, ev, ta
     fits_a = {}
     for t in targets_to_fit:
         full_rounds = max(200, int(round(fits[t][2] * refit_scale)))
-        keep, y_all = _train_target(taxi_all_lab, d_all_lab, t)
+        keep, y_all = _train_target(taxi_all_lab, d_all_lab, t.removesuffix("_nolirf"),
+                                    _anchor(f_all["aobt3_taxi"].cast(pl.Float64).to_numpy()))
+        if t.endswith("_nolirf"):
+            keep = keep & (lab_a["ADEP_mvt"] != "LIRF").to_numpy()
         m_a, p_a, _ = fitter(Xall[keep], y_all[keep], cats_a,
                              eta=eta, rounds=full_rounds, es=0, valid=None,
                              objective=objective, alpha=alpha, seed=seed)
@@ -873,7 +900,10 @@ def _refit_and_submit(engine, feat_dir, name, feats, lab, fits, clf_best, ev, ta
     def _recon_r(t):
         m_a, p_a = fits_a[t]
         raw = p_a(m_a, Xr[names_a])
-        raw_taxi = (r_off - raw) if t == "flip" else raw
+        if t in ("anchored", "anchored_nolirf"):
+            raw_taxi = _anchor(f_r["aobt3_taxi"].cast(pl.Float64).to_numpy()) + raw
+        else:
+            raw_taxi = (r_off - raw) if t == "flip" else raw
         return (_reconstruct_taxi(r_off, raw_taxi, echo_prob_r, use_prior_r, prior_taxi_r, ceil_r),
                 raw_taxi)
 

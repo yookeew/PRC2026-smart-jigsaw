@@ -1,0 +1,64 @@
+oof fold 2025-02: fit on 9 months, valid 2025-06, predict 143,732 rows
+holdout fit 236s  best_iter=2454  loss=huber  target=direct_nolirf
+echo clf fit 304s  best_iter=398  base_rate=0.054
+oof fold 2025-02: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_direct_nolirf_nb\fold=2025-02.parquet (143,732 rows, 325s, best {'best_iter_direct_nolirf': 2454} clf=398)
+oof fold 2025-03: fit on 9 months, valid 2025-06, predict 164,449 rows
+holdout fit 276s  best_iter=2049  loss=huber  target=direct_nolirf
+echo clf fit 436s  best_iter=395  base_rate=0.054
+oof fold 2025-03: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_direct_nolirf_nb\fold=2025-03.parquet (164,449 rows, 472s, best {'best_iter_direct_nolirf': 2049} clf=395)
+oof fold 2025-04: fit on 9 months, valid 2025-06, predict 175,288 rows
+holdout fit 210s  best_iter=2050  loss=huber  target=direct_nolirf
+echo clf fit 328s  best_iter=381  base_rate=0.054
+oof fold 2025-04: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_direct_nolirf_nb\fold=2025-04.parquet (175,288 rows, 417s, best {'best_iter_direct_nolirf': 2050} clf=381)
+oof fold 2025-05: fit on 9 months, valid 2025-06, predict 185,202 rows
+holdout fit 558s  best_iter=2246  loss=huber  target=direct_nolirf
+echo clf fit 718s  best_iter=401  base_rate=0.055
+oof fold 2025-05: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_direct_nolirf_nb\fold=2025-05.parquet (185,202 rows, 831s, best {'best_iter_direct_nolirf': 2246} clf=401)
+oof fold 2025-06: fit on 9 months, valid 2025-05, predict 183,142 rows
+holdout fit 444s  best_iter=2270  loss=huber  target=direct_nolirf
+echo clf fit 586s  best_iter=347  base_rate=0.055
+oof fold 2025-06: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_direct_nolirf_nb\fold=2025-06.parquet (183,142 rows, 697s, best {'best_iter_direct_nolirf': 2270} clf=347)
+oof fold 2025-08: fit on 9 months, valid 2025-06, predict 191,182 rows
+holdout fit 449s  best_iter=1694  loss=huber  target=direct_nolirf
+echo clf fit 599s  best_iter=352  base_rate=0.055
+oof fold 2025-08: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_direct_nolirf_nb\fold=2025-08.parquet (191,182 rows, 671s, best {'best_iter_direct_nolirf': 1694} clf=352)
+oof fold 2025-09: fit on 9 months, valid 2025-06, predict 183,950 rows
+holdout fit 760s  best_iter=2328  loss=huber  target=direct_nolirf
+echo clf fit 984s  best_iter=409  base_rate=0.056
+oof fold 2025-09: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_direct_nolirf_nb\fold=2025-09.parquet (183,950 rows, 1094s, best {'best_iter_direct_nolirf': 2328} clf=409)
+oof fold 2025-10: fit on 9 months, valid 2025-06, predict 185,674 rows
+holdout fit 608s  best_iter=2046  loss=huber  target=direct_nolirf
+echo clf fit 797s  best_iter=409  base_rate=0.055
+oof fold 2025-10: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_direct_nolirf_nb\fold=2025-10.parquet (185,674 rows, 910s, best {'best_iter_direct_nolirf': 2046} clf=409)
+oof fold 2025-11: fit on 9 months, valid 2025-06, predict 162,332 rows
+holdout fit 621s  best_iter=2064  loss=huber  target=direct_nolirf
+echo clf fit 810s  best_iter=397  base_rate=0.054
+oof fold 2025-11: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_direct_nolirf_nb\fold=2025-11.parquet (162,332 rows, 902s, best {'best_iter_direct_nolirf': 2064} clf=397)
+oof fold 2025-12: fit on 9 months, valid 2025-06, predict 165,677 rows
+holdout fit 547s  best_iter=1765  loss=huber  target=direct_nolirf
+echo clf fit 713s  best_iter=381  base_rate=0.055
+oof fold 2025-12: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_direct_nolirf_nb\fold=2025-12.parquet (165,677 rows, 798s, best {'best_iter_direct_nolirf': 1765} clf=381)
+resume: holdout phase loaded from C:\Users\yuqiw\prc2025\cache\eval\lgb_direct_nolirf_nb_holdout_ev.parquet (best {'direct_nolirf': 2594}, clf 397)
+oof fold 2025-02: exists, skipping
+oof fold 2025-03: exists, skipping
+oof fold 2025-04: exists, skipping
+oof fold 2025-05: exists, skipping
+oof fold 2025-06: exists, skipping
+oof fold 2025-08: exists, skipping
+oof fold 2025-09: exists, skipping
+oof fold 2025-10: exists, skipping
+oof fold 2025-11: exists, skipping
+oof fold 2025-12: exists, skipping
+resume: holdout phase loaded from C:\Users\yuqiw\prc2025\cache\eval\lgb_direct_nolirf_nb_holdout_ev.parquet (best {'direct_nolirf': 2594}, clf 397)
+=== resume Tue Oct  6 23:21:14 RST 2026 ===
+oof fold 2025-02: exists, skipping
+oof fold 2025-03: exists, skipping
+oof fold 2025-04: exists, skipping
+oof fold 2025-05: exists, skipping
+oof fold 2025-06: exists, skipping
+oof fold 2025-08: exists, skipping
+oof fold 2025-09: exists, skipping
+oof fold 2025-10: exists, skipping
+oof fold 2025-11: exists, skipping
+oof fold 2025-12: exists, skipping
+resume: holdout phase loaded from C:\Users\yuqiw\prc2025\cache\eval\lgb_direct_nolirf_nb_holdout_ev.parquet (best {'direct_nolirf': 2594}, clf 397)
