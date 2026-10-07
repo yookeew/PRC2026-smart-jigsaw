@@ -62,3 +62,77 @@ oof fold 2025-10: exists, skipping
 oof fold 2025-11: exists, skipping
 oof fold 2025-12: exists, skipping
 resume: holdout phase loaded from C:\Users\yuqiw\prc2025\cache\eval\lgb_direct_nolirf_nb_holdout_ev.parquet (best {'direct_nolirf': 2594}, clf 397)
+wrote ranking predictions -> C:\Users\yuqiw\prc2025\cache\eval\lgb_direct_nolirf_nb_rank.parquet
+wrote lgb_direct_nolirf_nb.parquet  n=344,841  median=953.0
+wrote reports\eval\lgb_direct_nolirf_nb.md
+total 812s
+holdout fit 659s  best_iter=2083  loss=huber  target=anchored_nolirf
+echo clf fit 839s  best_iter=397  base_rate=0.055
+echo clf holdout  precision=0.692  recall=0.098  n_true_echo=17349  n_pred_echo=2452
+OVERALL RMSE nan s  (n=344,339)
+  EDDF:nan  EDDM:nan  EGLL:nan  EHAM:nan  LEBL:nan  LEMD:nan  LFPG:nan  LIRF:nan  LSZH:nan  LTFM:nan
+  2025-01:nan  2025-07:nan
+  False:nan  True:262
+  False:nan  True:nan
+wrote holdout predictions -> C:\Users\yuqiw\prc2025\cache\eval\lgb_anchored_nolirf_nb_holdout_ev.parquet (+ round counts lgb_anchored_nolirf_nb_holdout_ev.rounds.json)
+wrote reports\eval\lgb_anchored_nolirf_nb.md
+total 1021s (holdout-only, no submission)
+oof fold 2025-02: fit on 9 months, valid 2025-06, predict 143,732 rows
+holdout fit 473s  best_iter=2547  loss=huber  target=anchored_nolirf
+echo clf fit 538s  best_iter=398  base_rate=0.054
+oof fold 2025-02: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_anchored_nolirf_nb\fold=2025-02.parquet (143,732 rows, 561s, best {'best_iter_anchored_nolirf': 2547} clf=398)
+oof fold 2025-03: fit on 9 months, valid 2025-06, predict 164,449 rows
+holdout fit 743s  best_iter=2192  loss=huber  target=anchored_nolirf
+echo clf fit 963s  best_iter=395  base_rate=0.054
+oof fold 2025-03: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_anchored_nolirf_nb\fold=2025-03.parquet (164,449 rows, 1064s, best {'best_iter_anchored_nolirf': 2192} clf=395)
+oof fold 2025-04: fit on 9 months, valid 2025-06, predict 175,288 rows
+holdout fit 448s  best_iter=2053  loss=huber  target=anchored_nolirf
+echo clf fit 624s  best_iter=381  base_rate=0.054
+oof fold 2025-04: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_anchored_nolirf_nb\fold=2025-04.parquet (175,288 rows, 645s, best {'best_iter_anchored_nolirf': 2053} clf=381)
+oof fold 2025-05: fit on 9 months, valid 2025-06, predict 185,202 rows
+holdout fit 287s  best_iter=2174  loss=huber  target=anchored_nolirf
+echo clf fit 354s  best_iter=401  base_rate=0.055
+oof fold 2025-05: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_anchored_nolirf_nb\fold=2025-05.parquet (185,202 rows, 378s, best {'best_iter_anchored_nolirf': 2174} clf=401)
+oof fold 2025-06: fit on 9 months, valid 2025-05, predict 183,142 rows
+holdout fit 245s  best_iter=2222  loss=huber  target=anchored_nolirf
+echo clf fit 305s  best_iter=347  base_rate=0.055
+oof fold 2025-06: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_anchored_nolirf_nb\fold=2025-06.parquet (183,142 rows, 341s, best {'best_iter_anchored_nolirf': 2222} clf=347)
+oof fold 2025-08: fit on 9 months, valid 2025-06, predict 191,182 rows
+holdout fit 249s  best_iter=2246  loss=huber  target=anchored_nolirf
+echo clf fit 308s  best_iter=352  base_rate=0.055
+oof fold 2025-08: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_anchored_nolirf_nb\fold=2025-08.parquet (191,182 rows, 363s, best {'best_iter_anchored_nolirf': 2246} clf=352)
+oof fold 2025-09: fit on 9 months, valid 2025-06, predict 183,950 rows
+holdout fit 230s  best_iter=1951  loss=huber  target=anchored_nolirf
+echo clf fit 298s  best_iter=409  base_rate=0.056
+oof fold 2025-09: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_anchored_nolirf_nb\fold=2025-09.parquet (183,950 rows, 320s, best {'best_iter_anchored_nolirf': 1951} clf=409)
+oof fold 2025-10: fit on 9 months, valid 2025-06, predict 185,674 rows
+holdout fit 242s  best_iter=2162  loss=huber  target=anchored_nolirf
+echo clf fit 308s  best_iter=409  base_rate=0.055
+oof fold 2025-10: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_anchored_nolirf_nb\fold=2025-10.parquet (185,674 rows, 332s, best {'best_iter_anchored_nolirf': 2162} clf=409)
+oof fold 2025-11: fit on 9 months, valid 2025-06, predict 162,332 rows
+holdout fit 282s  best_iter=2687  loss=huber  target=anchored_nolirf
+echo clf fit 344s  best_iter=397  base_rate=0.054
+oof fold 2025-11: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_anchored_nolirf_nb\fold=2025-11.parquet (162,332 rows, 371s, best {'best_iter_anchored_nolirf': 2687} clf=397)
+oof fold 2025-12: fit on 9 months, valid 2025-06, predict 165,677 rows
+holdout fit 238s  best_iter=2057  loss=huber  target=anchored_nolirf
+echo clf fit 301s  best_iter=381  base_rate=0.055
+oof fold 2025-12: wrote C:\Users\yuqiw\prc2025\cache\oof\lgb_anchored_nolirf_nb\fold=2025-12.parquet (165,677 rows, 323s, best {'best_iter_anchored_nolirf': 2057} clf=381)
+resume: holdout phase loaded from C:\Users\yuqiw\prc2025\cache\eval\lgb_anchored_nolirf_nb_holdout_ev.parquet (best {'anchored_nolirf': 2083}, clf 397)
+wrote ranking predictions -> C:\Users\yuqiw\prc2025\cache\eval\lgb_anchored_nolirf_nb_rank.parquet
+C:\Users\yuqiw\prc2025\src\models\fit.py:389: RuntimeWarning: invalid value encountered in cast
+  "TAXITIME_SEC_mvt": np.round(taxi).astype("int32")})
+Traceback (most recent call last):
+  File "C:\Users\yuqiw\prc2025\src\models\run_comb_base.py", line 124, in <module>
+    {"fits": fits, "combine": combine, "compare": compare}.get(sys.argv[1] if len(sys.argv) > 1 else "", lambda: sys.exit(__doc__))()
+  File "C:\Users\yuqiw\prc2025\src\models\run_comb_base.py", line 46, in fits
+    run(engine="lgb", target=target, seed=42, feat_dir=FEAT, name=name, submit=True, ev_out=ev,
+  File "C:\Users\yuqiw\prc2025\src\models\fit.py", line 779, in run
+    return _refit_and_submit(engine, feat_dir, name, feats, lab, fits, clf_best, ev, targets_to_fit,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yuqiw\prc2025\src\models\fit.py", line 926, in _refit_and_submit
+    sub = _write_submission(f_r["MVT_ID_mvt"].to_list(), taxi_r, name)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yuqiw\prc2025\src\models\fit.py", line 393, in _write_submission
+    assert (merged["TAXITIME_SEC_mvt"] >= 0).all()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

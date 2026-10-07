@@ -4841,3 +4841,121 @@ the teammate's §87–§88. Their code, reports and logs were brought onto this 
   - **July moves are small and spread across many features.**
   - **No feature has an implausible 2026 value or a single dominant contribution.** These are real January 2026 conditions (cold, snowy, more delayed), read through relationships learned in 2025.
 - **Conclusion:** no input mismatch. The extra offset beyond the anchor reflects learned 2025 behaviour in delayed/snowy conditions. A bias fix would rest on assuming the 2025 offset holds in conditions 2025 rarely saw. That would be a guess, and LSZH is worth only about 0.2–0.6 s on the board anyway. **Closed, no change.**
+
+## 99. Long taxis and ADS-B -- no new lever (2026-10-07, no training)
+
+- `tests/long_taxi_adsb.py`, `logs/long_taxi_adsb.log`; holdout, NM-matched rows with y ≤ 5 h (339,022 rows, v42 RMSE 210.4).
+- **Where ADS-B sees a pushback (dwell/pass), v42 is already good:** RMSE 87–145 s in every ADS-B-taxi bin up to 40 min, bias ≤ 3 s. It beats the lag-corrected ADS-B taxi alone (182–260 s). Nothing left there.
+- **Long taxis are 42% of the NM-matched SSE** (y 30–60 min 27.0%, > 60 min 15.2%). 82–86% of those rows have no ADS-B pushback.
+- **Long-taxi rows are concentrated at the airports with the least ADS-B:**
+  - EGLL 4,690 (10–12% of departures matched to a track in Jan/Jul 2025);
+  - LIRF 2,551 (40–46%);
+  - LTFM 2,233 (no adsb.lol data);
+  - LFPG 2,213 (4–8%).
+- **EGLL's low 2025 holdout match rate doesn't carry to 2026:** EGLL coverage there is 22–75% (§40, §62), and the combiner already uses it.
+- Matching and detection were worked through in §56–§62 (inferred stands, fallback, runway-ending runs, inbound hex); §62 concluded the remaining lever was training data, which §64–§65 then added.
+- **Conclusion:** no new ADS-B lever for the long-taxi error. **Closed.**
+
+## 100. Combined base on v42 -- status at the overnight pause (2026-10-07 00:30)
+
+- **Done:**
+  - `lgb_direct_nolirf_nb`: holdout, 10 folds and production (`cache/eval/lgb_direct_nolirf_nb_rank.parquet`);
+  - `lgb_anchored_nolirf_nb`: holdout, plus folds Feb and Mar (Apr was running).
+- **Gate moved to v42's recipe:** `reports/base_comb_preregistration.md` amendment A1, recorded before any combination result.
+  - `PRC_BASE` switch added to `src/post/ctx_armc.py`;
+  - gate script `tests/base_comb_v42_test.py`.
+- **Update 01:16: all member fits are finished.** `lgb_anchored_nolirf_nb` has its holdout, 10 folds and production
+  (`cache/eval/lgb_anchored_nolirf_nb_rank.parquet`).
+  - The job then failed only at writing a stand-alone submission file, by design: the anchored member is NaN on the
+    5,290 ranking rows without AOBT_3, exactly those rows, and `combine` uses the direct member there.
+  - Step 1 below is done; resume at step 2.
+- **To resume** (finished pieces are skipped; at most one fold is lost):
+  1. `.venv/Scripts/python.exe -u src/models/run_comb_base.py fits` (remaining folds ~15 min each + production ~20 min)
+  2. `... run_comb_base.py combine`, then `... compare`
+  3. `PRC_BASE=lgb_comb_nb ARMC_ARM=c1 CTX_ENS=2 CTX_RWY=1 [CTX_ADSB=1] .venv/Scripts/python.exe -u src/post/ctx_armc.py inputs` (once without and once with `CTX_ADSB=1`)
+  4. `PRC_BASE=lgb_comb_nb ARMC_ARM=c1 .venv/Scripts/python.exe -u src/post/ctx_armc.py sel`
+  5. `PRC_BASE=lgb_comb_nb PRC_LGB=ctxcorr2r .venv/Scripts/python.exe -u tests/base_comb_v42_test.py`
+
+- **Base-level result (step 2 done, 2026-10-07):**
+  - `lgb_comb_nb` vs `lgb_mixed_nb` on the holdout: body −0.74 (Jan −1.29, Jul −0.36), trimmed −1.20, full −0.98.
+  - Better at 8 of 9 changed airports (LTFM +0.33).
+  - Next: step 3 (the two Arm C correctors), not started.
+
+## 101. Echo-hedge cost audit -- the large-error pool is LIRF NM-unmatched; no hidden echo rows elsewhere (2026-10-07, no training)
+
+- **Scripts / logs:** `tests/hedge_cost_audit.py`, `tests/echo_drift_all.py`; `logs/hedge_cost_audit.log`, `logs/echo_drift_all.log`.
+- **Arithmetic behind the question:** 249 → 213 on the board = 5.7e9 less total SSE, about 18 rows missed by 5 h.
+- **Method:**
+  - Each base prediction is p · clip(offset) + (1 − p) · R.
+  - p is the stack-mixed echo probability (0.577 lgb + 0.428 cat).
+  - For 2026, R is recovered by inverting the base submissions. Checked exact on the holdout (max error 8e-11).
+  - P_ne = (P − p · offset) / (1 − p) is the non-echo branch implied by v42's own prediction.
+  - **Hedge cost** H = p(1 − p)(offset − P_ne)²: the SSE that knowing the echo status would remove.
+  - **Expected SSE** E = H + (1 − p) · s², with s² the non-echo residual variance per segment × offset band.
+- **Validation on the holdout:** E vs realised SSE, ratio 1.02 / 1.07 (non-LIRF < 1 h / 1–3 h), 1.17 / 1.05 (LIRF NM-matched), 0.97 / 0.79 (LIRF NM-unmatched 1–3 h / 3–6 h). Unreliable only in cells under ~20 rows (LIRF NM-unmatched > 12 h: 4.7).
+- **Holdout (labelled):**
+  - Non-LIRF rows with offset ≥ 1 h: 38,282 rows, only 12 echoes. p is ~0 there and correct (calibration: mean p 0.001, echo rate 0.000).
+  - The 40 largest errors (41.9% of SSE):
+    - two LFPG label artefacts (block ~23 h before takeoff, d = −82,500 / −56,163; 32.1% together);
+    - 30 LIRF NM-unmatched rows;
+    - a few EGLL/LSZH/LFPG/EHAM non-echo artefacts (takeoff ~3 h after the scheduled time with a normal-looking offset).
+    - No hidden echoes outside LIRF.
+  - Non-echo artefact rows can't be predicted from any input and cost every team the same, so they don't explain gaps between teams.
+- **2026 arrival echo** (arrivals keep their block time), among movements > 30 min off schedule:
+  - non-LIRF ≤ 0.1% in 2025 and 2026 at every airport;
+  - LIRF 7.3 → 5.0% (Jan), 3.7 → 6.1% (Jul).
+  - **No recording change anywhere** (extends §67).
+- **2026 expected hedge cost, share of the board's SSE (249.31² × 344,841):**
+  - **LIRF NM-unmatched (348 rows):**
+    - 1–3 h 8.7%, 3–6 h 6.9% (validated bands);
+    - > 12 h 11.5% (unvalidated; one row carries 7.5% through an extreme implied P_ne).
+    - 99 of the top 100 hedge rows are here.
+  - **LIRF NM-matched:** ~10%. Already mined: operator echo rate (Arm C2 ≈ 0), inbound echo (priced, §67), same-day operator arrival echo (LIRF combiner, §66).
+  - **Non-LIRF:** ~6%, spread over ~300k punctual rows with small per-row cost. Not a tail mechanism.
+  - The expected total (RMSE 318) overshoots the board (249). s² carries the holdout's two LFPG artefact rows, so the shares above are upper-ish.
+- **Conclusion:**
+  - There are no hidden echo rows outside LIRF, and the echo signals for LIRF NM-matched rows have been tried.
+  - The one large identified pool is the LIRF NM-unmatched hedge, which the team rule (§87) keeps fixed. About 15.6% of the board's SSE sits in its validated bands alone.
+  - **Sensitivity:** a method that removed half of that pool would be worth about −10 s on the board.
+  - Any change to those rows is a team decision.
+
+## 102. Stand occupancy as a hard decider for the LIRF NM-unmatched hedge -- does not work (2026-10-07, analysis only)
+
+- **Context:** analysis only; the team rule (§87) keeps these rows fixed. Question from §101: a statistical change to these rows can't be confirmed by the holdout or the board (one 3 h miss ≈ 0.6 s of board RMSE; v22 lost by 0.66). Can a physical constraint settle individual rows instead?
+- **Script / log:** `tests/lirf_stand_bounds.py`, `logs/lirf_stand_bounds.log`.
+- **Why the existing link can't answer it:** `src/link/stand_link.py` searches for A_next only after T − 12 min, so its L bound is ≤ 12 min and blind to multi-hour rows. The scoping uses its own stand windows.
+- **Identity:** aircraft type is null on every LIRF NM-unmatched departure. The airline prefix of `FLIGHT_mvt` is used instead (present on 96%).
+- **Configurations** (LIRF departures with offset ≥ 1 h, all 12 months of 2025 with OOF p; 2026 counts):
+  - **REOCC** (another airline/type takes the stand between SCHED and T − 30 min):
+    - NM-unmatched: 16 rows in 2025, 0 normal labels (the bound held 16/16);
+    - **2 rows in 2026.** No reach.
+  - **LATE** (a matching arrival lands at the stand after SCHED):
+    - NM-unmatched: **echo rate 0.71** (n 480). The opposite of the physical expectation; an airline match isn't the own aircraft.
+    - The echo label ignores physics: on LATE rows, "label ≤ T − arrival" holds only 82–93% and gets worse with lateness.
+    - NM-matched (type identity): echo 0.3% when the inbound is > 1 h late, but p already matches (0.007). Nothing to gain.
+  - **QUIET** (nothing in between):
+    - NM-unmatched: echo 0.277 vs mean p 0.412, the over-hedge cell of v22 (§55).
+    - 183 rows in 2026.
+- **Side finding:** NM-unmatched LATE echo rate is strongly seasonal in 2025: 0.85–1.00 in Nov–May vs 0.54–0.67 in Jun–Oct. That is a learned rate again, the same kind of evidence that failed with v22.
+- **Conclusion:** stand occupancy doesn't settle LIRF NM-unmatched rows. The decisive configuration has no 2026 reach; the common ones aren't decisive, because echo is a recording quirk that doesn't obey the physical bound. **Closed.**
+
+## 103. Same-day airline arrival echo for LIRF NM-unmatched departures -- no usable signal (2026-10-07, analysis only)
+
+- **Context:** analysis only; the team rule (§87) keeps these rows fixed. `tests/lirf_airline_day_echo.py`, `logs/lirf_airline_day_echo.log`.
+- **Idea:** §63's per-operator, per-day echo state is visible on 2026 arrivals. Every use so far keyed it on the operator, which is null on NM-unmatched rows; here the key is the airline prefix of `FLIGHT_mvt`.
+- **Data:** 2025, all 12 months; LIRF NM-unmatched departures ≥ 1 h late: 1,375 rows, echo rate 0.491.
+- **Separation is weak and where it is strong there are no rows.** By the same-day late-arrival echo rate of the airline:
+  - 0: echo 0.489 (n 883);
+  - (0, .3]: 0.413 (189);
+  - (.3, .6]: 0.667 (36);
+  - (.6, 1]: 0.769 (13).
+  - In 2026 the two upper bands hold 11 and 2 rows.
+  - For comparison, NM-matched rows (operator-level, already in p) separate well: 0.037 → 0.307.
+- **Leave-one-month-out logistic on logit(p):**
+  - log-loss: raw p 0.483, recalibrated p 0.455, p + airline-day 0.443;
+  - **offset-weighted squared error (what RMSE sees): raw p 4.97e10, recalibrated 5.28e10 (+6%), p + airline-day 5.13e10 (+3%).** Per-month ratios 0.79–1.32.
+- **This also explains v22 (§55) out of sample.** Recalibrating the hedge improves the average fit but worsens the cost on the large-offset rows that decide RMSE.
+- **Conclusion:**
+  - LIRF NM-unmatched echo is not visible through the airline's same-day arrivals.
+  - Together with §102, no label-free signal for these rows has been found.
+  - The team rule stands on evidence. **Closed.**

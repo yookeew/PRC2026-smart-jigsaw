@@ -63,4 +63,18 @@ move to v42's recipe; the treatment and the form of the rule are unchanged.
 
 ## Results
 
-(pending)
+**Base level** (2026-10-07; `logs/base_comb_combine.log`, `logs/base_comb_compare.log`): `lgb_comb_nb` vs `lgb_mixed_nb`, holdout.
+- Rows replaced: 312,885 of 344,339 on the holdout and 313,035 of 344,841 on the ranking set. All of them use the anchored member.
+
+| slice | lgb_mixed_nb | lgb_comb_nb | delta |
+|---|---|---|---|
+| body pooled | 215.86 | 215.12 | −0.74 |
+| body Jan | 197.82 | 196.54 | −1.29 |
+| body Jul | 229.53 | 229.17 | −0.36 |
+| trimmed | 271.99 | 270.79 | −1.20 |
+| full | 334.33 | 333.36 | −0.98 |
+
+- **Per airport (body):** better at 8 of 9 changed airports, from EGLL −1.68 and LFPG −1.47 to EHAM −0.72; LTFM +0.33. LIRF is unchanged by construction.
+- The two members alone gave −0.58 (anchored) and −0.30 (no-LIRF direct), so their gains roughly add.
+
+**Chain level vs v42 (the gate):** pending.

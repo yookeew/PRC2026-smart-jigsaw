@@ -1,0 +1,26 @@
+LIRF departures >= 1 h late: 2025 17,354 (NM-unmatched 1,375; p missing 0; airline prefix missing 81), 2026 4,196 (NM-unmatched 348)
+
+1. echo rate vs same-day same-airline late-arrival echo rate (al_echo)
+  NM-unmatched:  band: 2025 n / echo rate / mean p   |  2026 n / mean p
+    no late arr     254 / 0.516 / 0.531   |     58 / 0.469
+    0               883 / 0.489 / 0.540   |    217 / 0.443
+    (0,.3]          189 / 0.413 / 0.496   |     60 / 0.417
+    (.3,.6]          36 / 0.667 / 0.594   |     11 / 0.614
+    (.6,1]           13 / 0.769 / 0.665   |      2 / 0.645
+  NM-matched:  band: 2025 n / echo rate / mean p   |  2026 n / mean p
+    no late arr   2,463 / 0.147 / 0.131   |    482 / 0.114
+    0            11,471 / 0.037 / 0.034   |  2,828 / 0.034
+    (0,.3]        1,669 / 0.062 / 0.050   |    461 / 0.051
+    (.3,.6]         301 / 0.086 / 0.077   |     65 / 0.045
+    (.6,1]           75 / 0.307 / 0.271   |     12 / 0.423
+  NM-unmatched by month, top band (.6,1] and band 0: n / echo rate / mean p
+    (.6,1]  04:1/0.00/0.64  05:1/1.00/0.84  06:2/0.50/0.79  07:4/0.75/0.58  08:1/1.00/0.45  09:1/1.00/0.77  10:1/1.00/0.70  12:2/1.00/0.67
+    0       01:39/0.51/0.59  02:32/0.72/0.63  03:34/0.79/0.70  04:34/0.68/0.67  05:49/0.47/0.54  06:93/0.51/0.54  07:217/0.35/0.45  08:126/0.47/0.54  09:106/0.40/0.52  10:76/0.47/0.52  11:30/0.70/0.59  12:47/0.72/0.70
+
+2. NM-unmatched, leave-one-month-out (n 1,375, echo rate 0.491):
+   raw p            log-loss 0.4825  Brier 0.1561  offset-weighted 4.973e+10
+   recalibrated p   log-loss 0.4549  Brier 0.1476  offset-weighted 5.275e+10
+   p + airline-day  log-loss 0.4426  Brier 0.1427  offset-weighted 5.129e+10
+   per month offset-weighted (p + airline-day) / (recalibrated p):
+   01:1.02  02:0.93  03:0.99  04:1.32  05:0.79  06:1.10  07:0.93  08:1.10  09:0.97  10:0.97  11:0.80  12:0.92
+   full-data coefficients [logit p, has late arr, late-arr echo, log1p late n, all-arr echo, log1p all n]: [ 1.539 -0.107  0.301  0.448  1.693 -0.517]

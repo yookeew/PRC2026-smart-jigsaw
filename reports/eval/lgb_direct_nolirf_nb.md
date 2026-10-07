@@ -1,7 +1,7 @@
 # Holdout eval — lgb_direct_nolirf_nb
 
-- engine: **lgb**   |   generated: 2026-10-06 16:59
-- target direct_nolirf  |  loss huber (alpha=800.0)  |  eta 0.02  |  rounds ceiling 8000  |  early-stopped at direct_nolirf=2594 (inner-valid 2025-06)  |  full-refit rounds ?
+- engine: **lgb**   |   generated: 2026-10-06 23:34
+- target direct_nolirf  |  loss huber (alpha=800.0)  |  eta 0.02  |  rounds ceiling 8000  |  early-stopped at direct_nolirf=2594 (inner-valid 2025-06)  |  full-refit rounds direct_nolirf=2853
 - holdout = 2025-01, 2025-07 (fit on the other 10 months of 2025)
 - rows scored: 344,339 (all true taxi >= 0; no upper-bound exclusion -- the real board scores these rows too, see 'By AOBT_3_flt lane' below)
 - target d clipped to [30, 7200] s in training; taxi predictions clipped to [0, 10800] s
@@ -72,3 +72,9 @@ Supersedes the has_aobt3 lane above as the primary echo-lane diagnostic -- see f
 | min | p10 | p50 | p90 | max | n@floor | n@ceil |
 | --- | --- | --- | --- | --- | --- | --- |
 | 65 | 614 | 943 | 1441 | 68894 | 0 | 37 |
+
+## Submission file (ranking, Jan+Jul 2026)
+
+| rows | min | p10 | median | mean | p90 | max | n@floor | n@ceil |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 344,841 | 119 | 634 | 953 | 1026 | 1467 | 93238 | 0 | 34 |

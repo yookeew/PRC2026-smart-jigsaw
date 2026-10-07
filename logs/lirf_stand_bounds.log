@@ -1,0 +1,36 @@
+LIRF departures with offset >= 1 h and a stand: 2025 17,352 (p missing 0), 2026 4,196
+  stand null among LIRF NM-unmatched departures: 2025 0.005, 2026 0.000
+
+2025, all 12 months
+  NM-unmatched
+    LATE   n    480  mean p 0.671  echo 0.706  normal(<=1h) 0.285  long(>=0.5 off) 0.715
+    OTHER  n    170  mean p 0.657  echo 0.771  normal(<=1h) 0.165  long(>=0.5 off) 0.835
+    QUIET  n    708  mean p 0.412  echo 0.277  normal(<=1h) 0.710  long(>=0.5 off) 0.288
+    REOCC  n     16  mean p 0.606  echo 0.562  normal(<=1h) 0.000  long(>=0.5 off) 1.000
+  NM-matched
+    LATE   n  5,023  mean p 0.021  echo 0.021  normal(<=1h) 0.976  long(>=0.5 off) 0.026
+    OTHER  n    903  mean p 0.030  echo 0.033  normal(<=1h) 0.941  long(>=0.5 off) 0.137
+    QUIET  n  9,997  mean p 0.070  echo 0.081  normal(<=1h) 0.902  long(>=0.5 off) 0.154
+    REOCC  n     55  mean p 0.013  echo 0.055  normal(<=1h) 0.909  long(>=0.5 off) 0.145
+
+2026 ranking
+  NM-unmatched
+    LATE   n    104  mean p 0.578
+    OTHER  n     59  mean p 0.607
+    QUIET  n    183  mean p 0.327
+    REOCC  n      2  mean p 0.375
+  NM-matched
+    LATE   n  1,235  mean p 0.020
+    OTHER  n    249  mean p 0.026
+    QUIET  n  2,338  mean p 0.065
+    REOCC  n     26  mean p 0.019
+
+2025 NM-unmatched, by month: n / echo rate / normal share, for LATE and REOCC
+  LATE: 01:13/0.85/0.15  02:25/0.96/0.04  03:25/1.00/0.00  04:20/0.85/0.15  05:23/0.87/0.13  06:60/0.63/0.37  07:106/0.54/0.46  08:72/0.64/0.33  09:52/0.63/0.35  10:36/0.67/0.33  11:17/0.94/0.00  12:31/0.90/0.10
+  REOCC: 01:1/0.00/0.00  03:1/1.00/0.00  04:1/1.00/0.00  06:1/1.00/0.00  07:5/0.20/0.00  08:3/0.67/0.00  09:1/0.00/0.00  10:3/1.00/0.00
+
+2025 LATE (both NM groups): echo rate by how long after SCHED the same-type arrival came
+      0-30    min: n 3,052  echo 0.069  normal 0.930  mean p 0.065  label <= T - A1 (U holds) 0.934
+     30-60    min: n 1,321  echo 0.078  normal 0.918  mean p 0.077  label <= T - A1 (U holds) 0.899
+     60-120   min: n   852  echo 0.100  normal 0.891  mean p 0.103  label <= T - A1 (U holds) 0.881
+    120-1667  min: n   278  echo 0.162  normal 0.824  mean p 0.148  label <= T - A1 (U holds) 0.824

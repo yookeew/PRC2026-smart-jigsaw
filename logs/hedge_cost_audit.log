@@ -1,0 +1,165 @@
+inversion check lgb: rows 339,413; |R_inv - clip(raw)| p50 0, p99.9 9.09e-13, max 3.27e-11
+inversion check cat: rows 339,411; |R_inv - clip(raw)| p50 0, p99.9 6.82e-13, max 8e-11
+
+holdout rows 344,339; v42 RMSE 304.1; echo rate 0.0504
+
+A. v42 holdout SSE by mechanism (labelled)
+  segment      offset echo        n   %SSE    rmse  mean p  mean off   mean y   mean P
+  non-LIRF     <1h    True   12,891    1.8     211   0.127       998      998      953
+  non-LIRF     <1h    False 266,638   54.7     256   0.041      1516      959      967
+  non-LIRF     1-3h   True       12    0.1    1901   0.015      4926     4923     3304
+  non-LIRF     1-3h   False  35,498   14.3     358   0.001      5395     1214     1213
+  non-LIRF     3-6h   False   2,378    0.8     325   0.000     13992     1151     1157
+  LIRF NM-m    <1h    True    4,103    1.7     359   0.426      1260     1260     1153
+  LIRF NM-m    <1h    False  18,227    3.9     262   0.131      1583     1096     1143
+  LIRF NM-m    1-3h   True      203    3.0    2163   0.364      4861     4862     3100
+  LIRF NM-m    1-3h   False   3,343    3.1     542   0.029      5363     1411     1507
+  LIRF NM-m    3-6h   False     233    0.3     608   0.004     14140     1410     1450
+  LIRF NM-unm  <1h    False      16    1.0    4395   0.338     -2012     4683     1411
+  LIRF NM-unm  1-3h   True       81    0.8    1800   0.640      7109     7110     5747
+  LIRF NM-unm  1-3h   False     211    5.6    2903   0.328      6575     1220     3463
+  LIRF NM-unm  3-6h   True       31    1.4    3749   0.675     15237    15236    12067
+  LIRF NM-unm  3-6h   False      31    4.6    6872   0.456     12943     1313     7337
+  LIRF NM-unm  >12h   True        6    1.3    8186   0.669     50410    50410    55511
+  LIRF NM-unm  >12h   False       5    1.5    9637   0.631     73942    87405    83448
+  total non-LIRF     n 317,811  %SSE  71.8
+  total LIRF NM-m    n  26,131  %SSE  12.1
+  total LIRF NM-unm  n     397  %SSE  16.1
+
+B. 40 largest v42 squared errors (holdout)
+  apt  nm-unm  %SSE       y       P     off       d echo    p_l   p_c       R
+  LFPG True    21.8   84240     915    1740  -82500 False  0.00  0.01     961
+  LFPG True    10.3   58206    1002    2043  -56163 False  0.00  0.00    1013
+  LIRF True     0.8    1377   17461   20878   19501 False  0.59  0.66    9954
+  LIRF True     0.7   56633   72055   56636       3 True   0.86  0.97   47024
+  LIRF True     0.6   87186   73324   58563  -28623 False  0.52  0.47   45093
+  LIRF True     0.5   87177   74348   60118  -27059 False  0.74  0.92   50082
+  LIRF True     0.5   64437   77192   64438       1 True   0.42  0.40   49722
+  LIRF True     0.4     842   12743   15361   14519 False  0.66  0.77    3546
+  LIRF True     0.4     959   12063   14339   13380 False  0.70  0.73    3314
+  EHAM True     0.4   11032     145    -364  -11396 False  0.01  0.05     181
+  LIRF True     0.3     723   10676   15301   14578 False  0.57  0.46    3626
+  LIRF True     0.3   14890    5567   14885      -5 True   0.25  0.27    1243
+  LIRF True     0.3    1444   10645   13262   11818 False  0.70  0.51    3584
+  LIRF True     0.3   87170   96346   93535    6365 False  0.73  0.77   81880
+  LIRF True     0.2    1190    9987   12835   11645 False  0.66  0.80    2108
+  EGLL True     0.2   11167    2470   10563    -604 False  0.00  0.00    1331
+  LSZH True     0.2    9652    1089    9946     294 False  0.00  0.00     803
+  LIRF True     0.2     604    9041    9422    8818 False  0.76  0.84    2950
+  LIRF True     0.2    1256    9504   13858   12602 False  0.68  0.50    1505
+  LIRF True     0.2     905    9038   12122   11217 False  0.61  0.74    1122
+  LIRF True     0.2     908    8836    9124    8216 False  0.82  0.66    3968
+  EGLL True     0.2    9901    2316   10140     239 False  0.00  0.00    1250
+  LSZH True     0.2    7625      61    7382    -243 False  0.00  0.00     434
+  LIRF True     0.2    1144    8649   12182   11038 False  0.61  0.73    1996
+  LIRF True     0.2    1090    8366   10085    8995 False  0.63  0.74    2409
+  LIRF True     0.2    8103    1148     901   -7202 False  0.55  0.23    1369
+  LFPG False    0.2    8563    1637   10301    1738 False  0.00  0.00    1405
+  LIRF True     0.1     895    7789   10737    9842 False  0.60  0.67     127
+  LIRF True     0.1   14822    7975   14821      -1 True   0.46  0.38    2035
+  LIRF True     0.1    7981    1188     780   -7201 False  0.46  0.15    1318
+  LIRF True     0.1    7682     957    1381   -6301 False  0.47  0.42     468
+  LIRF True     0.1    1090    7759   12365   11275 False  0.68  0.26    2333
+  LIRF True     0.1    8034    1485    1077   -6957 False  0.53  0.20    1710
+  LIRF True     0.1    8576    2032    2638   -5938 False  0.48  0.21    2949
+  LIRF True     0.1     712    7199   10076    9364 False  0.77  0.62    3457
+  LIRF True     0.1     956    7413   12898   11942 False  0.54  0.38    1087
+  EGLL True     0.1    8518    2131   10439    1921 False  0.00  0.00    1371
+  LFPG True     0.1    7437    1052   10438    3001 False  0.00  0.00     961
+  LIRF True     0.1    1210    7357    8465    7255 False  0.69  0.79    2181
+  LIRF True     0.1    1622    7741   12061   10439 False  0.54  0.57    1139
+  top 40 = 41.9% of SSE; of these echo 4, LIRF NM-unmatched 30
+
+C. calibration of the stack-mixed echo probability (offset >= 1 h rows), by segment
+  non-LIRF
+    off 1-3h   p <.02    n 35,343  mean p 0.001  echo rate 0.000  %SSE  14.2
+    off 1-3h   p .02-.1  n    163  mean p 0.036  echo rate 0.018  %SSE   0.2
+    off 3-6h   p <.02    n  2,378  mean p 0.000  echo rate 0.000  %SSE   0.8
+    off 6-12h  p <.02    n    296  mean p 0.000  echo rate 0.000  %SSE   0.1
+    off >12h   p <.02    n     98  mean p 0.000  echo rate 0.000  %SSE   0.0
+  LIRF NM-m
+    off 1-3h   p <.02    n  2,291  mean p 0.006  echo rate 0.005  %SSE   1.8
+    off 1-3h   p .02-.1  n    823  mean p 0.045  echo rate 0.050  %SSE   1.8
+    off 1-3h   p .1-.3   n    336  mean p 0.165  echo rate 0.235  %SSE   2.0
+    off 1-3h   p .3-.7   n     44  mean p 0.395  echo rate 0.432  %SSE   0.4
+    off 1-3h   p >.9     n     45  mean p 0.957  echo rate 1.000  %SSE   0.0
+    off 3-6h   p <.02    n    225  mean p 0.003  echo rate 0.000  %SSE   0.3
+    off 6-12h  p <.02    n     17  mean p 0.003  echo rate 0.000  %SSE   0.0
+  LIRF NM-unm
+    off 1-3h   p .02-.1  n     13  mean p 0.081  echo rate 0.000  %SSE   0.0
+    off 1-3h   p .1-.3   n     99  mean p 0.203  echo rate 0.030  %SSE   0.8
+    off 1-3h   p .3-.7   n    136  mean p 0.477  echo rate 0.324  %SSE   4.4
+    off 1-3h   p .7-.9   n     41  mean p 0.788  echo rate 0.756  %SSE   1.2
+    off 3-6h   p .3-.7   n     37  mean p 0.527  echo rate 0.405  %SSE   4.3
+    off 3-6h   p .7-.9   n     17  mean p 0.775  echo rate 0.824  %SSE   1.3
+
+D. expected (label-free) vs realised squared error on the holdout, by segment x offset band
+  segment      offset       n realised % expected %  ratio hedge H %
+  non-LIRF     <1h    279,529       56.5       57.4   1.02       2.6
+  non-LIRF     1-3h    35,510       14.4       15.4   1.07       1.2
+  non-LIRF     3-6h     2,378        0.8        1.1   1.42       0.3
+  non-LIRF     6-12h      296        0.1        0.2   2.53       0.1
+  non-LIRF     >12h        98        0.0        0.3   6.12       0.3
+  LIRF NM-m    <1h     22,330        5.6        6.6   1.17       2.4
+  LIRF NM-m    1-3h     3,546        6.1        6.4   1.05       3.6
+  LIRF NM-m    3-6h       234        0.4        0.8   2.15       0.5
+  LIRF NM-m    6-12h       19        0.0        0.2  27.73       0.2
+  LIRF NM-m    >12h         2        0.1        1.1  21.36       1.0
+  LIRF NM-unm  <1h         22        1.0        0.0   0.04       0.0
+  LIRF NM-unm  1-3h       292        6.4        6.2   0.97       4.4
+  LIRF NM-unm  3-6h        62        6.0        4.7   0.79       4.0
+  LIRF NM-unm  6-12h       10        0.0        0.1   5.31       0.1
+  LIRF NM-unm  >12h        11        2.7       12.8   4.72      12.4
+  all: realised 3.184e+10, expected 3.607e+10 (ratio 1.13); hedge H 33.1% of realised SSE
+  oracle check (offset >= 1 h rows): realised SSE 36.9% of total; with P = offset on echo rows and R on the rest it would be 39.7%
+
+E. 2026. cat_mixed.parquet vs cat_mixed_rank pred: max |diff| 1450.53
+  rows with both p >= 0.99 (R unknown, weight (1-p) negligible): 1
+  board total SSE 2.143e+10; expected total 3.484e+10 (= RMSE 317.8); hedge H 9.387e+09 = 43.8% of the board's SSE
+  segment      offset     n26     n25 mean p 26     25 E % board H % board H % 2025 SSE
+  non-LIRF     <1h    278,876 279,529     0.047  0.045      84.8       3.8          2.6
+  non-LIRF     1-3h    35,474  35,510     0.001  0.001      22.5       1.3          1.2
+  non-LIRF     3-6h     3,052   2,378     0.000  0.000       2.0       0.5          0.3
+  non-LIRF     6-12h      412     296     0.000  0.000       0.4       0.2          0.1
+  non-LIRF     >12h       128      98     0.000  0.000       0.5       0.4          0.3
+  LIRF NM-m    <1h     22,668  22,330     0.188  0.185       9.9       3.7          2.4
+  LIRF NM-m    1-3h     3,618   3,546     0.050  0.049       9.8       5.6          3.6
+  LIRF NM-m    3-6h       213     234     0.007  0.004       0.9       0.6          0.5
+  LIRF NM-m    6-12h       16      19     0.004  0.006       0.2       0.2          0.2
+  LIRF NM-m    >12h         1       2     0.001  0.254       0.2       0.0          1.0
+  LIRF NM-unm  <1h         35      22     0.447  0.398       0.1       0.1          0.0
+  LIRF NM-unm  1-3h       274     292     0.410  0.415      11.2       8.7          4.4
+  LIRF NM-unm  3-6h        48      62     0.533  0.566       7.8       6.9          4.0
+  LIRF NM-unm  6-12h       15      10     0.722  0.836       0.3       0.3          0.1
+  LIRF NM-unm  >12h        11      11     0.691  0.652      12.1      11.5         12.4
+
+  2026 rows with the largest hedge cost H (top 25):
+  apt  nm-unm H % board     off       P       R   p_l   p_c
+  LIRF True        7.53   56520   72820   46690  0.79  0.94
+  LIRF True        2.29   60656   74995   43996  0.74  0.65
+  LIRF True        0.99   61322   75346   48054  0.61  0.39
+  LIRF True        0.67  111654  115764  101937  0.83  0.97
+  LIRF True        0.30   17822   10754    4502  0.58  0.53
+  LIRF True        0.28   13977    6498    1654  0.59  0.41
+  LIRF True        0.24   19263   14208    5083  0.65  0.70
+  LIRF True        0.24   19500    9736    5813  0.39  0.29
+  LIRF True        0.24   19863   12359    6582  0.54  0.38
+  LIRF True        0.23   13680    5682    1883  0.47  0.39
+  LIRF True        0.23   16495   10037    4595  0.51  0.58
+  LIRF True        0.22   13801    3094    1076  0.29  0.30
+  LIRF True        0.21   15902    9447    3749  0.59  0.43
+  LIRF True        0.21   11643    4383       0  0.54  0.35
+  LIRF True        0.21   15060    9888    2768  0.64  0.59
+  LIRF True        0.19   16676   10175    5015  0.53  0.44
+  LIRF True        0.19   11464    3670     159  0.38  0.43
+  LIRF True        0.18   13496    7988    2721  0.52  0.62
+  LIRF True        0.18   10983    4000      -1  0.55  0.30
+  LIRF True        0.18   13203    8371    3076  0.58  0.67
+  LIRF True        0.18   12657    7780    1930  0.70  0.50
+  LIRF True        0.18   11818    9452    1469  0.84  0.90
+  LIRF True        0.18   11045    4929      11  0.60  0.37
+  LIRF True        0.17   14945    9021    3704  0.56  0.45
+  LIRF True        0.16   12420    7786     428  0.66  0.57
+  top 25 hedge rows: H = 15.9% of the board's SSE (LIRF NM-unmatched among them: 25)
+  top 100 hedge rows: H = 23.0% of the board's SSE (LIRF NM-unmatched among them: 99)
+  top 500 hedge rows: H = 30.0% of the board's SSE (LIRF NM-unmatched among them: 293)
