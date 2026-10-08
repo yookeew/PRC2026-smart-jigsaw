@@ -1,0 +1,14 @@
+comb_delta_opdi_lszh.parquet: rows 21,212, RMS 16.51
+nb_delta_opdi_lszh.parquet: rows 1,933, RMS 8.75
+vs base: RMS 18.68 s, mean -0.000, rows changed 22,666, max |d| 839; frozen rows 26969; LIRF NM-unmatched identical True
+  EDDF RMS    0.00 mean   +0.00
+  EDDM RMS    0.00 mean   +0.00
+  EGLL RMS    0.00 mean   +0.00
+  EHAM RMS    0.00 mean   +0.00
+  LEBL RMS    0.00 mean   +0.00
+  LEMD RMS    0.00 mean   +0.00
+  LFPG RMS    0.00 mean   +0.00
+  LIRF RMS    0.00 mean   +0.00
+  LSZH RMS   72.10 mean   -0.01
+  LTFM RMS    0.00 mean   +0.00
+wrote data/submissions/smart-jigsaw_v52.parquet

@@ -1,0 +1,48 @@
+C:\Users\zhang\smart-jigsaw\tests\opdi_s1_coverage.py:33: UserWarning: Sortedness of columns cannot be checked when 'by' groups provided
+  m = dep.sort("T").join_asof(od, left_on="T", right_on="t_rwy_exit", by=["apt", "cs"], strategy="nearest",
+C:\Users\zhang\smart-jigsaw\tests\opdi_s2_screen.py:29: DeprecationWarning: In Polars 2.0, the default behavior for `empty_as_null` will change to `False`. To keep the current behavior, explicitly set `empty_as_null=True`.
+OPDI ground-event share (lead >= 60 s): {'EDDF-1': 0.001, 'EDDF-7': 0.028, 'EDDM-1': 0.151, 'EDDM-7': 0.093, 'EGLL-1': 0.001, 'EGLL-7': 0.0, 'EHAM-1': 0.01, 'EHAM-7': 0.003, 'LEBL-1': 0.619, 'LEBL-7': 0.026, 'LEMD-1': 0.0, 'LEMD-7': 0.0, 'LFPG-1': 0.01, 'LFPG-7': 0.0, 'LIRF-1': 0.0, 'LIRF-7': 0.0, 'LSZH-1': 0.796, 'LSZH-7': 0.952, 'LTFM-1': 0.0, 'LTFM-7': 0.0}
+
+== control vs chain (generic residual model) (b - a, RMSE s; non-LIRF)
+  body: +3.381  m1 +2.145  m7 +4.285
+  trimmed: +3.433  m1 +2.245  m7 +4.285
+  full: +2.566  m1 +1.301  m7 +4.285
+shape: (9, 6)
+┌──────┬───────┬─────────┬─────────┬────────┬────────────────┐
+│ apt  ┆ n     ┆ rmse_a  ┆ rmse_b  ┆ d_rmse ┆ pooled_contrib │
+│ ---  ┆ ---   ┆ ---     ┆ ---     ┆ ---    ┆ ---            │
+│ str  ┆ u32   ┆ f64     ┆ f64     ┆ f64    ┆ f64            │
+╞══════╪═══════╪═════════╪═════════╪════════╪════════════════╡
+│ EDDF ┆ 36208 ┆ 153.136 ┆ 154.048 ┆ 0.911  ┆ 0.091          │
+│ EDDM ┆ 26843 ┆ 115.355 ┆ 116.373 ┆ 1.018  ┆ 0.057          │
+│ EGLL ┆ 39526 ┆ 206.580 ┆ 209.743 ┆ 3.163  ┆ 0.466          │
+│ EHAM ┆ 40098 ┆ 110.034 ┆ 110.385 ┆ 0.351  ┆ 0.028          │
+│ LEBL ┆ 28491 ┆ 190.428 ┆ 191.452 ┆ 1.024  ┆ 0.100          │
+│ LEMD ┆ 35019 ┆ 165.707 ┆ 165.543 ┆ -0.164 ┆ -0.017         │
+│ LFPG ┆ 38586 ┆ 223.738 ┆ 224.476 ┆ 0.738  ┆ 0.114          │
+│ LSZH ┆ 21803 ┆ 127.620 ┆ 128.596 ┆ 0.976  ┆ 0.049          │
+│ LTFM ┆ 45855 ┆ 225.675 ┆ 238.929 ┆ 13.254 ┆ 2.527          │
+└──────┴───────┴─────────┴─────────┴────────┴────────────────┘
+
+== DECISION: treatment (+OPDI) vs control (b - a, RMSE s; non-LIRF)
+  body: -1.530  m1 -1.182  m7 -1.786
+  trimmed: -1.467  m1 -1.180  m7 -1.675
+  full: -1.088  m1 -0.661  m7 -1.675
+shape: (9, 6)
+┌──────┬───────┬─────────┬─────────┬─────────┬────────────────┐
+│ apt  ┆ n     ┆ rmse_a  ┆ rmse_b  ┆ d_rmse  ┆ pooled_contrib │
+│ ---  ┆ ---   ┆ ---     ┆ ---     ┆ ---     ┆ ---            │
+│ str  ┆ u32   ┆ f64     ┆ f64     ┆ f64     ┆ f64            │
+╞══════╪═══════╪═════════╪═════════╪═════════╪════════════════╡
+│ EDDF ┆ 36208 ┆ 154.048 ┆ 153.869 ┆ -0.179  ┆ -0.017         │
+│ EDDM ┆ 26843 ┆ 116.373 ┆ 115.953 ┆ -0.420  ┆ -0.023         │
+│ EGLL ┆ 39526 ┆ 209.743 ┆ 209.453 ┆ -0.290  ┆ -0.042         │
+│ EHAM ┆ 40098 ┆ 110.385 ┆ 110.436 ┆ 0.051   ┆ 0.004          │
+│ LEBL ┆ 28491 ┆ 191.452 ┆ 191.557 ┆ 0.105   ┆ 0.010          │
+│ LEMD ┆ 35019 ┆ 165.543 ┆ 165.467 ┆ -0.076  ┆ -0.008         │
+│ LFPG ┆ 38586 ┆ 224.476 ┆ 224.293 ┆ -0.184  ┆ -0.028         │
+│ LSZH ┆ 21803 ┆ 128.596 ┆ 98.268  ┆ -30.328 ┆ -1.317         │
+│ LTFM ┆ 45855 ┆ 238.929 ┆ 238.400 ┆ -0.529  ┆ -0.102         │
+└──────┴───────┴─────────┴─────────┴─────────┴────────────────┘
+
+LSZH body rows with exit-parking: n 15419 exit-park lag vs true off-block (s): median -293.0 IQR -428.0 -99.0

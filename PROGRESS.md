@@ -5491,3 +5491,79 @@ Next free version stays **v52**. Nothing trained on the holdout except the v50 c
   - An LFPG-only arm would choose scope after the result; not pursued.
 - **Conclusion.** The occupancy oracle's value is in the true off-block times themselves. AOBT_3 (real only at LFPG)
   and predicted off-blocks recover about a fifth of it at LFPG and almost nothing at LTFM.
+
+## 126. Organiser data and OpenSky, reconciled; OPDI ground events at LSZH -- gate PASS; v52 built, board pending (2026-10-08)
+
+Next free version after this: **v53**. `reports/opdi_scoping.md` (S1/S2 stop bars written first),
+`reports/v52_opdi_gate_preregistration.md`; code `src/ingest/fetch_opdi_events.py`, `src/features/opdi_feats.py`,
+`tests/opdi_s1_coverage.py`, `tests/opdi_s2_screen.py`, `tests/v52_opdi_gate.py`, `tests/v52_eval.py`,
+`src/post/v52_comb_delta.py`, `src/post/v52_nb_delta.py`; logs `logs/opdi_*.log`, `logs/v52_*.log`.
+
+**1. What the organisers provide, and OpenSky (evidence).**
+- Bucket `prc-2026-datasets`: the 12 training files, `ranking.parquet`, `submitting.parquet` and, new on 2026-10-08
+  11:04 UTC, `final_ranking.parquet` (86 MB) and `final_submitting.parquet` (3 MB). The data page says they are "the
+  ranking and submitting dataset but covering two additional months, February and June 2026"; the ranking page asks
+  for one `<team>_final.parquet`; deadline 2026-10-14 12:00 CET. **Team decision (user, 2026-10-08): ignore the final
+  files, keep working on Jan + Jul.** Not downloaded.
+- No trajectory or surface data is in the bucket. The 2026 pages say nothing about external data beyond eligibility:
+  "openly accessible/usable and documented" and "openly available under an open source license".
+- **OpenSky Trino / state vectors stay out (§50, §111 confirmed, different reason recorded):** OpenSky's terms of use
+  grant use "solely for the purpose of non-profit research and non-profit education", which is not an open licence
+  (outgoing-boat's `docs/research/2026-10-01-regras-e-precedentes.md` reaches the same reading).
+- **And it would not help where the §124 oracle sits.** PRU's own coverage table
+  (`euctrl-pru/opensky-airport-coverage`, 2026 CSV, read first-hand): OSN taxi-out received (median) LSZH 0.996,
+  LEBL 0.797, EDDF 0.622, EHAM 0.286, LEMD 0.175, **EDDM / LFPG / EGLL / LIRF / LTFM 0.000** (tracks start
+  0.2–2.0 min *after* take-off at the last five). No OpenSky-derived product can reproduce the LTFM/LFPG oracle.
+- **OPDI** (EUROCONTROL PRC/PRU's Open Performance Data Initiative; flight events derived from OSN ADS-B) is the
+  organiser's own open data ("freely used, reused, and distributed provided that the data source is attributed");
+  §80 already treated it as organiser-approved. Public repos: kind-mango lists OPDI as "CC-BY 4.0, confirmed by
+  organiser"; outgoing-boat and likable-eagle use OPDI flight lists. Documented in DATA_SOURCES.md.
+- §80 only measured `exit-parking_position` coverage (LSZH 92%) and never measured its value.
+
+**2. Where OSN beats adsb.lol (2026 ranking, label-free).** adsb.lol pushback tier (dwell/pass): EDDF 3% / 2%
+(Jan / Jul), LSZH 30% / 11%, LEBL 18% / 25%; holdout body RMSE untiered vs tiered: EDDF 157 vs 97, LSZH 140 vs 60.
+
+**3. OPDI fetch facts** (airport events only; one GET per 10-day file, filtered locally to the 10 airports):
+- HTTP range reads of only the needed row groups got the client a Cloudflare challenge (429) after ~20 files; whole
+  file GETs are fine. `flight_events_20251002_20251012` is listed on opdi.aero but 404 upstream (2–12 Oct 2025 gap).
+- Coverage moves a lot by period: **EDDF switches on around 2025-09-12** (~2k → 24–37k ground events per 10 days,
+  same level in 2026); LEBL drops ~6× in April 2025 (2026 ≈ 0); LEMD has a training-only burst 22 Oct – 1 Dec 2025;
+  LSZH is steady; **1–9 Jan 2026 is sparse everywhere** (LSZH coverage 10% vs 80% the rest of January).
+- Departure match: callsign (CALLSIGN_flt, else FLIGHT_mvt) + ADEP + nearest exit-runway within 300 s.
+
+**4. S1 coverage (label-free): PASS.** New-information reach (no adsb.lol tier, OPDI ground event ≥ 2 min earlier than
+the adsb.lol first sighting) 6.0% / 8.5% of 2026 departures (bar 5%); LSZH 0.57–0.64 (2025) vs 0.41–0.63 (2026).
+
+**5. S2 screen (Jan ↔ Jul cross-fit residual model on v50's holdout chain, treatment − control):** body **−1.53**
+(Jan −1.18, Jul −1.79), trimmed −1.47, full −1.09; LSZH body 128.6 → 98.3. LSZH's exit-parking event fires a median
+293 s after the true off-block (IQR 99–428 s): a lagged but informative clock.
+- **Deviation, disclosed:** condition 3 (≤ 80% of the gain from one airport unless its 2026 reach ≥ 2025 reach)
+  **failed as written**: LSZH carried 86%, reach ratio 0.88. The drop comes from adsb.lol improving at LSZH in Jan 2026,
+  not from OPDI (OPDI ground-event share 0.97 in 2026 vs 0.90–0.95). Proceeded to the gate anyway, because S1's own
+  stability band is [0.5, 2]; the two bars were set inconsistently. Flagged for the team.
+- The generic control residual model is itself worse than the chain (+3.4 body, LTFM +13): only the paired
+  difference is meaningful, so OPDI went into the chain's own stages for the gate.
+
+**6. Gate (v50's holdout chain, one process; control reproduces `cache/v50/chain_all` exactly, max |diff| 0).** OPDI
+features in the combiner and neighbour stage b. Label-free scope rule (holdout share ≥ 0.2, 2026/holdout ratio in
+[0.5, 2], SMD ≤ 0.25) keeps **LSZH only** (share 0.907 → 0.804, SMD 0.016).
+
+| arm vs v50 chain | full | trimmed | body | body Jan / Jul | body 95% CI |
+|---|---|---|---|---|---|
+| **opdi, LSZH scope** | **−0.75** | −0.94 | **−1.15** | −0.85 / −1.37 | [−1.52, −0.85] |
+| opdi, unscoped | −0.70 | −0.91 | −1.20 | −0.78 / −1.49 | [−1.56, −0.87] |
+
+- **PASS (4/4).** LSZH body −30.5 s, all rows −23.1 s; top-20 rows hold 14% of the body gain (a broad gain); tail ≈ 0.
+- Unscoped elsewhere: EDDM −0.7, EDDF −0.2, EHAM / LTFM slightly worse (holdout coverage ≈ 0 there).
+
+**7. v52** = v50 + LSZH-scoped (treatment − control) of the production combiner and neighbour stage b
+(`PRC_LGB=ctxc1sel`, one process each), FREEZE_LIRF, NM-line rows frozen, LOBT window last.
+- vs v50: 22,666 LSZH rows changed, RMS 72.1 s on LSZH, mean −0.01 s, max |Δ| 839 s; every other airport identical.
+- 2026 LSZH delta RMS on covered rows 76–80 s (holdout 73–85 s): same behaviour. Uncovered rows (incl. the 1–9 Jan gap)
+  move little; on the holdout that cell is slightly worse (+600 s² per row, ≈ 0.02 s), left as registered.
+- **Projected onto 2026 LSZH cells (month × covered): −0.90 s on the board. Keep iff board < 243.4565.**
+
+**8. Open: EDDF.** Training months 12 Sep – Dec 2025 have 2026-like EDDF OPDI coverage (2026 share 0.47), but the Jan/Jul
+holdout cannot measure it (share 0.025), so EDDF is outside v52. A test needs its own pre-registration on the OOF
+ADS-B days of Sep–Dec 2025 (leave-one-month-out combiner, EDDF rows). Up to ~10 s of EDDF body is plausible if
+OSN sees EDDF departures as well as it sees LSZH; not measured.

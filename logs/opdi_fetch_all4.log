@@ -1,0 +1,46 @@
+skip  flight_events_20241226_20250105.parquet
+skip  flight_events_20250105_20250115.parquet
+skip  flight_events_20250115_20250125.parquet
+skip  flight_events_20250125_20250204.parquet
+skip  flight_events_20250204_20250214.parquet
+skip  flight_events_20250214_20250224.parquet
+skip  flight_events_20250224_20250306.parquet
+skip  flight_events_20250306_20250316.parquet
+skip  flight_events_20250316_20250326.parquet
+skip  flight_events_20250326_20250405.parquet
+skip  flight_events_20250405_20250415.parquet
+skip  flight_events_20250415_20250425.parquet
+skip  flight_events_20250425_20250505.parquet
+skip  flight_events_20250505_20250515.parquet
+skip  flight_events_20250515_20250525.parquet
+skip  flight_events_20250525_20250604.parquet
+skip  flight_events_20250604_20250614.parquet
+skip  flight_events_20250614_20250624.parquet
+skip  flight_events_20250624_20250704.parquet
+skip  flight_events_20250704_20250714.parquet
+skip  flight_events_20250714_20250724.parquet
+skip  flight_events_20250724_20250803.parquet
+skip  flight_events_20250803_20250813.parquet
+skip  flight_events_20250813_20250823.parquet
+skip  flight_events_20250823_20250902.parquet
+skip  flight_events_20250902_20250912.parquet
+skip  flight_events_20250912_20250922.parquet
+skip  flight_events_20250922_20251002.parquet
+MISSING flight_events_20251002_20251012.parquet (HTTP 404)
+fetch flight_events_20251012_20251022.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 285 of 285 MB, 343,201 events, 14 s
+fetch flight_events_20251022_20251101.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], 321 of 321 MB, 451,342 events, 17 s
+fetch flight_events_20251101_20251111.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8], 255 of 255 MB, 388,165 events, 13 s
+fetch flight_events_20251111_20251121.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 279 of 279 MB, 370,071 events, 14 s
+fetch flight_events_20251121_20251201.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8], 243 of 243 MB, 385,316 events, 13 s
+fetch flight_events_20251201_20251211.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8], 251 of 251 MB, 305,460 events, 13 s
+fetch flight_events_20251211_20251221.parquet: row groups [2, 3, 6, 7, 8], 330 of 330 MB, 314,466 events, 17 s
+fetch flight_events_20251221_20251231.parquet: row groups [2, 5, 6], 292 of 292 MB, 310,789 events, 15 s
+fetch flight_events_20251231_20260110.parquet: row groups [0, 1], 41 of 41 MB, 59,392 events, 2 s
+skip  flight_events_20260110_20260120.parquet
+fetch flight_events_20260120_20260130.parquet: row groups [1, 3, 4], 239 of 239 MB, 226,807 events, 12 s
+fetch flight_events_20260130_20260209.parquet: row groups [1, 3, 4, 6, 7], 289 of 289 MB, 255,170 events, 16 s
+fetch flight_events_20260629_20260709.parquet: row groups [0, 2, 5, 10, 11, 12, 13], 506 of 506 MB, 417,821 events, 25 s
+skip  flight_events_20260709_20260719.parquet
+fetch flight_events_20260719_20260729.parquet: row groups [0, 3, 8, 10, 12], 554 of 554 MB, 409,180 events, 29 s
+fetch flight_events_20260729_20260808.parquet: row groups [0, 1, 3, 4], 159 of 159 MB, 132,264 events, 9 s
+done; missing ['flight_events_20251002_20251012.parquet']
