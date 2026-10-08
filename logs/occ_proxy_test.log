@@ -1,0 +1,65 @@
+rows 1,740,628; ADS-B days 115; OOF stack w [1.011 0.   ]
+eval rows 609,238
+fold 2025-02 done
+fold 2025-03 done
+fold 2025-04 done
+fold 2025-05 done
+fold 2025-06 done
+fold 2025-08 done
+fold 2025-09 done
+fold 2025-10 done
+fold 2025-11 done
+fold 2025-12 done
+
+RMSE deltas vs C on held-out months (non-LIRF, 115 OOF ADS-B days)
+  full                   C   184.56 O1   -5.77 Pa3   -1.22 Ppred   -1.67 Pboth   -1.67
+  trimmed                C   184.55 O1   -5.78 Pa3   -1.22 Ppred   -1.67 Pboth   -1.67
+  body                   C   167.43 O1   -4.09 Pa3   -0.30 Ppred   -0.29 Pboth   -0.38
+  NM-matched 30-60 min   C   515.19 O1  -11.83 Pa3   +0.52 Ppred   -0.27 Pboth   -0.39
+
+body by month:
+  2025-02: C  168.85 O1  -1.18 Pa3  -0.00 Ppred  -0.46 Pboth  -0.55
+  2025-03: C  162.08 O1  -3.49 Pa3  +0.12 Ppred  +0.18 Pboth  -0.05
+  2025-04: C  155.38 O1  -3.82 Pa3  -0.39 Ppred  -0.44 Pboth  -0.52
+  2025-05: C  170.27 O1  -5.51 Pa3  -0.55 Ppred  -1.02 Pboth  -1.00
+  2025-06: C  168.41 O1  -3.71 Pa3  -0.35 Ppred  -0.51 Pboth  -0.44
+  2025-08: C  183.53 O1  -5.01 Pa3  -1.25 Ppred  -0.93 Pboth  -1.19
+  2025-09: C  171.83 O1  -5.04 Pa3  -0.54 Ppred  -0.39 Pboth  -0.61
+  2025-10: C  165.99 O1  -5.14 Pa3  -0.86 Ppred  -0.98 Pboth  -1.10
+  2025-11: C  155.08 O1  -4.57 Pa3  -0.56 Ppred  -0.76 Pboth  -0.66
+  2025-12: C  169.42 O1  -2.85 Pa3  +1.90 Ppred  +3.03 Pboth  +3.05
+
+body by airport (own-row delta | contribution to pooled body delta | fraction of O1 recovered):
+  EDDF: C  131.94 O1  -1.46 | Pa3  -0.11 (-0.01, 0.07) Ppred  -0.18 (-0.02, 0.12) Pboth  -0.23 (-0.02, 0.16)
+  EDDM: C  116.99 O1  -0.63 | Pa3  +0.31 (+0.02, -0.50) Ppred  +0.29 (+0.02, -0.45) Pboth  +0.46 (+0.03, -0.73)
+  EGLL: C  204.00 O1  -3.71 | Pa3  -0.23 (-0.03, 0.06) Ppred  -0.04 (-0.01, 0.01) Pboth  -0.18 (-0.03, 0.05)
+  EHAM: C  109.71 O1  -0.09 | Pa3  +0.13 (+0.01, -1.47) Ppred  +0.09 (+0.01, -1.04) Pboth  +0.12 (+0.01, -1.39)
+  LEBL: C  160.04 O1  -1.59 | Pa3  +0.12 (+0.01, -0.08) Ppred  +0.10 (+0.01, -0.06) Pboth  +0.15 (+0.01, -0.10)
+  LEMD: C  160.59 O1  -2.57 | Pa3  -0.29 (-0.03, 0.11) Ppred  -0.11 (-0.01, 0.04) Pboth  -0.15 (-0.02, 0.06)
+  LFPG: C  206.55 O1  -7.86 | Pa3  -1.46 (-0.22, 0.19) Ppred  -1.48 (-0.23, 0.19) Pboth  -1.56 (-0.24, 0.20)
+  LSZH: C  118.89 O1  -1.32 | Pa3  -0.14 (-0.01, 0.10) Ppred  -0.12 (-0.01, 0.09) Pboth  -0.21 (-0.01, 0.16)
+  LTFM: C  214.48 O1  -9.33 | Pa3  -0.22 (-0.04, 0.02) Ppred  -0.35 (-0.06, 0.04) Pboth  -0.64 (-0.12, 0.07)
+
+LFPG+LTFM contribution to pooled body delta: O1 -2.824 Pa3 -0.263 Ppred -0.288 Pboth -0.353
+
+LFPG / LTFM body by month (O1, Pa3, Ppred, Pboth vs C):
+  LFPG 2025-02: C  218.68 O1  -0.34 Pa3  -1.57 Ppred  -1.44 Pboth  -1.22
+  LFPG 2025-03: C  178.97 O1  -1.29 Pa3  +0.36 Ppred  +0.35 Pboth  +0.51
+  LFPG 2025-04: C  181.49 O1  -3.45 Pa3  +0.07 Ppred  +0.24 Pboth  +0.24
+  LFPG 2025-05: C  225.14 O1 -17.80 Pa3  -2.57 Ppred  -3.48 Pboth  -3.33
+  LFPG 2025-06: C  206.98 O1  -6.45 Pa3  -1.61 Ppred  -1.53 Pboth  -1.78
+  LFPG 2025-08: C  224.84 O1  -9.13 Pa3  -2.00 Ppred  -2.60 Pboth  -2.77
+  LFPG 2025-09: C  219.53 O1 -11.69 Pa3  -1.56 Ppred  -1.26 Pboth  -1.88
+  LFPG 2025-10: C  196.94 O1  -7.05 Pa3  -1.16 Ppred  -1.29 Pboth  -1.24
+  LFPG 2025-11: C  211.71 O1 -12.57 Pa3  -1.68 Ppred  -1.14 Pboth  -1.17
+  LFPG 2025-12: C  189.10 O1  -5.65 Pa3  -2.60 Ppred  -2.10 Pboth  -2.23
+  LTFM 2025-02: C  246.37 O1  -3.14 Pa3  +0.17 Ppred  -0.72 Pboth  -2.04
+  LTFM 2025-03: C  197.32 O1 -10.94 Pa3  +0.19 Ppred  -1.18 Pboth  -1.53
+  LTFM 2025-04: C  212.94 O1 -11.24 Pa3  -1.14 Ppred  -1.72 Pboth  -1.89
+  LTFM 2025-05: C  221.85 O1  -9.62 Pa3  -0.90 Ppred  -2.42 Pboth  -2.77
+  LTFM 2025-06: C  202.98 O1  -7.85 Pa3  +0.67 Ppred  -0.66 Pboth  -0.30
+  LTFM 2025-08: C  214.75 O1 -11.15 Pa3  -4.26 Ppred  -3.05 Pboth  -4.20
+  LTFM 2025-09: C  192.65 O1 -10.20 Pa3  -0.63 Ppred  -0.96 Pboth  -0.75
+  LTFM 2025-10: C  210.89 O1 -15.91 Pa3  -4.73 Ppred  -5.47 Pboth  -6.11
+  LTFM 2025-11: C  192.60 O1  -8.30 Pa3  -2.12 Ppred  -3.12 Pboth  -2.75
+  LTFM 2025-12: C  256.08 O1  -6.44 Pa3  +9.80 Ppred +14.60 Pboth +14.72

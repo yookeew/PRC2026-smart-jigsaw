@@ -5385,3 +5385,109 @@ Scripts: `tests/construct_*.py` (scratch copies).
   - LIRF NM-unmatched ≥ 12 h: recording mode (echo vs +24 h) splits within the same airline and night (Jet2 01-24/25, ITA 07-29); P(+24 h | later day) = 11/27; no separator.
   - AOBT_3 long-taxi slice: 0.5% of SSE, already calibrated.
   - The stale-LOBT / default-AOBT_3 delayed pattern: calibrated in every airport cell.
+
+**Board: v50 = 243.4565 (−1.93 vs v49). Kept; new best.** Holdout −1.72 full / projected −1.87 → board −1.93.
+
+## 124. ADS-B surface state of other aircraft (runway queues, de-icing stops) -- oracle passes, label-free proxy fails; two fallbacks closed (2026-10-08, no submission)
+
+`reports/adsb_queue_scoping.md` (stop rules written before each number was computed). Next free version stays **v52**.
+
+- **Question.** §114 dismissed an ADS-B runway queue because §23's queue found nothing, but §23 built it from AOBT_3,
+  which is often T minus a default taxi time (§114). Takeoff counts saturate under congestion; queue occupancy
+  doesn't.
+- **Data on this machine:** raw adsb.lol positions only for Jan + Jul 2025, Jan + Jul 2026, 2025-09-15 and 11-15.
+  The other 2025 months exist only as v4 detector output (`cache/adsb_pushback_v4`). `cache/adsb_pos_v4`, `cache/v50`
+  and the v45–v50 files are not here (v50 was built on another machine).
+- **Step 1, coverage** (`tests/adsb_queue_runs.py` → `cache/adsb_rwyruns/`, `tests/adsb_queue_coverage.py`).
+  - Every adsb.lol takeoff run gets a runway, a roll start, a 1 km entry time and slow time. Runs are matched to
+    departures on the same runway (time-only matching mis-pairs simultaneous runways).
+  - Neighbour reach (≥ 1 other same-runway run with a seen 1 km entry in [T − 15, T + 10] min), non-LIRF:
+    **0.39 / 0.37 (Jan / Jul 2025) → 0.54 / 0.54 (2026)**. That's about twice the pushback share, but it moves by
+    airport: EGLL 0.18 / 0.005 → 0.71 / 0.998, LEMD 0 → 0.89 / 0.32, EDDF 0.74 / 0.86 → 0.50 / 0.44.
+    It is stable at EHAM, LSZH and EDDM January; there is none at LTFM or LFPG.
+- **Step 2, oracle** (`tests/adsb_queue_oracle.py`): 10 OOF months, 115 ADS-B days, 609k non-LIRF rows,
+  leave-one-month-out Huber residual models on the OOF stack.
+  - The control already includes the true residuals of neighbours whose pushback ADS-B observed (an oracle `nbq`).
+  - **O1** = surface occupancy and queue-ahead from other flights' true off-blocks: body **−4.09**.
+  - **O2** = O1 + true residuals of the 3 previous / 3 next same-runway departures: body **−10.31**. 10/10 months.
+  - **The oracle is mostly where ADS-B can't help:** LTFM −9.3 / −22.5 and LFPG −7.9 / −18.7 (no coverage).
+    O2's extra is neighbours' labels.
+  - Own-label invariance asserted. Stop rule passed.
+- **Step 2b, real proxy** (`tests/adsb_queue_proxy.py`): the same O1 quantities, built label-free from other matched
+  departures' v4 first sightings (exists on every day, so no missing data).
+  - **P − C′ body −0.23 (8/10 months), EGLL +0.80.** Below the pre-set −0.5 bar. **STOP.**
+  - At covered airports the O1 oracle is only −0.2 to −3.6 per airport, so a perfect occupancy measurement is worth
+    about 0.7 s of body RMSE once weighted by 2026 reach. The proxy recovers ~6% of it.
+  - Runway-entry features would need the missing raw months, and even 3× the fidelity stays under 0.4 s.
+- **Conclusion.** §114's verdict stands, for a different reason. Realised runway-queue occupancy adds little beyond
+  the chain where adsb.lol sees, and most of what remains is at LTFM / LFPG plus per-flight neighbour residuals that
+  no surface observation reproduces. Long remote stops are as common in July as in January (taxiway holds, not
+  de-icing).
+- **Fallback 1: ADS-B timing drift checked on 2026 arrivals** (`tests/adsb_arrival_drift.py`).
+  - New detector: landing run → first stationary sample within 100 m of the own stand. Arrivals keep their block
+    times in 2026.
+  - Median true − ADS-B taxi-in is stable to ≤ ±6 s at every covered airport (EDDF 34 → 32–35, EHAM −34 → −31,
+    EGLL −27 → −23/−25, LSZH 1–2 → 7–8).
+  - **No receiver-timing drift at stands.** The combiner's 2025 lags hold in 2026, and §40's suspected EGLL shift
+    is not there. Closed.
+- **Fallback 2: outgoing-boat per airport** (their repo cloned to scratch only, read not run). This is a partial read
+  on v42's chain (`cache/eval/arm_o2_chain_holdout.parquet` base); the v50 chain is not on this machine.
+  - Body (NM-matched, y ≤ 1 h), ours vs their v28: EDDF 155.0 vs 143.0, EHAM 110.5 vs 102.9, EGLL 211.4 vs 206.7,
+    LIRF 313.9 vs 307.4. We lead at LEMD, LSZH, LTFM and EDDM.
+  - **EDDF:** the error is spread (top 20 rows 11%), 81% of it on rows with a matched track but no pushback
+    (receivers don't see the aprons: first sighting a median 1.35 km from the stand) or no track.
+    - Parked-start tracks are within 100 m of our stand coordinate in only 60% of cases (86–93% elsewhere), so some
+      stand mapping or towing is off. Fixing it would reach < 0.1 s.
+    - The 12 s body gap is not explained without their per-row predictions.
+  - Their study `docs/research/2026-09-29-base-sem-adsb.md` finds the same thing we did in §104: base gains are
+    absorbed by the corrector.
+  - **To finish:** re-run the comparison on v50's holdout chain once `cache/v50/` is copied to this machine.
+
+## 125. outgoing-boat comparison on v50's chain; label-free occupancy at LFPG / LTFM -- stopped at scoping (2026-10-08, no submission)
+
+Next free version stays **v52**. Nothing trained on the holdout except the v50 chain rebuild, nothing uploaded.
+
+- **Uploads checked** (from the v50 machine): v48 / v49 / v50 have 344,841 rows and the template ID set; v50 − v49
+  RMS 34.55 s, mean +0.17, 300,797 rows changed, LIRF identical (= §123). `cache/adsb_pos_v4` has 246 days;
+  `cache/v50` held only `reocc_feats*.parquet`; `cache/eval/v41_chain_holdout.parquet` and `v42_chain_holdout.parquet`
+  were added.
+- **v50 holdout chain rebuilt** (`PRC_LGB=ctxcorr2r ARMC_BASE=ctxc1sel SCR=cache/v50 ARMS=all tests/v50_chain_gate.py`,
+  `logs/v50_chain_rebuild*.log`). It reproduces §123 exactly: all vs ctl full −1.72, trimmed −2.12, body −1.38
+  (Jan −0.52, Jul −1.98); control 5.43 s RMS from the cached v42.
+- **outgoing-boat per airport** (`tests/ob_compare_v50.py`, `logs/ob_compare_v50.log`; v50-like = chain_all with
+  LIRF rows from the control). Columns: body = NM-matched, y ≤ 1 h; their body numbers are from v28; all rows vs their
+  best run e196.
+
+| airport | body v50 | their body | all v50 | their all |
+|---|---|---|---|---|
+| EDDF | 153.1 | 143.0 | 161.3 | 146.0 |
+| EHAM | 110.0 | 102.9 | 135.3 | 130.1 |
+| EGLL | 206.6 | 206.7 | 247.1 | 246.9 |
+| LIRF | 313.9 | 307.4 | (stale) | 540.8 |
+| LEBL / LFPG | 190.4 / 223.7 | 192.0 / 225.3 | 191.8 / 564.7 | 190.0 / 564.2 |
+| LTFM / LEMD / LSZH / EDDM | 225.7 / 165.7 / 127.6 / 115.4 | 232.5 / 175.7 / 136.2 / 120.8 | -- | -- |
+
+  - **v50 closed EGLL** (all rows 255.6 → 247.1, now level). Pooled: full 302.32 vs 295.80; body 192.54 vs 189.16.
+  - **Still behind:** EDDF (closing its all-rows gap = full −0.83 s), EHAM (−0.27 s), and LIRF NM-matched body
+    (+6.5). The LIRF all-rows gap here (581.5 vs 540.8) is stale: this chain predates the v45/v47/v48 hedges
+    (holdout ≈ −5.3 s full together).
+  - EDDF body error stays on rows without a seen pushback (matched 152, no track 185 RMSE). EHAM's labels ≤ 5 min
+    (1,038 rows, RMSE 250–337) sit below the ADS-B-observed taxi: §119's tiny-label quirk. **Nothing cheap; no build.**
+- **Occupancy oracle split** (`logs/occ_oracle_split.log`, §124's O1 on 115 OOF days): pooled body −4.09, of which
+  **LTFM −1.65 and LFPG −1.18**. LTFM is steady by month; LFPG ranges −0.3 to −17.8 on its own rows.
+- **AOBT_3 at LFPG / LTFM** (`tests/occ_aobt3_check.py`, `logs/occ_aobt3_check.log`):
+  - **LTFM:** T − AOBT_3 sits on one default minute pair per runway (19/20 or 24/25) for 80–90% of rows in 2025 and
+    2026; within 2 min of the true off-block only 10–20%. No off-block information.
+  - **LFPG:** a real measurement (36–46% within 2 min). Whole-minute offsets come and go: the median T − AOBT_3 is
+    ≈ 897 s in Jan–Jun / Dec and ≈ 957 s in Aug–Nov and Jul 2026; bias −55 s vs the label in Jul–Sep 2025 (§98).
+- **Label-free occupancy proxies** (`reports/occ_proxy_scoping.md`, bar written first; `tests/occ_proxy_test.py`,
+  `logs/occ_proxy_test.log`). The O1 features are rebuilt from estimated off-blocks of other flights, raw and
+  traffic-normalised. Arms: Pa3 = AOBT_3 else T − s; Ppred = T − s (out-of-sample stack); Pboth = both.
+  - Body vs C: O1 −4.09 | Pa3 −0.30, Ppred −0.29, **Pboth −0.38** (9/10 months; Dec +3.05). LFPG + LTFM contribution
+    −0.35.
+  - **Bar (1) body ≤ −0.5 fails → STOP, no gate.**
+  - Recovery of the oracle: LFPG ≈ 0.20 (−1.5 s, 8/10 months); LTFM 0.02–0.07, December unstable (+10 to +15 s).
+  - The extra full-RMSE gain (−1.7) is tail, where holdout gains transfer poorly.
+  - An LFPG-only arm would choose scope after the result; not pursued.
+- **Conclusion.** The occupancy oracle's value is in the true off-block times themselves. AOBT_3 (real only at LFPG)
+  and predicted off-blocks recover about a fifth of it at LFPG and almost nothing at LTFM.
