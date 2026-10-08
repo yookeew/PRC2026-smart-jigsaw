@@ -1,27 +1,6 @@
-checks: 344,841 rows, ID set = template, no nulls, no negatives; LIRF NM-unmatched rows 383 identical to smart-jigsaw_v41_rebuild.parquet (the chain had moved 357 of them)
+12-month fit on 1,375 rows (echo 0.491); coef [ 1.393 -0.952 -0.492 -0.475 -1.399  1.246  0.674  0.806], intercept 0.958
+2026 LIRF NM-unmatched >= 1 h: 348; in scope 322 (1-3 h 274, 3-6 h 48)
+  q - p on scope: mean -0.059, p10 -0.230, p90 +0.131; mean p 0.428 -> mean q 0.370
+  change on scope: mean -279 s, RMS 1097 s, max |4175| s; RMS over all 344,841 rows 33.5 s
+  rows differing from smart-jigsaw_v42.parquet: 321 (all in scope)
 wrote smart-jigsaw_v45.parquet
-vs smart-jigsaw_v41_rebuild.parquet: RMS 43.7 s, mean +1.66 s, rows changed 331,575
-apt           NM       n     RMS    mean
-EDDF     matched   35896    22.5    +1.7
-EDDF   unmatched     421   159.1    -8.1
-EDDM     matched   25728    18.9    -0.4
-EDDM   unmatched     238   258.3  +120.4
-EGLL     matched   39592    23.1    -1.7
-EGLL   unmatched     248   225.2   +85.4
-EHAM     matched   36976    20.4    +1.0
-EHAM   unmatched    1206   448.5  +252.7
-LEBL     matched   29639    15.7    +0.8
-LEBL   unmatched     441    76.7   -26.6
-LEMD     matched   36718    16.4    +0.6
-LEMD   unmatched     236    95.4   +28.9
-LFPG     matched   39140    27.6    +2.6
-LFPG   unmatched     732   283.1   +55.1
-LIRF     matched   26516    43.1    -3.6
-LIRF   unmatched     383     0.0    +0.0
-LSZH     matched   22491    22.9    -1.5
-LSZH   unmatched     659   161.3   +40.1
-LTFM     matched   46862    33.7    +2.2
-LTFM   unmatched     719   315.3   +23.4
-all airports, NM-matched: RMS 25.8 s over 339,558 rows
-all airports, NM-unmatched: RMS 286.5 s over 5,283 rows
-rows under 120 s: 39 (min 0)

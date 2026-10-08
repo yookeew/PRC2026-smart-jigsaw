@@ -1,0 +1,16 @@
+slice               lgb_mixed_nb  lgb_comb_nb    delta
+body pooled               215.86       215.12    -0.74
+body Jan                  197.82       196.54    -1.29
+body Jul                  229.53       229.17    -0.36
+trimmed (<=5h)            271.99       270.79    -1.20
+full                      334.33       333.36    -0.98
+  body EDDF               177.54       176.83    -0.71
+  body EDDM               166.45       165.40    -1.05
+  body EGLL               223.46       221.78    -1.68
+  body EHAM               163.49       162.76    -0.72
+  body LEBL               219.84       218.83    -1.01
+  body LEMD               176.57       175.59    -0.97
+  body LFPG               230.02       228.55    -1.47
+  body LIRF               345.38       345.38    +0.00
+  body LSZH               169.04       168.10    -0.94
+  body LTFM               238.91       239.23    +0.33

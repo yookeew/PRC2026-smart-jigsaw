@@ -1,0 +1,26 @@
+observed 8.577e+08
+  residual -1.19e+08  +24h rows ['QFAA7006']  v46 dSSE -6.88e+08 (board 245.02)
+  residual -1.19e+08  +24h rows []  v46 dSSE -6.88e+08 (board 245.02)
+  residual -5.13e+08  +24h rows ['NOSOS431', 'QFAA7006']  v46 dSSE -8.87e+08 (board 243.84)
+  residual -5.13e+08  +24h rows ['NOSOS431']  v46 dSSE -8.87e+08 (board 243.84)
+  residual -6.82e+08  +24h rows ['SVII3006', 'QFAA7006']  v46 dSSE +8.16e+07 (board 249.53)
+  residual -6.82e+08  +24h rows ['SVII3006']  v46 dSSE +8.16e+07 (board 249.53)
+  residual -7.01e+08  +24h rows ['ITYTY672', 'QFAA7006']  v46 dSSE +4.57e+07 (board 249.32)
+  residual -7.01e+08  +24h rows ['ITYTY672']  v46 dSSE +4.57e+07 (board 249.32)
+likelihood sd 1e+08: P(v46 better) 1.000; expected board 245.02; P(all echo) 0.620; P(row is +24h): QFAA7006 0.38
+likelihood sd 2e+08: P(v46 better) 0.996; expected board 245.00; P(all echo) 0.601; P(row is +24h): QFAA7006 0.38
+likelihood sd 4e+08: P(v46 better) 0.778; expected board 245.95; P(all echo) 0.347; P(row is +24h): WMTT3508 0.06, NOSOS431 0.17, ITYTY672 0.08, SVII3006 0.09, QFAA7006 0.38
+prior only (ignore board): P(v46 better) 0.349, expected board 250.36
+
+exact single-row explanations of the residual (other 10 rows echo):
+  WMTT3508   off    56520  needs y     50945 (  -5575 vs echo)  -> v46 dSSE -8.7e+08 (board 243.94)
+  TAY9LA     off    53520  needs y     48352 (  -5168 vs echo)  -> v46 dSSE -6.93e+08 (board 244.99)
+  WMT402     off    48841  needs y     44463 (  -4378 vs echo)  -> v46 dSSE -6.9e+08 (board 245.01)
+  WMTMT4SG   off    47705  needs y     43560 (  -4145 vs echo)  -> v46 dSSE -6.89e+08 (board 245.01)
+  NOSOS431   off   111654  needs y    118931 (  +7277 vs echo)  -> v46 dSSE -6.28e+08 (board 245.37)
+  ITYTY672   off    61322  needs y     55993 (  -5329 vs echo)  -> v46 dSSE -8.37e+08 (board 244.13)
+  RYR4852    off    48539  needs y     44185 (  -4354 vs echo)  -> v46 dSSE -6.9e+08 (board 245.01)
+  TARAR753   off    48776  needs y     44271 (  -4505 vs echo)  -> v46 dSSE -6.9e+08 (board 245.01)
+  SVII3006   off    60656  needs y     55011 (  -5645 vs echo)  -> v46 dSSE -8.5e+08 (board 244.06)
+  ITYTY674   off    47337  needs y     43774 (  -3563 vs echo)  -> v46 dSSE -6.89e+08 (board 245.01)
+  QFAA7006   off    87484  needs y     58256 ( -29228 vs echo)  -> v46 dSSE -7.83e+08 (board 244.46)

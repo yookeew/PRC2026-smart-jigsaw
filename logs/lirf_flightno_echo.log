@@ -1,0 +1,24 @@
+2025 LIRF NM-unmatched >= 1 h late with p: 1,375, echo rate 0.491
+
+[LOMO] rows with any flight-number history: 83.1% (NM-unmatched history 61.8%)
+   raw p           log-loss 0.4825  offset-weighted 4.973e+10
+   recalibrated p  log-loss 0.4549  offset-weighted 5.275e+10
+   p + flight no.  log-loss 0.3250  offset-weighted 4.592e+10  (vs raw p -7.7%)
+   per month offset-weighted (p + flight no.) / raw p: 1:1.15  2:0.48  3:0.99  4:0.47  5:0.38  6:0.76  7:0.99  8:0.43  9:1.01  10:0.78  11:0.97  12:1.20
+   NM-unmatched history rate [0.0,0.2): n  157  echo 0.096  mean p 0.378  mean q1 0.050
+   NM-unmatched history rate [0.2,0.8): n  571  echo 0.412  mean p 0.496  mean q1 0.420
+   NM-unmatched history rate [0.8,1.0): n  122  echo 0.975  mean p 0.713  mean q1 0.984
+
+[far >= 3 months] rows with any flight-number history: 69.1% (NM-unmatched history 32.9%)
+   raw p           log-loss 0.4825  offset-weighted 4.973e+10
+   recalibrated p  log-loss 0.4549  offset-weighted 5.275e+10
+   p + flight no.  log-loss 0.3737  offset-weighted 5.041e+10  (vs raw p +1.4%)
+   per month offset-weighted (p + flight no.) / raw p: 1:1.15  2:0.54  3:1.03  4:0.56  5:0.55  6:0.83  7:1.14  8:0.80  9:0.96  10:0.83  11:0.91  12:1.18
+   NM-unmatched history rate [0.0,0.2): n   60  echo 0.067  mean p 0.392  mean q1 0.054
+   NM-unmatched history rate [0.2,0.8): n  333  echo 0.453  mean p 0.523  mean q1 0.465
+   NM-unmatched history rate [0.8,1.0): n   60  echo 1.000  mean p 0.729  mean q1 0.978
+
+2026 LIRF NM-unmatched >= 1 h late: 348; with NM-unmatched flight-number history 26.4%, any history 42.2%
+   history rate [0.0,0.2): 20 rows, offset sum 42 h
+   history rate [0.2,0.8): 60 rows, offset sum 195 h
+   history rate [0.8,1.0): 12 rows, offset sum 27 h

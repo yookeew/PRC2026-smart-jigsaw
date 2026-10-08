@@ -1,0 +1,29 @@
+holdout NM-matched y <= 1 h: 338,248; plan_res present 0.996, real_res present 0.996
+2026 NM-matched: plan_res present 0.993; sd 2025 holdout 665 vs 2026 749; median -20 vs 27
+
+correlation with the v42 residual y - P (NM-matched, y <= 1 h), per airport: plan_res Jan / Jul | real_res Jan / Jul | n
+  EDDF  -0.012 / -0.012  |  +0.010 / -0.009  |  36,208
+  EDDM  -0.019 / -0.044  |  -0.002 / +0.001  |  26,843
+  EGLL  +0.034 / -0.003  |  +0.013 / -0.019  |  39,526
+  EHAM  -0.007 / +0.006  |  -0.013 / +0.002  |  40,098
+  LEBL  +0.015 / -0.003  |  +0.008 / +0.009  |  28,491
+  LEMD  +0.013 / -0.005  |  +0.008 / +0.000  |  35,019
+  LFPG  -0.023 / +0.000  |  +0.021 / +0.003  |  38,586
+  LIRF  +0.015 / -0.012  |  +0.010 / -0.009  |  25,819
+  LSZH  -0.011 / +0.030  |  +0.013 / +0.031  |  21,803
+  LTFM  -0.028 / +0.007  |  -0.005 / -0.008  |  45,855
+
+mean v42 residual by plan_res band (pooled):
+  (-1000000000,   -600]  n  28,736  mean residual   -11.8  (Jan  -30.5, Jul   +1.7)
+  (  -600,   -300]  n  44,524  mean residual    -7.1  (Jan  -19.0, Jul   +0.0)
+  (  -300,   -120]  n  55,529  mean residual    -7.0  (Jan  -20.4, Jul   +0.3)
+  (  -120,    -30]  n  35,950  mean residual    -4.9  (Jan  -17.4, Jul   +2.4)
+  (   -30,     30]  n  23,286  mean residual    -5.7  (Jan  -16.1, Jul   +1.4)
+  (    30,    120]  n  29,977  mean residual    -6.9  (Jan  -19.8, Jul   +3.2)
+  (   120,    300]  n  43,527  mean residual    -8.5  (Jan  -19.5, Jul   +1.9)
+  (   300,    600]  n  38,057  mean residual   -12.4  (Jan  -23.9, Jul   +1.5)
+  (   600, 1000000000]  n  37,168  mean residual   -19.3  (Jan  -26.1, Jul   -4.9)
+
+cross-month linear ceiling, per airport slope on clip(plan_res, +-1800), body RMSE (NM-matched, y <= 1 h):
+  fit 1 -> apply 7: 207.90 -> 207.95
+  fit 7 -> apply 1: 175.34 -> 175.33

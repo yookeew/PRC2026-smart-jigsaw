@@ -1,0 +1,90 @@
+OOF-month ADS-B rows: 660,242 on 115 days (['2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12']); OOF stack weights [1.009 0.   ]
+
+[combiner] 2026 rows with a never-seen missing pattern: 0 of 317,942 (0.00%)
+[combiner] share of 2026 values outside the airport's 2025 training [p0.5, p99.5] (cells > 3%):
+   s                    EDDF    3.7% of 36,317  (expected ~1%)
+   L_rel                LFPG    3.4% of 3,803  (expected ~1%)
+[combiner] airport x tier: training rows -> 2026 rows (cells where 2026 >= 500):
+   EDDF none        68,460 ->  31,729
+   EDDF appear      11,344 ->   1,125
+   EDDF dwell       10,069 ->     691
+   EDDF fb_dwell    11,239 ->   1,277
+   EDDF fb_appear    6,555 ->   1,325
+   EDDM none        26,716 ->   3,627
+   EDDM appear      17,014 ->   7,078
+   EDDM dwell       28,612 ->  12,719
+   EDDM fb_dwell     4,662 ->   1,490
+   EDDM fb_appear    3,023 ->     996
+   EGLL none        90,183 ->  13,615
+   EGLL appear       1,861 ->   9,229
+   EGLL dwell        1,666 ->  10,402  <-- thin
+   EGLL fb_dwell    11,957 ->   3,744
+   EGLL fb_appear   10,224 ->   2,795
+   EHAM none        26,010 ->   4,754
+   EHAM appear      26,715 ->   9,411
+   EHAM dwell       48,573 ->  18,969
+   EHAM fb_dwell    12,905 ->   3,713
+   EHAM fb_appear    4,865 ->   1,179
+   LEBL none        48,051 ->  14,621
+   LEBL appear      14,522 ->   5,678
+   LEBL dwell       14,848 ->   6,591
+   LEBL fb_dwell     4,684 ->   1,760
+   LEBL fb_appear    3,928 ->   1,305
+   LEMD none        83,818 ->  25,622
+   LEMD appear       5,555 ->   3,511
+   LEMD dwell        6,574 ->   3,427
+   LEMD fb_dwell     3,249 ->   2,426
+   LEMD fb_appear    2,785 ->   1,837
+   LFPG none       115,149 ->  39,702
+   LSZH none        31,623 ->  10,515
+   LSZH appear       5,663 ->   3,893
+   LSZH dwell       13,048 ->   4,129
+   LSZH fb_dwell    11,230 ->   2,731
+   LSZH fb_appear    3,194 ->   1,683
+   LTFM none       132,747 ->  47,581
+OOF-month ADS-B rows: 660,242 on 115 days (['2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12']); OOF stack weights [1.009 0.   ]
+
+[neighbour (b)] training rows 1,004,525 (of which without ADS-B info 477,663); applied to 2026 rows without ADS-B info: 135,714
+[neighbour (b)] rows without ADS-B info, training -> 2026, by airport:
+   EDDF   19,823 ->  14,063
+   EDDM   15,903 ->     149
+   EGLL   80,439 ->   4,822
+   EHAM    2,728 ->      45
+   LEBL    8,157 ->   2,815
+   LEMD   50,493 ->   9,070
+   LFPG  106,840 ->  35,930
+   LIRF   50,320 ->  19,374
+   LSZH   10,224 ->   1,936
+   LTFM  132,736 ->  47,510
+
+[neighbour (b)] 2026 rows with a never-seen missing pattern: 26 of 135,714 (0.02%)
+   EDDF NM-unmatched        5 of    201 ( 2.49%)
+   EHAM NM-unmatched        1 of     10 (10.00%)
+   LEBL NM-unmatched        4 of     52 ( 7.69%)
+   LIRF NM-unmatched        2 of    321 ( 0.62%)
+[neighbour (b)] share of 2026 values outside the airport's 2025 training [p0.5, p99.5] (cells > 3%):
+   nbq_n_apt_3600       EDDF   17.9% of 14,063  (expected ~1%)
+   nbq_apt_3600         EDDF   11.3% of 8,999  (expected ~1%)
+   nbp_apt_3600         EDDF    8.4% of 14,053  (expected ~1%)
+   nbq_rwy_3600         EDDF    8.3% of 5,779  (expected ~1%)
+   nbq_apt_3600         LEMD    7.8% of 5,761  (expected ~1%)
+   nbp_rwy_3600         LSZH    7.4% of 1,793  (expected ~1%)
+   nbp_apt_1800         EDDF    7.3% of 14,039  (expected ~1%)
+   nbq_apt_1800         EDDF    7.2% of 5,360  (expected ~1%)
+   nbp_rwy_3600         EDDF    7.2% of 14,034  (expected ~1%)
+   nbp_rwy_1800         EDDF    6.5% of 14,006  (expected ~1%)
+   nbq_rwy_900          EDDF    6.5% of 1,138  (expected ~1%)
+   nbq_rwy_1800         EDDF    6.5% of 2,841  (expected ~1%)
+   nbp_rwy_1800         LSZH    6.3% of 1,707  (expected ~1%)
+   nbp_apt_900          EDDF    6.3% of 14,023  (expected ~1%)
+   nbp_rwy_900          EDDF    5.8% of 13,770  (expected ~1%)
+   nbq_apt_900          EDDF    5.5% of 2,507  (expected ~1%)
+   nbq_rwy_3600         LEMD    5.4% of 3,816  (expected ~1%)
+   s                    EDDF    5.3% of 14,063  (expected ~1%)
+   nbp_apt_3600         LSZH    5.0% of 1,936  (expected ~1%)
+   nboff_rwy_1800       LSZH    4.9% of 1,721  (expected ~1%)
+   nbq_apt_1800         LEMD    4.9% of 4,441  (expected ~1%)
+   nbp_rwy_900          LSZH    4.7% of 1,543  (expected ~1%)
+   nboff_rwy_3600       LSZH    4.5% of 1,806  (expected ~1%)
+   nboff_rwy_900        LSZH    4.4% of 1,561  (expected ~1%)
+   nbp_apt_1800         LSZH    4.3% of 1,933  (expected ~1%)

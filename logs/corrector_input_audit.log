@@ -1,0 +1,31 @@
+features 59; fit rows 2,084,469; 2026 rows 344,841 (applied 344,745)
+
+never-seen null patterns, 2026 applied rows, by airport (NM-matched | NM-unmatched):
+  EDDF  0.0003 of 35,896 | 0.0000 of   415
+  EDDM  0.0001 of 25,728 | 0.0000 of   236
+  EGLL  0.0000 of 39,592 | 0.0000 of   243
+  EHAM  0.0001 of 36,976 | 0.0017 of 1,165
+  LEBL  0.0001 of 29,639 | 0.0023 of   436
+  LEMD  0.0001 of 36,718 | 0.0000 of   236
+  LFPG  0.0002 of 39,140 | 0.0000 of   727
+  LIRF  0.0000 of 26,516 | 0.0028 of   357
+  LSZH  0.0001 of 22,491 | 0.0031 of   655
+  LTFM  0.0000 of 46,862 | 0.0000 of   717
+  columns most often null on those rows: rw_cad20 0.90, rw_cad20_apt 0.85, ab_pb_gap_s 0.71, ab_taxi 0.68, ab_pb_gs 0.68, ab_pb_dist_m 0.68, ab_taxi_rel 0.68, ab_min_own_m 0.51, ab_first_own_m 0.51, rw_dom_change 0.49
+
+categorical codes never seen among fit rows (2026 applied rows):
+  apt_c: 0 rows; by airport 
+  stand_pfx: 7 rows; by airport EDDF 1, EDDM 1, LTFM 5
+
+share of 2026 values outside the airport's fit-row [p0.5, p99.5] (NM-matched applied rows; cells > 3%, top 30):
+  cel_n                  EDDF    7.4% of 35,896
+  cel_n                  EGLL    7.3% of 39,592
+  cel_rel                EDDF    5.0% of 35,896
+  cel_n                  EDDM    5.0% of 25,728
+  g_aobt3                EDDF    4.4% of 35,896
+  p                      EDDF    4.3% of 35,896
+  ab_L_rel               LFPG    3.6% of 3,744
+  g_aobt3                LSZH    3.3% of 22,491
+  p                      LSZH    3.2% of 22,491
+  cel_rel                LSZH    3.1% of 22,491
+  cel_rel                EHAM    3.1% of 36,976

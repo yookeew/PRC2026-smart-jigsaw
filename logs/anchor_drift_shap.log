@@ -1,0 +1,91 @@
+proxy best_iter 381
+
+proxy offset clip-mean(x - a), x = proxy prediction (truth in brackets, 2025)
+  LSZH 1: 2025     45 [  33]   2026     80
+  LSZH 7: 2025     50 [  35]   2026     72
+  EDDM 1: 2025     17 [   9]   2026     61
+  EDDM 7: 2025     43 [  38]   2026     38
+  LTFM 1: 2025   -184 [-182]   2026   -123
+  LTFM 7: 2025   -133 [-110]   2026   -137
+  EDDF 1: 2025    -72 [ -75]   2026    -41
+  EDDF 7: 2025    -50 [ -59]   2026    -69
+
+LSZH month 1: mean prediction moves +116 s (anchor a moves +65 s); top feature contributions:
+   aobt3_taxi                         +41.8   mean     716.21 ->     780.06
+   aobt3_vs_eobt                      +20.2   mean     548.01 ->     647.82
+   sched_takeoff_offset               +15.9   mean    1587.39 ->    1962.19
+   temp_c                              +9.1   mean       2.74 ->       0.14
+   wx_snow                             +6.5   mean       0.02 ->       0.08
+   vis_mi                              +4.4   mean       5.27 ->       4.35
+   median_taxi_prior                   +3.8   mean     683.76 ->     699.88
+   arr_rwy_config                      +3.8
+
+LSZH month 7: mean prediction moves +20 s (anchor a moves -13 s); top feature contributions:
+   aobt3_vs_eobt                       -5.8   mean     732.94 ->     684.08
+   unimpeded_taxi                      +5.0   mean     564.53 ->     574.85
+   STAND_mvt                           +3.9
+   median_taxi_prior                   +3.0   mean     691.22 ->     701.18
+   n_dep_15m_next                      +2.6   mean       6.13 ->       6.37
+   temp_dewpoint_spread_c              -2.5   mean       7.20 ->      12.81
+   sched_takeoff_offset                -2.4   mean    2003.32 ->    1916.35
+   AIRCRAFT_TYPE_mvt                   +2.4
+
+EDDM month 1: mean prediction moves +115 s (anchor a moves +26 s); top feature contributions:
+   aobt3_taxi                         +33.5   mean     752.69 ->     778.32
+   aobt3_vs_eobt                      +32.1   mean     386.73 ->     544.06
+   sched_takeoff_offset               +17.9   mean    1438.00 ->    1865.08
+   temp_c                             +10.7   mean       1.65 ->      -0.82
+   iobt_delay                          -3.9   mean     300.60 ->     541.68
+   RUNWAY_mvt                          +3.8
+   dep_rwy_config                      +3.0
+   wx_snow                             +2.8   mean       0.03 ->       0.05
+
+EDDM month 7: mean prediction moves -28 s (anchor a moves -23 s); top feature contributions:
+   aobt3_vs_eobt                      -12.8   mean     490.55 ->     402.23
+   aobt3_taxi                          -5.5   mean     717.32 ->     696.65
+   sched_takeoff_offset                -4.0   mean    1767.23 ->    1659.46
+   AIRCRAFT_TYPE_mvt                   +2.3
+   temp_dewpoint_spread_c              -2.3   mean       7.17 ->      10.89
+   RUNWAY_mvt                          -1.6
+   n_arr_60m_around                    -1.4   mean      26.73 ->      25.19
+   median_taxi_prior                   -1.3   mean     758.89 ->     754.17
+
+LTFM month 1: mean prediction moves +202 s (anchor a moves +85 s); top feature contributions:
+   aobt3_taxi                         +56.9   mean    1326.48 ->    1411.20
+   sched_takeoff_offset               +39.7   mean    1713.63 ->    2273.02
+   aobt3_vs_eobt                      +31.9   mean    -140.89 ->      78.90
+   RUNWAY_mvt                         +20.5
+   dep_rwy_config                      +8.9
+   wx_snow                             +7.6   mean       0.00 ->       0.08
+   temp_c                              +6.2   mean       8.87 ->       8.02
+   wind_kt                             +4.8   mean      11.12 ->      14.02
+
+LTFM month 7: mean prediction moves -29 s (anchor a moves -21 s); top feature contributions:
+   aobt3_vs_eobt                      -26.7   mean     206.65 ->      20.48
+   aobt3_taxi                          -8.3   mean    1241.71 ->    1227.77
+   lobt_delay                          +6.7   mean     549.39 ->     503.71
+   sched_takeoff_offset                -5.8   mean    1997.75 ->    1751.96
+   minute_of_day                       -2.2   mean     737.11 ->     745.00
+   n_dep_15m_next                      +2.2   mean      10.43 ->      10.95
+   dewpoint_c                          +2.1   mean      18.25 ->      16.58
+   iobt_delay                          +1.9   mean     553.62 ->     510.52
+
+EDDF month 1: mean prediction moves +143 s (anchor a moves +93 s); top feature contributions:
+   aobt3_taxi                         +71.2   mean     944.38 ->    1041.20
+   aobt3_vs_eobt                      +31.1   mean     342.66 ->     499.23
+   sched_takeoff_offset               +25.0   mean    1793.80 ->    2321.95
+   temp_c                              +8.0   mean       3.71 ->       1.57
+   wx_snow                             +6.5   mean       0.01 ->       0.07
+   iobt_delay                          -4.7   mean     549.35 ->     797.10
+   median_taxi_prior                   +2.8   mean     832.64 ->     842.56
+   RUNWAY_mvt                          -2.7
+
+EDDF month 7: mean prediction moves +0 s (anchor a moves +25 s); top feature contributions:
+   aobt3_vs_eobt                      -21.4   mean     541.30 ->     379.33
+   aobt3_taxi                         +15.3   mean     905.26 ->     930.30
+   sched_takeoff_offset                -8.8   mean    2233.78 ->    1834.86
+   median_taxi_prior                   +6.8   mean     825.20 ->     853.66
+   unimpeded_taxi                      +5.2   mean     667.22 ->     696.97
+   iobt_delay                          +2.7   mean     688.38 ->     476.25
+   n_sg_rwy                            +2.7   mean   23941.25 ->   21027.92
+   RUNWAY_mvt                          +2.6

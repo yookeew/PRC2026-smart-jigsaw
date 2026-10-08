@@ -1,0 +1,18 @@
+OOF stack weights: [0.577 0.428]
+rows 2,084,967 (OOF 1,740,628, holdout 344,339); features 41
+fit rows 1,405,419; validation rows 334,914 (body 330,720)
+stack alone: body 203.11  Feb 193.09  Aug 210.35
+c0 {}: best_iter 1456; body 197.43  Feb 187.54  Aug 204.56  trimmed 252.06  (336 s)
+c0b {}: best_iter 1456; body 197.43  Feb 187.54  Aug 204.56  trimmed 252.06  (191 s)
+c1 {'num_leaves': 127}: best_iter 1009; body 197.40  Feb 187.28  Aug 204.70  trimmed 251.74  (252 s)
+c2 {'num_leaves': 255, 'min_data_in_leaf': 400}: best_iter 667; body 197.21  Feb 186.95  Aug 204.59  trimmed 251.81  (454 s)
+c3 {'num_leaves': 31}: best_iter 853; body 197.74  Feb 187.60  Aug 205.04  trimmed 252.29  (199 s)
+c4 {'learning_rate': 0.025}: best_iter 2356; body 197.18  Feb 187.18  Aug 204.39  trimmed 251.51  (2923 s)
+c5 {'feature_fraction': 0.7}: best_iter 1062; body 197.41  Feb 187.32  Aug 204.67  trimmed 252.53  (127 s)
+c6 {'min_data_in_leaf': 50}: best_iter 1150; body 197.57  Feb 187.76  Aug 204.65  trimmed 251.90  (119 s)
+c7 {'lambda_l2': 1.0}: best_iter 629; body 197.42  Feb 187.48  Aug 204.60  trimmed 251.62  (100 s)
+c8 {'num_leaves': 127, 'learning_rate': 0.025, 'feature_fraction': 0.7}: best_iter 1297; body 197.14  Feb 187.01  Aug 204.44  trimmed 251.63  (249 s)
+
+refit noise |c0 - c0b| pooled body: 0.000
+
+chosen c8: gain vs c0 body +0.29 (Feb +0.53, Aug +0.12) -> STOP

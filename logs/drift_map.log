@@ -1,0 +1,23 @@
+rows: 2025 Jan+Jul 344,339, 2026 Jan+Jul 344,841
+adversarial out-of-fold AUC: 0.856
+  ... 2025 month 1 rows only vs all 2026: AUC 0.869
+  ... 2025 month 7 rows only vs all 2026: AUC 0.846
+most drifted features (share of gain | single-feature AUC, 0.5 = no drift):
+  stand_pfx           30.2% | 0.505
+  apt_c               15.7% | 0.506
+  ab_n_pts             6.7% | 0.527
+  ab_cov               4.1% | 0.555
+  hour                 3.6% | 0.502
+  ab_L_rel             2.8% | 0.507
+  ret_delay15          2.5% | 0.501
+  ab_min_own_m         2.3% | 0.528
+  ret_overdue_apt      2.1% | 0.512
+  rw_share60           2.0% | 0.502
+  rw_cad20_apt         1.8% | 0.500
+  ab_first_gs          1.7% | 0.546
+  g_aobt3              1.7% | 0.514
+  rw_cad20             1.6% | 0.501
+  cel_n                1.5% | 0.506
+holdout weights: effective sample size 181,903 of 344,339 (52.8%)
+mean weight by airport: {'EDDF': 1.14, 'EDDM': 1.28, 'EGLL': 0.53, 'EHAM': 1.2, 'LEBL': 1.51, 'LEMD': 0.58, 'LFPG': 0.77, 'LIRF': 0.67, 'LSZH': 0.99, 'LTFM': 1.36}
+wrote iw_holdout.parquet

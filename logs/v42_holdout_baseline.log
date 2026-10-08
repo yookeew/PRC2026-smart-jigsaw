@@ -1,0 +1,49 @@
+thin-day rule: 115 days kept, 7 dropped
+shape: (7, 5)
+| day        | status   | bad_members | points | med        |
+| ---        | ---      | ---         | ---    | ---        |
+| str        | str      | i64         | i64    | f64        |
+|------------|----------|-------------|--------|------------|
+| 2025-08-10 | tolerant | 1           | 211018 | 1.572131e6 |
+| 2025-10-04 | ok       | 0           | 0      | 1672691.5  |
+| 2025-10-07 | tolerant | 1           | 206056 | 1672691.5  |
+| 2025-11-19 | tolerant | 1           | 142500 | 1.549465e6 |
+| 2025-11-22 | tolerant | 1           | 247284 | 1.549465e6 |
+| 2025-12-10 | tolerant | 1           | 671427 | 1586008.5  |
+| 2025-12-28 | tolerant | 1           | 251232 | 1586008.5  |
+OOF-month ADS-B rows: 660,242 on 115 days (['2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12']); OOF stack weights [1.009 0.   ]
+  corrector fit 2025-01: best_iter 623
+  corrector fit 2025-07: best_iter 907
+treatment OOF stack weights [1.011 0.   ]
+  corrector fit 2025-01: best_iter 321
+  corrector fit 2025-07: best_iter 603
+
+slice                 v33 method  +ctx corrector   delta
+body pooled               194.58          193.95   -0.64
+body Jan                  176.30          175.34   -0.96
+body Jul                  208.31          207.90   -0.42
+trimmed                   246.01          241.84   -4.18
+full                      304.71          301.44   -3.27
+  body EDDF               156.41          154.97   -1.44
+  body EDDM               113.78          115.25   +1.47
+  body EGLL               211.95          211.36   -0.59
+  body EHAM               113.60          110.46   -3.14
+  body LEBL               192.55          191.48   -1.07
+  body LEMD               166.01          165.74   -0.26
+  body LFPG               225.61          224.46   -1.14
+  body LIRF               313.39          313.89   +0.50
+  body LSZH               129.80          128.24   -1.56
+  body LTFM               228.39          228.25   -0.14
+
+STAGE 2: body gain {'pooled': 0.6366962983147744, 'Jan': 0.9614141460549206, 'Jul': 0.41654227440278646} -> REJECT
+
+LIRF NM-unmatched rows copied from v41: 397
+slice                             v41      v42    delta
+body pooled                    194.13   193.95    -0.19
+body Jan                       175.66   175.34    -0.32
+body Jul                       208.00   207.90    -0.10
+trimmed                        246.06   245.20    -0.86
+full                           304.77   304.07    -0.69
+NM-unmatched non-LIRF         1550.12  1542.80    -7.32
+NM-unmatched non-LIRF, y<=5h   571.60   551.02   -20.59
+wrote v42_chain_holdout.parquet

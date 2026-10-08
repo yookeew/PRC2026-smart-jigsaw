@@ -1,0 +1,35 @@
+v45/v46 differ on 11 rows. eq1 (v19->v20) 8.577e+08; eq2 (v45->v46) 4.063e+07
+
+2-class: best joint fits
+  joint resid 6.83e+08  eq1 -6.82e+08 eq2 +4.09e+07  {'SVII3006': '+24h', 'QFAA7006': '+24h'}
+  joint resid 6.83e+08  eq1 -6.82e+08 eq2 +4.09e+07  {'SVII3006': '+24h'}
+  joint resid 7.01e+08  eq1 -7.01e+08 eq2 +5.03e+06  {'ITYTY672': '+24h', 'QFAA7006': '+24h'}
+  joint resid 7.01e+08  eq1 -7.01e+08 eq2 +5.04e+06  {'ITYTY672': '+24h'}
+  joint resid 7.38e+08  eq1 -1.19e+08 eq2 -7.29e+08  {}
+  joint resid 7.38e+08  eq1 -1.19e+08 eq2 -7.29e+08  {'QFAA7006': '+24h'}
+  joint resid 8.26e+08  eq1 -7.77e+08 eq2 +2.81e+08  {'WMTT3508': '+24h', 'QFAA7006': '+24h'}
+  joint resid 8.26e+08  eq1 -7.77e+08 eq2 +2.81e+08  {'WMTT3508': '+24h'}
+
+3-class: best joint fits
+  joint resid 1.72e+07  eq1 -9.12e+05 eq2 +1.72e+07  {'TAY9LA': '+24h', 'WMT402': '+24h', 'ITYTY672': '+24h', 'RYR4852': 'normal', 'TARAR753': 'normal', 'QFAA7006': '+24h'}
+  joint resid 1.72e+07  eq1 -9.28e+05 eq2 +1.72e+07  {'TAY9LA': '+24h', 'WMT402': '+24h', 'ITYTY672': '+24h', 'RYR4852': 'normal', 'TARAR753': 'normal'}
+  joint resid 1.77e+07  eq1 -1.66e+07 eq2 +6.19e+06  {'WMTT3508': '+24h', 'TAY9LA': '+24h', 'WMT402': 'normal', 'TARAR753': 'normal', 'ITYTY674': '+24h', 'QFAA7006': 'normal'}
+  joint resid 1.96e+07  eq1 -1.79e+07 eq2 +7.91e+06  {'WMTT3508': '+24h', 'TAY9LA': '+24h', 'RYR4852': 'normal', 'TARAR753': 'normal', 'ITYTY674': '+24h', 'QFAA7006': 'normal'}
+  joint resid 1.96e+07  eq1 -1.35e+07 eq2 +1.43e+07  {'TAY9LA': '+24h', 'WMT402': 'normal', 'ITYTY672': '+24h', 'RYR4852': '+24h', 'TARAR753': 'normal', 'QFAA7006': '+24h'}
+  joint resid 1.96e+07  eq1 -1.35e+07 eq2 +1.43e+07  {'TAY9LA': '+24h', 'WMT402': 'normal', 'ITYTY672': '+24h', 'RYR4852': '+24h', 'TARAR753': 'normal'}
+  joint resid 2.07e+07  eq1 -1.5e+07 eq2 +1.43e+07  {'TAY9LA': '+24h', 'WMT402': '+24h', 'WMTMT4SG': 'normal', 'ITYTY672': '+24h', 'RYR4852': 'normal', 'TARAR753': 'normal', 'ITYTY674': '+24h', 'QFAA7006': '+24h'}
+  joint resid 2.08e+07  eq1 -1.5e+07 eq2 +1.43e+07  {'TAY9LA': '+24h', 'WMT402': '+24h', 'WMTMT4SG': 'normal', 'ITYTY672': '+24h', 'RYR4852': 'normal', 'TARAR753': 'normal', 'ITYTY674': '+24h'}
+
+linear constraints: c1.y = r1, c2.y = r2
+  WMTT3508   off    56520  c1   -21276  c2   +32600
+  TAY9LA     off    53520  c1   -22950  c2    +1006
+  WMT402     off    48841  c1   -27094  c2     +424
+  WMTMT4SG   off    47705  c1   -28616  c2     +274
+  NOSOS431   off   111654  c1   +16300  c2    +8232
+  ITYTY672   off    61322  c1   -22256  c2   +28044
+  RYR4852    off    48539  c1   -27240  c2     +390
+  TARAR753   off    48776  c1   -26330  c2     +424
+  SVII3006   off    60656  c1   -21010  c2   +28686
+  ITYTY674   off    47337  c1   -33288  c2     +244
+  QFAA7006   off    87484  c1    -4058  c2    +3238
+  echo gives c1.y-r1 -1.19e+08, c2.y-r2 -7.29e+08

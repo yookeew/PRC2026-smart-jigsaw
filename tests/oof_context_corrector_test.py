@@ -32,8 +32,9 @@ TRIM = 18000
 
 def preds() -> pl.DataFrame:
     rd = lambda path, c: pl.read_parquet(path).select(pl.col("MVT_ID_mvt").cast(pl.Int64), pl.col("pred").alias(c))
-    oof = rd(OOF / "lgb_mixed_nb" / "*.parquet", "lgb").join(rd(OOF / "cat_mixed" / "*.parquet", "cat"), on="MVT_ID_mvt")
-    ho = rd(EVAL / "lgb_mixed_nb_holdout_ev.parquet", "lgb").join(rd(EVAL / "cat_mixed_holdout_ev.parquet", "cat"), on="MVT_ID_mvt")
+    base = os.environ.get("PRC_BASE", "lgb_mixed_nb")   # reports/base_comb_preregistration.md
+    oof = rd(OOF / base / "*.parquet", "lgb").join(rd(OOF / "cat_mixed" / "*.parquet", "cat"), on="MVT_ID_mvt")
+    ho = rd(EVAL / f"{base}_holdout_ev.parquet", "lgb").join(rd(EVAL / "cat_mixed_holdout_ev.parquet", "cat"), on="MVT_ID_mvt")
     return pl.concat([oof.with_columns(split=pl.lit("oof")), ho.with_columns(split=pl.lit("ho"))])
 
 

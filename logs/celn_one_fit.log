@@ -1,0 +1,26 @@
+=== start Wed Oct  7 11:24:36 RST 2026
+global best_iter 676; RMS(c_celn - c_ctl) over applied rows 3.90 s
+wrote ctxc1r_1fit{ctl,celn}.parquet
+=== r done Wed Oct  7 11:28:34 RST 2026
+global best_iter 928; RMS(c_celn - c_ctl) over applied rows 4.06 s
+wrote ctxc1rb_1fit{ctl,celn}.parquet
+=== rb done Wed Oct  7 11:33:24 RST 2026
+rows 344,841
+treatment vs control (corrector output, ctxsel): RMS 3.94 s, mean -0.09 s, rows moved > 1 s 0.139, > 30 s 0.0018, max |d| 493
+for scale: control (this machine) vs v42's ctxc1sel (teammate's machine): RMS 18.70 s, mean -0.05 s
+
+by airport: n, RMS(treatment - control), mean
+  EDDF  36,317     2.35    +0.06
+  EDDM  25,966     2.43    +0.01
+  EGLL  39,840     2.38    +0.02
+  EHAM  38,182     1.91    -0.22
+  LEBL  30,080     1.67    +0.04
+  LEMD  36,954     1.73    -0.14
+  LFPG  39,872     5.90    -0.26
+  LIRF  26,899     9.00    +0.57
+  LSZH  23,150     1.58    -0.24
+  LTFM  47,581     4.13    -0.42
+NM-matched RMS 2.88; NM-unmatched RMS 21.90
+
+DECISION (pre-registered): RMS 3.94 s >= 3 s -> build v43 candidate
+=== end exit 0 Wed Oct  7 11:33:25 RST 2026

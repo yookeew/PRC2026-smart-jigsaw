@@ -1,0 +1,24 @@
+holdout
+  312,885 of 344,339 rows replaced (312,885 with the anchored member)
+oof fold=2025-02.parquet
+  131,977 of 143,732 rows replaced (131,977 with the anchored member)
+oof fold=2025-03.parquet
+  150,882 of 164,449 rows replaced (150,882 with the anchored member)
+oof fold=2025-04.parquet
+  160,245 of 175,288 rows replaced (160,245 with the anchored member)
+oof fold=2025-05.parquet
+  169,155 of 185,202 rows replaced (169,155 with the anchored member)
+oof fold=2025-06.parquet
+  166,129 of 183,142 rows replaced (166,129 with the anchored member)
+oof fold=2025-08.parquet
+  173,590 of 191,182 rows replaced (173,590 with the anchored member)
+oof fold=2025-09.parquet
+  166,986 of 183,950 rows replaced (166,986 with the anchored member)
+oof fold=2025-10.parquet
+  169,734 of 185,674 rows replaced (169,734 with the anchored member)
+oof fold=2025-11.parquet
+  149,700 of 162,332 rows replaced (149,700 with the anchored member)
+oof fold=2025-12.parquet
+  152,048 of 165,677 rows replaced (152,048 with the anchored member)
+ranking
+  313,035 of 344,841 rows replaced (313,035 with the anchored member)

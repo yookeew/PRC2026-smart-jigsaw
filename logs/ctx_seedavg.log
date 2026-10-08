@@ -1,0 +1,102 @@
+=== start r Wed Oct  7 12:58:17 RST 2026
+OOF stack weights: [0.577 0.428]
+rows 2,084,967 (OOF 1,740,628, holdout 344,339); features 41
+ctxc1r_s3: features 42; trainable rows 1,740,247 (BASE 1,723,569, NM-unmatched added 16,678)
+  seeds [42, 43, 44]: best_iter [1169, 1036, 1165]; RMS between seed fits 17.00
+holdout corrector: best_iter 1169
+  seeds [42, 43, 44]: best_iter [978, 775, 1000]; RMS between seed fits 13.36
+OOF block (2, 3): best_iter 978
+  seeds [42, 43, 44]: best_iter [835, 700, 625]; RMS between seed fits 11.72
+OOF block (4, 5): best_iter 835
+  seeds [42, 43, 44]: best_iter [1291, 1514, 1250]; RMS between seed fits 15.11
+OOF block (6, 8): best_iter 1291
+  seeds [42, 43, 44]: best_iter [1248, 802, 857]; RMS between seed fits 15.38
+OOF block (9, 10): best_iter 1248
+  seeds [42, 43, 44]: best_iter [1613, 910, 1194]; RMS between seed fits 15.78
+OOF block (11, 12): best_iter 1613
+wrote ctxc1r_s3_holdout_ev.parquet and cache\oof\ctxc1r_s3
+=== r exit 0 Wed Oct  7 13:36:44 RST 2026
+=== start rb Wed Oct  7 13:36:55 RST 2026
+OOF stack weights: [0.577 0.428]
+rows 2,084,967 (OOF 1,740,628, holdout 344,339); features 58
+ctxc1rb_s3: features 59; trainable rows 1,740,247 (BASE 1,723,569, NM-unmatched added 16,678)
+=== restart rb Wed Oct  7 18:30:52 RST 2026
+OOF stack weights: [0.577 0.428]
+rows 2,084,967 (OOF 1,740,628, holdout 344,339); features 58
+ctxc1rb_s3: features 59; trainable rows 1,740,247 (BASE 1,723,569, NM-unmatched added 16,678)
+  seeds [42, 43, 44]: best_iter [1185, 697, 1666]; RMS between seed fits 21.31
+holdout corrector: best_iter 1185
+  seeds [42, 43, 44]: best_iter [1199, 1250, 1158]; RMS between seed fits 12.98
+OOF block (2, 3): best_iter 1199
+  seeds [42, 43, 44]: best_iter [696, 773, 762]; RMS between seed fits 12.32
+OOF block (4, 5): best_iter 696
+  seeds [42, 43, 44]: best_iter [1602, 1839, 1287]; RMS between seed fits 15.34
+OOF block (6, 8): best_iter 1602
+  seeds [42, 43, 44]: best_iter [1170, 1155, 1098]; RMS between seed fits 15.16
+OOF block (9, 10): best_iter 1170
+  seeds [42, 43, 44]: best_iter [1164, 1666, 1161]; RMS between seed fits 14.82
+OOF block (11, 12): best_iter 1164
+wrote ctxc1rb_s3_holdout_ev.parquet and cache\oof\ctxc1rb_s3
+=== rb done Wed Oct  7 19:33:20 RST 2026
+holdout: 129,053 of 344,339 rows from ctxc1rb_s3
+=== sel done Wed Oct  7 19:33:22 RST 2026
+thin-day rule: 115 days kept, 7 dropped
+shape: (7, 5)
+| day        | status   | bad_members | points | med        |
+| ---        | ---      | ---         | ---    | ---        |
+| str        | str      | i64         | i64    | f64        |
+|------------|----------|-------------|--------|------------|
+| 2025-08-10 | tolerant | 1           | 211018 | 1.572131e6 |
+| 2025-10-04 | ok       | 0           | 0      | 1672691.5  |
+| 2025-10-07 | tolerant | 1           | 206056 | 1672691.5  |
+| 2025-11-19 | tolerant | 1           | 142500 | 1.549465e6 |
+| 2025-11-22 | tolerant | 1           | 247284 | 1.549465e6 |
+| 2025-12-10 | tolerant | 1           | 671427 | 1586008.5  |
+| 2025-12-28 | tolerant | 1           | 251232 | 1586008.5  |
+OOF-month ADS-B rows: 660,242 on 115 days (['2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12']); OOF stack weights [1.009 0.   ]
+  corrector fit 2025-01: best_iter 623
+  corrector fit 2025-07: best_iter 907
+treatment OOF stack weights [1.011 0.   ]
+  corrector fit 2025-01: best_iter 480
+  corrector fit 2025-07: best_iter 265
+
+slice                 v33 method  +ctx corrector   delta
+body pooled               194.58          193.76   -0.82
+body Jan                  176.30          174.83   -1.47
+body Jul                  208.31          207.93   -0.38
+trimmed                   246.01          241.41   -4.60
+full                      304.71          301.02   -3.68
+  body EDDF               156.41          154.69   -1.72
+  body EDDM               113.78          115.19   +1.41
+  body EGLL               211.95          211.50   -0.45
+  body EHAM               113.60          110.17   -3.43
+  body LEBL               192.55          191.32   -1.23
+  body LEMD               166.01          165.61   -0.39
+  body LFPG               225.61          223.84   -1.76
+  body LIRF               313.39          314.83   +1.44
+  body LSZH               129.80          128.19   -1.61
+  body LTFM               228.39          227.21   -1.18
+
+STAGE 2: body gain {'pooled': 0.8223569641781978, 'Jan': 1.4675672706916885, 'Jul': 0.3831039681910511} -> REJECT
+
+LIRF NM-unmatched rows from v41's chain: 397
+slice             base b0  base b1   b1-b0      v42     comb    delta
+body pooled        215.86   215.86   +0.00   193.95   193.76    -0.19
+body Jan           197.82   197.82   +0.00   175.34   174.83    -0.51
+body Jul           229.53   229.53   +0.00   207.90   207.93    +0.03
+trimmed            271.99   271.99   +0.00   245.20   244.87    -0.33
+full               334.33   334.33   +0.00   304.07   303.75    -0.33
+  body EDDF        177.54   177.54   +0.00   154.97   154.69    -0.28
+  body EDDM        166.45   166.45   +0.00   115.25   115.19    -0.05
+  body EGLL        223.46   223.46   +0.00   211.36   211.50    +0.14
+  body EHAM        163.49   163.49   +0.00   110.46   110.17    -0.29
+  body LEBL        219.84   219.84   +0.00   191.48   191.32    -0.16
+  body LEMD        176.57   176.57   +0.00   165.74   165.61    -0.13
+  body LFPG        230.02   230.02   +0.00   224.46   223.84    -0.62
+  body LIRF        345.38   345.38   +0.00   313.89   314.83    +0.94
+  body LSZH        169.04   169.04   +0.00   128.24   128.19    -0.05
+  body LTFM        238.91   238.91   +0.00   228.25   227.21    -1.04
+
+base-level body gain 0.00; chain-level body gain 0.19; transfer ratio nan
+GATE (vs v42 chain, body pooled/Jan/Jul gain > 0): REJECT  {'pooled': 0.18566066586342345, 'Jan': 0.5061531246367679, 'Jul': -0.03343830621173538}
+=== end exit 0 Wed Oct  7 19:38:04 RST 2026

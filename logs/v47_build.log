@@ -1,0 +1,3 @@
+2026 LIRF NM-unmatched rows with a twin: 36; moved 27; mean change -552 s; sum (Q-P)^2 1.89e+08
+rows differing from smart-jigsaw_v45.parquet: 27
+wrote smart-jigsaw_v47.parquet

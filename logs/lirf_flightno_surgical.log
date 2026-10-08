@@ -1,0 +1,22 @@
+
+=== surgical rule (history >= GAP months away; raw p elsewhere)
+gap 1 nmin 1 lo<=0.2->0.07 hi>=0.8->0.97: rows lo 157 (echo 0.096) hi 122 (echo 0.975); offset-weighted SE -2.3% [lo part -0.7%, hi part -1.5%]; months worse 2/12
+gap 1 nmin 1 lo<=0.15->0.1 hi>=0.85->0.95: rows lo 73 (echo 0.082) hi 90 (echo 0.989); offset-weighted SE -1.5% [lo part -0.4%, hi part -1.0%]; months worse 1/12
+gap 1 nmin 2 lo<=0.2->0.07 hi>=0.8->0.97: rows lo 157 (echo 0.096) hi 122 (echo 0.975); offset-weighted SE -2.3% [lo part -0.7%, hi part -1.5%]; months worse 2/12
+gap 1 nmin 2 lo<=0.15->0.1 hi>=0.85->0.95: rows lo 73 (echo 0.082) hi 90 (echo 0.989); offset-weighted SE -1.5% [lo part -0.4%, hi part -1.0%]; months worse 1/12
+gap 1 nmin 3 lo<=0.2->0.07 hi>=0.8->0.97: rows lo 157 (echo 0.096) hi 122 (echo 0.975); offset-weighted SE -2.3% [lo part -0.7%, hi part -1.5%]; months worse 2/12
+gap 1 nmin 3 lo<=0.15->0.1 hi>=0.85->0.95: rows lo 73 (echo 0.082) hi 90 (echo 0.989); offset-weighted SE -1.5% [lo part -0.4%, hi part -1.0%]; months worse 1/12
+gap 3 nmin 1 lo<=0.2->0.07 hi>=0.8->0.97: rows lo 60 (echo 0.067) hi 60 (echo 1.000); offset-weighted SE -1.0% [lo part -0.2%, hi part -0.8%]; months worse 2/12
+   per month new/raw: 1:0.98  2:0.96  3:1.08  4:0.95  5:0.87  6:1.00  7:0.99  8:0.97  9:0.97  10:0.90  11:0.99  12:0.99
+   largest per-row cost increases (offset h, echo, p -> q): [(np.float64(5.4), 1, np.float64(0.71), np.float64(0.07)), (np.float64(2.5), 1, np.float64(0.59), np.float64(0.07)), (np.float64(1.6), 1, np.float64(0.66), np.float64(0.07)), (np.float64(1.8), 1, np.float64(0.19), np.float64(0.07))]
+gap 3 nmin 1 lo<=0.15->0.1 hi>=0.85->0.95: rows lo 14 (echo 0.071) hi 50 (echo 1.000); offset-weighted SE -0.1% [lo part +0.3%, hi part -0.4%]; months worse 1/12
+gap 3 nmin 2 lo<=0.2->0.07 hi>=0.8->0.97: rows lo 60 (echo 0.067) hi 60 (echo 1.000); offset-weighted SE -1.0% [lo part -0.2%, hi part -0.8%]; months worse 2/12
+gap 3 nmin 2 lo<=0.15->0.1 hi>=0.85->0.95: rows lo 14 (echo 0.071) hi 50 (echo 1.000); offset-weighted SE -0.1% [lo part +0.3%, hi part -0.4%]; months worse 1/12
+gap 3 nmin 3 lo<=0.2->0.07 hi>=0.8->0.97: rows lo 60 (echo 0.067) hi 60 (echo 1.000); offset-weighted SE -1.0% [lo part -0.2%, hi part -0.8%]; months worse 2/12
+gap 3 nmin 3 lo<=0.15->0.1 hi>=0.85->0.95: rows lo 14 (echo 0.071) hi 50 (echo 1.000); offset-weighted SE -0.1% [lo part +0.3%, hi part -0.4%]; months worse 1/12
+gap 6 nmin 1 lo<=0.2->0.07 hi>=0.8->0.97: rows lo 20 (echo 0.000) hi 31 (echo 1.000); offset-weighted SE -0.5% [lo part -0.3%, hi part -0.2%]; months worse 0/12
+gap 6 nmin 1 lo<=0.15->0.1 hi>=0.85->0.95: rows lo 0 (echo nan) hi 23 (echo 1.000); offset-weighted SE -0.2% [lo part +0.0%, hi part -0.2%]; months worse 0/12
+gap 6 nmin 2 lo<=0.2->0.07 hi>=0.8->0.97: rows lo 20 (echo 0.000) hi 31 (echo 1.000); offset-weighted SE -0.5% [lo part -0.3%, hi part -0.2%]; months worse 0/12
+gap 6 nmin 2 lo<=0.15->0.1 hi>=0.85->0.95: rows lo 0 (echo nan) hi 23 (echo 1.000); offset-weighted SE -0.2% [lo part +0.0%, hi part -0.2%]; months worse 0/12
+gap 6 nmin 3 lo<=0.2->0.07 hi>=0.8->0.97: rows lo 20 (echo 0.000) hi 31 (echo 1.000); offset-weighted SE -0.5% [lo part -0.3%, hi part -0.2%]; months worse 0/12
+gap 6 nmin 3 lo<=0.15->0.1 hi>=0.85->0.95: rows lo 0 (echo nan) hi 23 (echo 1.000); offset-weighted SE -0.2% [lo part +0.0%, hi part -0.2%]; months worse 0/12

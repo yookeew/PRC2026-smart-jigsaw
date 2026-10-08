@@ -1,0 +1,13 @@
+2025 LIRF NM-unmatched rows with a twin: 106
+
+A. holdout chain: twin rows 29, moved 24
+   full RMSE pooled  304.075 ->  302.706  (-1.369)
+   full RMSE Jan     329.524 ->  329.425  (-0.099)
+   full RMSE Jul     281.899 ->  279.320  (-2.580)
+
+B. 12 months base stack: rows 106, SSE 7.548e+09 -> 6.774e+09; months better 12 / worse 0; gain without top-3 rows -6.448e+08
+   rule A pooled < 0: PASS
+   rule A Jan and Jul <= 0: PASS
+   rule B >= 9/12 months better: PASS
+   rule B gain < 0 without top-3: PASS
+GATE: PASS

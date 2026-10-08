@@ -1,0 +1,4 @@
+2026 scope rows (non-twin) 287; moved 284; mean change +12 s; RMS on scope 777 s; sum (Q-P)^2 1.73e+08
+drift (airlines with >= 30 late 2025 / >= 10 late 2026 departures, n 54): corr(r25, r26) 0.536; mean r25 0.921 vs r26 0.911
+rows differing from smart-jigsaw_v47.parquet: 284
+wrote smart-jigsaw_v48.parquet

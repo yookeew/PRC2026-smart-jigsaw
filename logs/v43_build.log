@@ -1,0 +1,13 @@
+checks: 344,841 rows, ID set = template, no nulls, no negatives; LIRF NM-unmatched rows 383 identical to v42
+vs v42: RMS 3.37 s, mean -0.093 s, rows changed 101,938, max |d| 285
+  EDDF  RMS   2.43  mean  +0.05
+  EDDM  RMS   3.55  mean  +0.00
+  EGLL  RMS   2.90  mean  -0.00
+  EHAM  RMS   1.81  mean  -0.15
+  LEBL  RMS   1.56  mean  +0.03
+  LEMD  RMS   1.82  mean  -0.09
+  LFPG  RMS   5.28  mean  -0.25
+  LIRF  RMS   5.39  mean  +0.28
+  LSZH  RMS   1.51  mean  -0.18
+  LTFM  RMS   4.01  mean  -0.40
+wrote smart-jigsaw_v43.parquet
