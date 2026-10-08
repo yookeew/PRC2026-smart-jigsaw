@@ -1,0 +1,40 @@
+╞══════════╪══════╪════════════╪══════════╪══════════╪══════════╡
+│ LIRF     ┆ true ┆ WMTT3508   ┆ 56520.0  ┆ 55698.0  ┆ 66336.0  │
+│ LIRF     ┆ true ┆ TAY9LA     ┆ 53520.0  ┆ 53185.0  ┆ 64660.0  │
+│ LIRF     ┆ true ┆ WMT402     ┆ 48841.0  ┆ 46970.0  ┆ 60517.0  │
+│ LIRF     ┆ true ┆ WMTMT4SG   ┆ 47705.0  ┆ 44685.0  ┆ 58993.0  │
+│ LIRF     ┆ true ┆ NOSOS431   ┆ 111654.0 ┆ 112060.0 ┆ 103910.0 │
+│ LIRF     ┆ true ┆ ITYTY672   ┆ 61322.0  ┆ 54226.0  ┆ 65354.0  │
+│ LIRF     ┆ true ┆ RYR4852    ┆ 48539.0  ┆ 46749.0  ┆ 60369.0  │
+│ LIRF     ┆ true ┆ TARAR753   ┆ 48776.0  ┆ 48115.0  ┆ 61280.0  │
+│ LIRF     ┆ true ┆ SVII3006   ┆ 60656.0  ┆ 56094.0  ┆ 66599.0  │
+│ LIRF     ┆ true ┆ ITYTY674   ┆ 47337.0  ┆ 37677.0  ┆ 54321.0  │
+│ LIRF     ┆ true ┆ QFAA7006   ┆ 87484.0  ┆ 81522.0  ┆ 83551.0  │
+└──────────┴──────┴────────────┴──────────┴──────────┴──────────┘
+  hypothesis all echo y=off      : predicted dSSE 7.39e+08   (observed 8.577e+08)
+  hypothesis all +24h y=87610    : predicted dSSE -7.868e+09   (observed 8.577e+08)
+  hypothesis all normal y=1500   : predicted dSSE 1.089e+10   (observed 8.577e+08)
+v32->v33: rows changed 96, board dSSE -1.23e+08; LIRF NMU >=12h rows changed 11: echo-hypothesis contribution 4.09e+08; RMS change on other rows 4308
+shape: (11, 4)
+┌────────────┬──────────┬──────────┬──────────┐
+│ FLIGHT_mvt ┆ off      ┆ v32      ┆ v33      │
+│ ---        ┆ ---      ┆ ---      ┆ ---      │
+│ str        ┆ f64      ┆ f64      ┆ f64      │
+╞════════════╪══════════╪══════════╪══════════╡
+│ WMTT3508   ┆ 56520.0  ┆ 55920.0  ┆ 72820.0  │
+│ TAY9LA     ┆ 53520.0  ┆ 52682.0  ┆ 54023.0  │
+│ WMT402     ┆ 48841.0  ┆ 45888.0  ┆ 49054.0  │
+│ WMTMT4SG   ┆ 47705.0  ┆ 44064.0  ┆ 47847.0  │
+│ NOSOS431   ┆ 111654.0 ┆ 110463.0 ┆ 115764.0 │
+│ ITYTY672   ┆ 61322.0  ┆ 53740.0  ┆ 75346.0  │
+│ RYR4852    ┆ 48539.0  ┆ 45917.0  ┆ 48733.0  │
+│ TARAR753   ┆ 48776.0  ┆ 47502.0  ┆ 48984.0  │
+│ SVII3006   ┆ 60656.0  ┆ 55035.0  ┆ 74995.0  │
+│ ITYTY674   ┆ 47337.0  ┆ 36288.0  ┆ 47456.0  │
+│ QFAA7006   ┆ 87484.0  ┆ 81596.0  ┆ 89107.0  │
+└────────────┴──────────┴──────────┴──────────┘
+v39->v40: rows changed 334348, board dSSE -2.41e+08; LIRF NMU >=12h rows changed 0: echo-hypothesis contribution 0; RMS change on other rows 44
+v27->v28: rows changed 7454, board dSSE 4.15e+07; LIRF NMU >=12h rows changed 1: echo-hypothesis contribution 1.69e+06; RMS change on other rows 102
+v21->v22: rows changed 4142, board dSSE 1.22e+08; LIRF NMU >=12h rows changed 0: echo-hypothesis contribution 0; RMS change on other rows 207
+v41->v42: rows changed 331998, board dSSE -7.58e+08; LIRF NMU >=12h rows changed 0: echo-hypothesis contribution 0; RMS change on other rows 44
+v42->v45: rows changed 321, board dSSE -4.44e+07; LIRF NMU >=12h rows changed 0: echo-hypothesis contribution 0; RMS change on other rows 1099

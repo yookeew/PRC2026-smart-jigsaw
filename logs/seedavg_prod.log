@@ -1,0 +1,14 @@
+=== start Wed Oct  7 20:09:07 RST 2026
+seed 42: global best_iter 836
+seed 43: global best_iter 1048
+seed 44: global best_iter 1048
+RMS(seed 42 - mean) 10.10 s
+wrote ctxc1r_1fit{s42,s3}.parquet
+=== r done Wed Oct  7 20:54:33 RST 2026
+seed 42: global best_iter 941
+seed 43: global best_iter 1021
+seed 44: global best_iter 1244
+RMS(seed 42 - mean) 11.22 s
+wrote ctxc1rb_1fit{s42,s3}.parquet
+=== rb done Wed Oct  7 21:26:49 RST 2026
+=== end exit 0 Wed Oct  7 21:26:49 RST 2026

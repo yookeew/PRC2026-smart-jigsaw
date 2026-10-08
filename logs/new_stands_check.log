@@ -1,0 +1,13 @@
+EDDM July
+2025 truth, July all stands    n 15,653  a    720  y-a    38  | ADS-B n 2,562  y-ad   131 | mean y   803
+2026 v42, stands 103-108       n  1,157  a    708  p-a   143  | ADS-B n   658  p-ad    79 | mean p   923
+2026 v42, other stands July    n 13,737  a    697  p-a    30  | ADS-B n 6,432  p-ad   135 | mean p   763
+
+EDDF (J/H prefix)
+2025 truth J/H, all months     n    640  a   1067  y-a  -110  | ADS-B n    36  y-ad    85 | mean y   959
+2025 truth other, July         n 20,847  a    907  y-a   -59  | ADS-B n 1,816  y-ad   102 | mean y   865
+2026 v42 J/H, July             n  2,385  a    988  p-a   -27  | ADS-B n    94  p-ad   100 | mean p   968
+2026 v42 other, July           n 18,056  a    920  p-a   -82  | ADS-B n   284  p-ad   133 | mean p   842
+
+EDDM 103-108 runways 2026: [('26L', 693), ('08R', 204), ('26R', 191), ('08L', 69)]
+2025 EDDF J/H rows total: 640

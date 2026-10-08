@@ -1,0 +1,26 @@
+LIRF NM-unmatched >= 1 h rows 1375; twin rows excluded from scope 100
+
+A. holdout chain: scope rows 328
+   full RMSE pooled  301.966 ->  300.183  (-1.783)
+   full RMSE Jan     328.638 ->  328.142  (-0.496)
+   full RMSE Jul     278.621 ->  275.595  (-3.026)
+
+B. leave-one-month-out, base level, in-scope SSE (base = v45 treatment)
+   2025-01: n   46  SSE 3.229e+08 -> 2.603e+08  (0.806)
+   2025-02: n   49  SSE 1.553e+08 -> 1.731e+08  (1.114)
+   2025-03: n   51  SSE 7.974e+07 -> 7.593e+07  (0.952)
+   2025-04: n   51  SSE 4.655e+08 -> 4.191e+08  (0.900)
+   2025-05: n   83  SSE 2.237e+08 -> 1.551e+08  (0.694)
+   2025-06: n  156  SSE 1.504e+09 -> 1.419e+09  (0.943)
+   2025-07: n  282  SSE 2.764e+09 -> 2.544e+09  (0.920)
+   2025-08: n  158  SSE 1.82e+09 -> 1.69e+09  (0.929)
+   2025-09: n  143  SSE 1.438e+09 -> 1.279e+09  (0.889)
+   2025-10: n   93  SSE 6.935e+08 -> 6.213e+08  (0.896)
+   2025-11: n   38  SSE 1.823e+08 -> 1.479e+08  (0.811)
+   2025-12: n   63  SSE 2.799e+08 -> 2.711e+08  (0.968)
+   pooled 9.929e+09 -> 9.055e+09 (0.912); months better 11/12; gain without top-3 -7.615e+08
+   rule A pooled < 0: PASS
+   rule A Jan and Jul <= 0: PASS
+   rule B >= 8/12 and pooled lower: PASS
+   rule B gain < 0 without top-3: PASS
+GATE: PASS

@@ -77,4 +77,18 @@ move to v42's recipe; the treatment and the form of the rule are unchanged.
 - **Per airport (body):** better at 8 of 9 changed airports, from EGLL −1.68 and LFPG −1.47 to EHAM −0.72; LTFM +0.33. LIRF is unchanged by construction.
 - The two members alone gave −0.58 (anchored) and −0.30 (no-LIRF direct), so their gains roughly add.
 
-**Chain level vs v42 (the gate):** pending.
+**Chain level vs v42 (the gate)** (2026-10-07; `logs/base_comb_v42.log`, `tests/base_comb_v42_test.py`):
+- Arm C c1 correctors on `lgb_comb_nb`, then stage 2; LIRF NM-unmatched rows (397) from v41's chain, as in v42.
+
+| slice | v42 chain | comb chain | delta |
+|---|---|---|---|
+| body pooled | 193.95 | 193.90 | −0.05 |
+| body Jan | 175.34 | 174.77 | −0.57 |
+| body Jul | 207.90 | 208.20 | **+0.31** |
+| trimmed | 245.20 | 245.14 | −0.06 |
+| full | 304.07 | 303.94 | −0.14 |
+
+- **Per airport (body):** better at 7 of 10 (LTFM −0.77, EHAM −0.38, LEBL/LFPG −0.35), worse at LSZH +0.20 and LIRF +1.60.
+  - LIRF's base is unchanged; the stack weights (0.601 / 0.404) and the correctors move with the base.
+- **Base → chain transfer ratio: 0.07** (base body −0.74 → chain −0.05).
+- **GATE: REJECT** (July +0.31). Not built.

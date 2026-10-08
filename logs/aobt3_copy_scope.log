@@ -1,0 +1,11 @@
+share of 2025 departures (with AOBT_3) whose BLOCK equals AOBT_3: exactly / within 30 s / within 60 s; BLOCK on whole minute
+  EDDF  0.002 / 0.105 / 0.210   block :00 0.017   | holdout v42 RMSE on exact copies  119.6 (n    57) vs others  159.9
+  EDDM  0.011 / 0.127 / 0.257   block :00 0.083   | holdout v42 RMSE on exact copies   72.4 (n   279) vs others  119.8
+  EGLL  0.008 / 0.095 / 0.194   block :00 0.084   | holdout v42 RMSE on exact copies  136.3 (n   304) vs others  230.5
+  EHAM  0.002 / 0.121 / 0.237   block :00 0.017   | holdout v42 RMSE on exact copies   64.3 (n    93) vs others  117.9
+  LEBL  0.011 / 0.133 / 0.264   block :00 0.083   | holdout v42 RMSE on exact copies   83.6 (n   324) vs others  192.4
+  LEMD  0.011 / 0.130 / 0.262   block :00 0.084   | holdout v42 RMSE on exact copies   96.2 (n   363) vs others  166.3
+  LFPG  0.009 / 0.110 / 0.219   block :00 0.083   | holdout v42 RMSE on exact copies  138.0 (n   355) vs others  241.6
+  LIRF  0.008 / 0.100 / 0.186   block :00 0.083   | holdout v42 RMSE on exact copies  243.9 (n   214) vs others  384.7
+  LSZH  0.002 / 0.124 / 0.242   block :00 0.020   | holdout v42 RMSE on exact copies   72.1 (n    51) vs others  138.5
+  LTFM  0.003 / 0.041 / 0.087   block :00 0.083   | holdout v42 RMSE on exact copies  203.4 (n   148) vs others  234.4

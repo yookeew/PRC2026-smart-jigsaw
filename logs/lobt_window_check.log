@@ -1,0 +1,21 @@
+2025 invariant |BLOCK - LOBT| <= 3606 among rows with LOBT: 1.00000 | rows with LOBT: 0.9892
+2025 holdout   LOBT present 0.9845  lt median   1276 p99    4139 | final at window floor 0.0001 (44), at ceiling 0.0000 (7)
+2026 ranking   LOBT present 0.9847  lt median   1263 p99    4138 | final at window floor 0.0001 (23), at ceiling 0.0000 (15)
+
+by airport, share at floor / ceiling: 2025 holdout | 2026
+  EDDF  0.0001 / 0.0000  |  0.0000 / 0.0000   (n26 35,896)
+  EDDM  0.0002 / 0.0000  |  0.0001 / 0.0000   (n26 25,728)
+  EGLL  0.0001 / 0.0000  |  0.0000 / 0.0000   (n26 39,592)
+  EHAM  0.0002 / 0.0000  |  0.0001 / 0.0000   (n26 36,976)
+  LEBL  0.0003 / 0.0000  |  0.0001 / 0.0000   (n26 29,638)
+  LEMD  0.0001 / 0.0000  |  0.0001 / 0.0000   (n26 36,716)
+  LFPG  0.0002 / 0.0000  |  0.0002 / 0.0000   (n26 39,138)
+  LIRF  0.0001 / 0.0000  |  0.0000 / 0.0000   (n26 26,516)
+  LSZH  0.0001 / 0.0000  |  0.0000 / 0.0000   (n26 22,491)
+  LTFM  0.0001 / 0.0000  |  0.0000 / 0.0003   (n26 46,860)
+Traceback (most recent call last):
+  File "<stdin>", line 30, in <module>
+  File "C:\Users\yuqiw\prc2025\.venv\Lib\site-packages\numpy\_core\fromnumeric.py", line 3822, in mean
+    return mean(axis=axis, dtype=dtype, out=out, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: Series.mean() got an unexpected keyword argument 'axis'

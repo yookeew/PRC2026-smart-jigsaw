@@ -1,0 +1,32 @@
+=== start Wed Oct  7 11:02:05 RST 2026
+stack weights (OOF months): [0.577 0.428]
+training rows 2,084,469 of 2,084,967 (BASE 2,062,591; NM-unmatched added 21,878); features 42
+NM-unmatched ranking rows served: 5,187; unseen null pattern: BASE 0.079 -> ctxc1r_ctl 0.001
+corrector (ensemble2): global best_iter 747
+ranking: RMS change vs stack 91.2 s; mean -4.7 s
+wrote ctxc1r_ctl.parquet and armc_rank_ctxc1r_ctl.parquet
+=== _ctl r done Wed Oct  7 11:07:40 RST 2026
+stack weights (OOF months): [0.577 0.428]
+training rows 2,084,469 of 2,084,967 (BASE 2,062,591; NM-unmatched added 21,878); features 59
+NM-unmatched ranking rows served: 5,187; unseen null pattern: BASE 0.152 -> ctxc1rb_ctl 0.001
+corrector (ensemble2): global best_iter 803
+ranking: RMS change vs stack 134.8 s; mean -3.9 s
+wrote ctxc1rb_ctl.parquet and armc_rank_ctxc1rb_ctl.parquet
+=== _ctl rb done Wed Oct  7 11:14:04 RST 2026
+stack weights (OOF months): [0.577 0.428]
+training rows 2,084,469 of 2,084,967 (BASE 2,062,591; NM-unmatched added 21,878); features 42
+cel_n on ranking rows scaled by 11/12 (PRC_CELN_SCALE)
+NM-unmatched ranking rows served: 5,187; unseen null pattern: BASE 0.079 -> ctxc1r_celn 0.001
+corrector (ensemble2): global best_iter 834
+ranking: RMS change vs stack 89.6 s; mean -4.9 s
+wrote ctxc1r_celn.parquet and armc_rank_ctxc1r_celn.parquet
+=== _celn r done Wed Oct  7 11:17:50 RST 2026
+stack weights (OOF months): [0.577 0.428]
+training rows 2,084,469 of 2,084,967 (BASE 2,062,591; NM-unmatched added 21,878); features 59
+cel_n on ranking rows scaled by 11/12 (PRC_CELN_SCALE)
+NM-unmatched ranking rows served: 5,187; unseen null pattern: BASE 0.152 -> ctxc1rb_celn 0.001
+corrector (ensemble2): global best_iter 1196
+ranking: RMS change vs stack 137.6 s; mean -4.1 s
+wrote ctxc1rb_celn.parquet and armc_rank_ctxc1rb_celn.parquet
+=== _celn rb done Wed Oct  7 11:23:03 RST 2026
+=== end exit 0 Wed Oct  7 11:23:03 RST 2026

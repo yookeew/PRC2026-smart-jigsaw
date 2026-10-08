@@ -1,0 +1,6 @@
+fix 1 LSZH month 1: o26 +72.4, o25 +33.5 -> shift -38.9 s on 9695 rows
+fix 1 LSZH month 7: o26 +63.1, o25 +35.0 -> shift -28.1 s on 12796 rows
+fix 2 EHAM storm days ['2026-01-02', '2026-01-03', '2026-01-04', '2026-01-05', '2026-01-06', '2026-01-09', '2026-01-29']; lag 177; tracked rows 275, corrector bias dC +490; untracked rows 116, median(P-C) +20 -> delta +470 s
+fix 3 dominated: 2 rows in scope, 2 moved, changes [-4116. -1619.]
+total: rows changed 22609; sum dP^2 6.99e+07; RMS over board 14.24 s
+wrote smart-jigsaw_v49.parquet

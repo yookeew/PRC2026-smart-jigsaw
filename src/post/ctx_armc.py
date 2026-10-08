@@ -43,7 +43,33 @@ ARM = os.environ.get("ARMC_ARM", "")
 assert ARM in ("c0", "c1", "c2"), "ARMC_ARM must be c0 (the BASE recipe, same machine), c1 or c2"
 MEMBER = "rb" if os.environ.get("CTX_ADSB") == "1" else "r"
 BASE = os.environ.get("PRC_BASE", "lgb_mixed_nb")   # reports/base_comb_preregistration.md; read by O.prepare() too
-SUFFIX = "" if BASE == "lgb_mixed_nb" else "_" + BASE.removeprefix("lgb_").removesuffix("_nb")
+SUFFIX = ("" if BASE == "lgb_mixed_nb" else "_" + BASE.removeprefix("lgb_").removesuffix("_nb")) + os.environ.get("PRC_ARMC_TAG", "")
+# PRC_CELN_SCALE=1 (PROGRESS §105): training rows' cell tables leave their own month out (11 months), the ranking
+# rows' table uses all 12, so 2026 cel_n runs ~12/11 above anything the corrector saw; scale it back by 11/12.
+CELN_SCALE = os.environ.get("PRC_CELN_SCALE") == "1"
+# PRC_CTX_SEEDS=42,43,44 (reports/ctx_seedavg_preregistration.md): the corrector is fitted once per LightGBM seed and the
+# corrections averaged. Default (unset): one fit with the recipe's seed 42, unchanged. Outputs get "_s<K>".
+SEEDS = [int(x) for x in os.environ.get("PRC_CTX_SEEDS", "").split(",") if x]
+if SEEDS:
+    SUFFIX += f"_s{len(SEEDS)}"
+
+
+def fit_ens(*a):
+    """CC.fit_apply_ens, averaged over SEEDS when set."""
+    import context_corrector_test as CC
+    if not SEEDS:
+        return CC.fit_apply_ens(*a)
+    p0, pa0 = dict(CC.PARAMS), dict(CC.PARAMS_APT)
+    cs, bs = [], []
+    try:
+        for sd in SEEDS:
+            CC.PARAMS, CC.PARAMS_APT = {**p0, "seed": sd}, {**pa0, "seed": sd}
+            c, b = CC.fit_apply_ens(*a)
+            cs.append(c); bs.append(b)
+    finally:
+        CC.PARAMS, CC.PARAMS_APT = p0, pa0
+    print(f"  seeds {SEEDS}: best_iter {bs}; RMS between seed fits {np.sqrt(np.mean((cs[0] - cs[-1]) ** 2)):.2f}", flush=True)
+    return np.mean(cs, axis=0), bs[0]
 NAME = f"ctx{ARM}{MEMBER}{SUFFIX}"
 SEL = f"ctx{ARM}sel{SUFFIX}"
 EVAL, OOF, SUB = ROOT / "cache" / "eval", ROOT / "cache" / "oof", ROOT / "data" / "submissions"
@@ -120,7 +146,7 @@ def inputs() -> None:
     if ARM == "c2":
         e = Xdf["ec_rate"].to_numpy()
         print(f"  ec_rate null share {np.isnan(e).mean():.3f}; mean {np.nanmean(e):.3f}", flush=True)
-    fa = lambda *a: CC.fit_apply_ens(*a, P["apt"])  # noqa: E731
+    fa = lambda *a: fit_ens(*a, P["apt"])  # noqa: E731
     out = s.copy()
     app = is_ho & ~lr
     c, best = fa(X, y - s, trainable, inner, app, cats)
@@ -198,6 +224,9 @@ def prod() -> None:
     s_r = win(rk.select("lgb", "cat").to_numpy() @ w, lt_r)
     Xr, _, _ = CC.build(dep_r, arr_r.filter(pl.col("L").is_not_null()), s_r, CC.cell_table(dep_all))
     Xr = Xr.with_columns(cel_rel=pl.Series(s_r) - pl.col("cel_p50")).select(base_cols)
+    if CELN_SCALE:
+        Xr = Xr.with_columns(cel_n=pl.col("cel_n") * (11 / 12))
+        print("cel_n on ranking rows scaled by 11/12 (PRC_CELN_SCALE)")
     Xr = add_arm(Xr, dep_r, echo_block(dep_r, g_echo, lomo=False) if ARM == "c2" else None).select(cols)
     nm_r = dep_r["nm"].to_numpy(); d_r = (dep_r["T"] - dep_r["t_SCHED_TIME_UTC_mvt"]).to_numpy()
     app = ~(nm_r & (np.nan_to_num(d_r, nan=-np.inf) > NL.LINE_MIN_D))
@@ -219,7 +248,7 @@ def prod() -> None:
     n_tr, n_r = len(y), Xr.height
     z = np.zeros(n_r, bool)
     apt = np.concatenate([dep["apt"].to_numpy(), dep_r["apt"].to_numpy()])
-    corr, best = CC.fit_apply_ens(Xb, np.concatenate([y - s, np.zeros(n_r)]), np.concatenate([fit, z]),
+    corr, best = fit_ens(Xb, np.concatenate([y - s, np.zeros(n_r)]), np.concatenate([fit, z]),
                                   np.concatenate([inner, z]), np.concatenate([np.zeros(n_tr, bool), app]), cats, apt)
     print(f"corrector (ensemble2): global best_iter {best}")
     out = s_r.copy()

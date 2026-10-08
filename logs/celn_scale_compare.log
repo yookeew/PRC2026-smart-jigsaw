@@ -1,0 +1,18 @@
+rows 344,841
+treatment vs control (corrector output, ctxsel): RMS 17.32 s, mean -0.30 s, rows moved > 1 s 0.776, > 30 s 0.0470, max |d| 1216
+for scale: control (this machine) vs v42's ctxc1sel (teammate's machine): RMS 18.81 s, mean +0.06 s
+
+by airport: n, RMS(treatment - control), mean
+  EDDF  36,317    15.89    -0.38
+  EDDM  25,966    14.36    +0.19
+  EGLL  39,840    11.23    -0.04
+  EHAM  38,182    13.86    -0.38
+  LEBL  30,080    11.21    -0.22
+  LEMD  36,954    10.00    -0.13
+  LFPG  39,872    15.61    -0.26
+  LIRF  26,899    36.39    -0.57
+  LSZH  23,150    14.57    -0.97
+  LTFM  47,581    19.87    -0.37
+NM-matched RMS 14.61; NM-unmatched RMS 76.52
+
+DECISION (pre-registered): RMS 17.32 s >= 3 s -> build v43 candidate

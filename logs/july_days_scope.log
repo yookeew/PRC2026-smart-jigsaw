@@ -1,0 +1,50 @@
+
+month 1: body RMSE 175.3; worst 5 airport-days 7.4% of SSE, worst 10 12.8% (of 310 airport-days)
+  apt   day            n  %SSE   rmse   bias tstorm  snow taxi-in excess
+  LFPG  2025-01-17   542   2.1    423    -74   0.00  0.00            +57
+  LFPG  2025-01-21   483   1.4    370    -60   0.00  0.00            +59
+  EGLL  2025-01-11   586   1.4    330     +1   0.00  0.00           +203
+  LFPG  2025-01-04   587   1.3    318    -81   0.00  0.06            +40
+  LFPG  2025-01-03   664   1.3    298    -32   0.00  0.00            +85
+  EGLL  2025-01-04   594   1.2    308   -103   0.00  0.10            +95
+  EGLL  2025-01-03   653   1.1    281    -86   0.00  0.00            +38
+  LTFM  2025-01-04   705   1.1    267    -46   0.08  0.00            +55
+  LTFM  2025-01-17   705   1.0    260     +8   0.00  0.00            +22
+  LIRF  2025-01-06   421   1.0    332   -100   0.00  0.00            -25
+  bias, worst-10 days n-weighted -54.6 vs other days -20.5
+  corr(day bias, tin_x) -0.115  (n 310)
+  corr(day bias, ts) -0.001  (n 310)
+
+month 7: body RMSE 207.9; worst 5 airport-days 6.4% of SSE, worst 10 11.1% (of 310 airport-days)
+  apt   day            n  %SSE   rmse   bias tstorm  snow taxi-in excess
+  LIRF  2025-07-13   403   1.6    563   +101   0.07  0.00            +53
+  LTFM  2025-07-21   823   1.5    377    +35   0.00  0.00            -35
+  LIRF  2025-07-28   458   1.2    460    -60   0.06  0.00            +24
+  LTFM  2025-07-13   810   1.1    330    +98   0.00  0.00            +26
+  LTFM  2025-07-23   805   1.1    324    +88   0.00  0.00            +28
+  LIRF  2025-07-06   499   1.0    411    -27   0.00  0.00            -24
+  LIRF  2025-07-14   491   0.9    392    -99   0.00  0.00            +64
+  LIRF  2025-07-20   489   0.9    387    -55   0.00  0.00             -1
+  LIRF  2025-07-05   454   0.9    397    -62   0.00  0.00            +22
+  LIRF  2025-07-07   479   0.9    386    -77   0.00  0.00             +4
+  bias, worst-10 days n-weighted +6.6 vs other days +0.7
+  corr(day bias, tin_x) +0.014  (n 310)
+  corr(day bias, ts) +0.053  (n 310)
+
+cross-month: per-airport slope of day bias on taxi-in excess, fitted on one month, applied to the other (body RMSE)
+Traceback (most recent call last):
+  File "C:\Users\yuqiw\prc2025\tests\july_days_scope.py", line 69, in <module>
+    main()
+  File "C:\Users\yuqiw\prc2025\tests\july_days_scope.py", line 60, in main
+    sl = {ap: float(np.sum(s["tin_x"] * s["bias"] * s["n"]) / max(np.sum(s["tin_x"] ** 2 * s["n"]), 1e-9))
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yuqiw\prc2025\tests\july_days_scope.py", line 60, in <dictcomp>
+    sl = {ap: float(np.sum(s["tin_x"] * s["bias"] * s["n"]) / max(np.sum(s["tin_x"] ** 2 * s["n"]), 1e-9))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yuqiw\prc2025\.venv\Lib\site-packages\numpy\_core\fromnumeric.py", line 2425, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\yuqiw\prc2025\.venv\Lib\site-packages\numpy\_core\fromnumeric.py", line 81, in _wrapreduction
+    return reduction(axis=axis, out=out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: Series.sum() got an unexpected keyword argument 'axis'

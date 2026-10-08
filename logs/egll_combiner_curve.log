@@ -1,0 +1,22 @@
+OOF-month ADS-B rows: 660,242 on 115 days (['2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12']); OOF stack weights [0.564 0.445]
+OOF ADS-B rows (non-LIRF, <= 5 h) 609,236; EGLL 75,704 on 115 days, with an ADS-B tier 23,200
+  fold 0 f 0.25: test rows 4,799; RMSE s 210.6 -> s + combiner 187.2 (EGLL ADS-B training rows 4,848)
+  fold 0 f 0.50: test rows 4,799; RMSE s 210.6 -> s + combiner 184.9 (EGLL ADS-B training rows 9,335)
+  fold 0 f 1.00: test rows 4,799; RMSE s 210.6 -> s + combiner 185.4 (EGLL ADS-B training rows 18,401)
+  fold 1 f 0.25: test rows 4,848; RMSE s 225.6 -> s + combiner 197.5 (EGLL ADS-B training rows 4,799)
+  fold 1 f 0.50: test rows 4,848; RMSE s 225.6 -> s + combiner 196.2 (EGLL ADS-B training rows 9,286)
+  fold 1 f 1.00: test rows 4,848; RMSE s 225.6 -> s + combiner 195.1 (EGLL ADS-B training rows 18,352)
+  fold 2 f 0.25: test rows 4,487; RMSE s 232.7 -> s + combiner 213.8 (EGLL ADS-B training rows 4,799)
+  fold 2 f 0.50: test rows 4,487; RMSE s 232.7 -> s + combiner 212.9 (EGLL ADS-B training rows 9,647)
+  fold 2 f 1.00: test rows 4,487; RMSE s 232.7 -> s + combiner 212.6 (EGLL ADS-B training rows 18,713)
+  fold 3 f 0.25: test rows 5,013; RMSE s 227.0 -> s + combiner 202.0 (EGLL ADS-B training rows 4,799)
+  fold 3 f 0.50: test rows 5,013; RMSE s 227.0 -> s + combiner 200.0 (EGLL ADS-B training rows 9,647)
+  fold 3 f 1.00: test rows 5,013; RMSE s 227.0 -> s + combiner 199.5 (EGLL ADS-B training rows 18,187)
+  fold 4 f 0.25: test rows 4,053; RMSE s 223.1 -> s + combiner 201.3 (EGLL ADS-B training rows 4,799)
+  fold 4 f 0.50: test rows 4,053; RMSE s 223.1 -> s + combiner 198.6 (EGLL ADS-B training rows 9,647)
+  fold 4 f 1.00: test rows 4,053; RMSE s 223.1 -> s + combiner 197.5 (EGLL ADS-B training rows 19,147)
+
+EGLL held-out ADS-B rows 23,200: RMSE of s alone 223.8
+  EGLL training fraction 0.25 (mean EGLL ADS-B training rows 4,809): RMSE s + combiner 200.3
+  EGLL training fraction 0.50 (mean EGLL ADS-B training rows 9,512): RMSE s + combiner 198.5
+  EGLL training fraction 1.00 (mean EGLL ADS-B training rows 18,560): RMSE s + combiner 198.0

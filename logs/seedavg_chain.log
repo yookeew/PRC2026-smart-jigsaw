@@ -1,0 +1,248 @@
+=== restart (selections built by tests/seedavg_sel.py) Wed Oct  7 21:27:26 RST 2026
+=== ctxc1sel_1fits42 stack Wed Oct  7 21:27:26 RST 2026
+stack weights (full holdout): {'lgb': np.float64(0.9483), 'catcorr': np.float64(0.063)}
+holdout in-sample RMSE: lgb 314.26  stack 313.92
+quality factors: {'appear/good': 1.133, 'appear/poor': 0.766, 'dwell/good': 1.682, 'dwell/poor': 0.666}
+fallback blend: {'w': {'fb_dwell': 0.3120707832603589, 'fb_appear': 0.7195193276818177}, 'n_fit': 8779}
+partial: b 246 s/km | w {'near': 0.095, 'far': 0.005} | a {'EDDF': 278, 'EDDM': 173, 'EGLL': 561, 'EHAM': 159, 'LEBL': 261, 'LEMD': 355, 'LSZH': 236} | a_pooled 355
+ADS-B blend: tier w {'appear': 0.409, 'dwell': 0.185} | lags {'EDDF': -35, 'EDDM': -49, 'EGLL': -170, 'EHAM': -22, 'LEBL': -36, 'LEMD': -136, 'LFPG': -39, 'LSZH': -30} | cells {'EDDF/appear': 0.22, 'EDDF/dwell': 0.0, 'EDDM/appear': 0.85, 'EDDM/dwell': 0.51, 'EGLL/appear': 0.79, 'EGLL/dwell': 0.27, 'EHAM/appear': 0.07, 'EHAM/dwell': 0.05, 'LEBL/appear': 0.27, 'LEBL/dwell': 0.02, 'LSZH/appear': 0.15, 'LSZH/dwell': 0.08}
+wrote stack_lgb_catcorr_v3_ctxc1sel_1fits42.parquet  n=344,841  median=968  mean=1049.9  max=112453
+ADS-B blended ranking rows: 96,877 of 344,841 (28.1%); mean shift -16.3s
+shape: (8, 4)
+| ADEP_mvt | n     | mean_shift_s | mean_abs_shift_s |
+| ---      | ---   | ---          | ---              |
+| str      | u32   | f64          | f64              |
+|----------|-------|--------------|------------------|
+| EDDF     | 1816  | -6.1         | 8.6              |
+| EDDM     | 19797 | -33.8        | 94.2             |
+| EGLL     | 19631 | -30.4        | 92.3             |
+| EHAM     | 28380 | -3.8         | 7.8              |
+| LEBL     | 12269 | -4.9         | 6.3              |
+| LEMD     | 6938  | -11.1        | 44.0             |
+| LFPG     | 24    | -5.3         | 41.8             |
+| LSZH     | 8022  | -7.5         | 8.8              |
+wrote stack_lgb_catcorr_v3_ctxc1sel_1fits42_adsb.parquet  n=344,841  median=965  mean=1045.3  max=112453
+partial-track rows: 48,323 (14.0%); mean shift +1.9s; per airport {'EDDF': 4488, 'EDDM': 4864, 'EGLL': 8690, 'EHAM': 4664, 'LEBL': 8382, 'LEMD': 8798, 'LFPG': 220, 'LSZH': 8217}
+wrote stack_lgb_catcorr_v3_ctxc1sel_1fits42_adsb_partial.parquet  n=344,841  median=966  mean=1045.6  max=112453
+quality-modulated blend: rows 96,877; mean |change vs unmodulated| 13.9s; quality mix {'good': 55127, 'poor': 41750}
+wrote stack_lgb_catcorr_v3_ctxc1sel_1fits42_adsbq_partial.parquet  n=344,841  median=966  mean=1046.8  max=112453
+fallback rows: 6,019 (1.7%); mean |shift| 54.3s; per airport {'EDDF': 719, 'EDDM': 79, 'EGLL': 1904, 'EHAM': 20, 'LEBL': 550, 'LEMD': 1739, 'LFPG': 57, 'LSZH': 951}
+wrote stack_lgb_catcorr_v3_ctxc1sel_1fits42_adsbq_partial_fb.parquet  n=344,841  median=966  mean=1046.5  max=112453
+=== ctxc1sel_1fits42 combiner Wed Oct  7 21:27:28 RST 2026
+stack weights: {'lgb': np.float64(0.9483), 'catcorr': np.float64(0.063)}
+thin-day rule: 115 days kept, 7 dropped
+shape: (7, 5)
+| day        | status   | bad_members | points | med        |
+| ---        | ---      | ---         | ---    | ---        |
+| str        | str      | i64         | i64    | f64        |
+|------------|----------|-------------|--------|------------|
+| 2025-08-10 | tolerant | 1           | 211018 | 1.572131e6 |
+| 2025-10-04 | ok       | 0           | 0      | 1672691.5  |
+| 2025-10-07 | tolerant | 1           | 206056 | 1672691.5  |
+| 2025-11-19 | tolerant | 1           | 142500 | 1.549465e6 |
+| 2025-11-22 | tolerant | 1           | 247284 | 1.549465e6 |
+| 2025-12-10 | tolerant | 1           | 671427 | 1586008.5  |
+| 2025-12-28 | tolerant | 1           | 251232 | 1586008.5  |
+OOF-month ADS-B rows: 660,242 on 115 days (['2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12']); OOF stack weights [1.011 0.   ]
+combiner fit on 927,045 holdout rows; best_iter 883
+rows keeping v23: 143239
+shape: (10, 4)
+| ADEP_mvt | len   | mean_diff | rms_diff |
+| ---      | ---   | ---       | ---      |
+| str      | u32   | f64       | f64      |
+|----------|-------|-----------|----------|
+| EDDF     | 36317 | -5.1      | 20.2     |
+| EDDM     | 25966 | 13.8      | 84.1     |
+| EGLL     | 39840 | -13.5     | 85.9     |
+| EHAM     | 38182 | -5.1      | 40.5     |
+| LEBL     | 30080 | -6.5      | 21.9     |
+| LEMD     | 36954 | -10.6     | 64.4     |
+| LFPG     | 39872 | -1.2      | 10.5     |
+| LIRF     | 26899 | 0.0       | 0.0      |
+| LSZH     | 23150 | -3.4      | 25.5     |
+| LTFM     | 47581 | 0.0       | 1.5      |
+wrote smart-jigsaw_v27ctxc1sel_1fits42.parquet: RMS diff vs v23 46.4 s; median 961, mean 1042.9
+=== ctxc1sel_1fits42 neighbour Wed Oct  7 21:27:53 RST 2026
+stack weights: {'lgb': np.float64(0.9483), 'catcorr': np.float64(0.063)}
+thin-day rule: 115 days kept, 7 dropped
+shape: (7, 5)
+| day        | status   | bad_members | points | med        |
+| ---        | ---      | ---         | ---    | ---        |
+| str        | str      | i64         | i64    | f64        |
+|------------|----------|-------------|--------|------------|
+| 2025-08-10 | tolerant | 1           | 211018 | 1.572131e6 |
+| 2025-10-04 | ok       | 0           | 0      | 1672691.5  |
+| 2025-10-07 | tolerant | 1           | 206056 | 1672691.5  |
+| 2025-11-19 | tolerant | 1           | 142500 | 1.549465e6 |
+| 2025-11-22 | tolerant | 1           | 247284 | 1.549465e6 |
+| 2025-12-10 | tolerant | 1           | 671427 | 1586008.5  |
+| 2025-12-28 | tolerant | 1           | 251232 | 1586008.5  |
+OOF-month ADS-B rows: 660,242 on 115 days (['2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12']); OOF stack weights [1.011 0.   ]
+part (a) fit on 927,045 rows, best_iter 0; part (b) fit on 1,004,525 rows, best_iter 446
+rows by part: {'b': 135714, 'v27': 209127}
+shape: (20, 5)
+| ADEP_mvt | part | len   | mean_diff | rms_diff |
+| ---      | ---  | ---   | ---       | ---      |
+| str      | str  | u32   | f64       | f64      |
+|----------|------|-------|-----------|----------|
+| EDDF     | b    | 14063 | -0.0      | 47.3     |
+| EDDF     | v27  | 22254 | 0.0       | 0.0      |
+| EDDM     | b    | 149   | -0.0      | 31.1     |
+| EDDM     | v27  | 25817 | 0.0       | 0.0      |
+| EGLL     | b    | 4822  | 0.0       | 31.1     |
+| EGLL     | v27  | 35018 | 0.0       | 0.0      |
+| EHAM     | b    | 45    | -0.0      | 48.9     |
+| EHAM     | v27  | 38137 | 0.0       | 0.0      |
+| LEBL     | b    | 2815  | 0.0       | 22.2     |
+| LEBL     | v27  | 27265 | 0.0       | 0.0      |
+| LEMD     | b    | 9070  | -0.0      | 30.7     |
+| LEMD     | v27  | 27884 | 0.0       | 0.0      |
+| LFPG     | b    | 35930 | 0.0       | 28.7     |
+| LFPG     | v27  | 3942  | 0.0       | 0.0      |
+| LIRF     | b    | 19374 | 0.0       | 84.3     |
+| LIRF     | v27  | 7525  | 0.0       | 0.0      |
+| LSZH     | b    | 1936  | 0.0       | 52.4     |
+| LSZH     | v27  | 21214 | 0.0       | 0.0      |
+| LTFM     | b    | 47510 | 0.0       | 73.3     |
+| LTFM     | v27  | 71    | 0.0       | 0.0      |
+wrote chain_ctxc1sel_1fits42.parquet: RMS diff vs v27 37.1 s
+=== ctxc1sel_1fits42 window Wed Oct  7 21:28:20 RST 2026
+rows moved: 36 of 344,841; up 24, mean |shift| 85 s
+by airport: {'EDDM': 2, 'EHAM': 5, 'LEBL': 3, 'LEMD': 5, 'LFPG': 7, 'LIRF': 1, 'LSZH': 1, 'LTFM': 12}
+wrote chain_ctxc1sel_1fits42_win.parquet
+=== ctxc1sel_1fits42 lines Wed Oct  7 21:28:20 RST 2026
+(holdout printout skipped: diagnostic only)
+12-month fit: {'EDDF': (909, 0.01), 'EDDM': (885, 0.024), 'EGLL': (1371, 0.027), 'EHAM': (481, 0.027), 'LEBL': (904, 0.021), 'LEMD': (954, 0.024), 'LFPG': (1135, 0.008), 'LIRF': (-2818, 1.062), 'LSZH': (547, 0.042), 'LTFM': (912, 0.153)} | Rome a=43089 b=0.526 (15 rows)
+ranking: line rows 96, Rome rows 4; mean shift on changed rows +1882 s; RMS change over all rows 69.6 s
+wrote chain_ctxc1sel_1fits42_final.parquet
+=== ctxc1sel_1fits3 stack Wed Oct  7 21:28:21 RST 2026
+stack weights (full holdout): {'lgb': np.float64(0.9483), 'catcorr': np.float64(0.063)}
+holdout in-sample RMSE: lgb 314.26  stack 313.92
+quality factors: {'appear/good': 1.133, 'appear/poor': 0.766, 'dwell/good': 1.682, 'dwell/poor': 0.666}
+fallback blend: {'w': {'fb_dwell': 0.3120707832603589, 'fb_appear': 0.7195193276818177}, 'n_fit': 8779}
+partial: b 246 s/km | w {'near': 0.095, 'far': 0.005} | a {'EDDF': 278, 'EDDM': 173, 'EGLL': 561, 'EHAM': 159, 'LEBL': 261, 'LEMD': 355, 'LSZH': 236} | a_pooled 355
+ADS-B blend: tier w {'appear': 0.409, 'dwell': 0.185} | lags {'EDDF': -35, 'EDDM': -49, 'EGLL': -170, 'EHAM': -22, 'LEBL': -36, 'LEMD': -136, 'LFPG': -39, 'LSZH': -30} | cells {'EDDF/appear': 0.22, 'EDDF/dwell': 0.0, 'EDDM/appear': 0.85, 'EDDM/dwell': 0.51, 'EGLL/appear': 0.79, 'EGLL/dwell': 0.27, 'EHAM/appear': 0.07, 'EHAM/dwell': 0.05, 'LEBL/appear': 0.27, 'LEBL/dwell': 0.02, 'LSZH/appear': 0.15, 'LSZH/dwell': 0.08}
+wrote stack_lgb_catcorr_v3_ctxc1sel_1fits3.parquet  n=344,841  median=968  mean=1049.8  max=112453
+ADS-B blended ranking rows: 96,877 of 344,841 (28.1%); mean shift -16.4s
+shape: (8, 4)
+| ADEP_mvt | n     | mean_shift_s | mean_abs_shift_s |
+| ---      | ---   | ---          | ---              |
+| str      | u32   | f64          | f64              |
+|----------|-------|--------------|------------------|
+| EDDF     | 1816  | -6.1         | 8.5              |
+| EDDM     | 19797 | -34.0        | 94.1             |
+| EGLL     | 19631 | -30.3        | 92.3             |
+| EHAM     | 28380 | -3.8         | 7.8              |
+| LEBL     | 12269 | -4.9         | 6.2              |
+| LEMD     | 6938  | -11.0        | 44.0             |
+| LFPG     | 24    | -5.2         | 42.2             |
+| LSZH     | 8022  | -7.5         | 8.8              |
+wrote stack_lgb_catcorr_v3_ctxc1sel_1fits3_adsb.parquet  n=344,841  median=965  mean=1045.2  max=112453
+partial-track rows: 48,323 (14.0%); mean shift +1.9s; per airport {'EDDF': 4488, 'EDDM': 4864, 'EGLL': 8690, 'EHAM': 4664, 'LEBL': 8382, 'LEMD': 8798, 'LFPG': 220, 'LSZH': 8217}
+wrote stack_lgb_catcorr_v3_ctxc1sel_1fits3_adsb_partial.parquet  n=344,841  median=965  mean=1045.5  max=112453
+quality-modulated blend: rows 96,877; mean |change vs unmodulated| 13.9s; quality mix {'good': 55127, 'poor': 41750}
+wrote stack_lgb_catcorr_v3_ctxc1sel_1fits3_adsbq_partial.parquet  n=344,841  median=966  mean=1046.7  max=112453
+fallback rows: 6,020 (1.7%); mean |shift| 54.3s; per airport {'EDDF': 715, 'EDDM': 80, 'EGLL': 1902, 'EHAM': 20, 'LEBL': 553, 'LEMD': 1746, 'LFPG': 57, 'LSZH': 947}
+wrote stack_lgb_catcorr_v3_ctxc1sel_1fits3_adsbq_partial_fb.parquet  n=344,841  median=966  mean=1046.5  max=112453
+=== ctxc1sel_1fits3 combiner Wed Oct  7 21:28:23 RST 2026
+stack weights: {'lgb': np.float64(0.9483), 'catcorr': np.float64(0.063)}
+thin-day rule: 115 days kept, 7 dropped
+shape: (7, 5)
+| day        | status   | bad_members | points | med        |
+| ---        | ---      | ---         | ---    | ---        |
+| str        | str      | i64         | i64    | f64        |
+|------------|----------|-------------|--------|------------|
+| 2025-08-10 | tolerant | 1           | 211018 | 1.572131e6 |
+| 2025-10-04 | ok       | 0           | 0      | 1672691.5  |
+| 2025-10-07 | tolerant | 1           | 206056 | 1672691.5  |
+| 2025-11-19 | tolerant | 1           | 142500 | 1.549465e6 |
+| 2025-11-22 | tolerant | 1           | 247284 | 1.549465e6 |
+| 2025-12-10 | tolerant | 1           | 671427 | 1586008.5  |
+| 2025-12-28 | tolerant | 1           | 251232 | 1586008.5  |
+OOF-month ADS-B rows: 660,242 on 115 days (['2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12']); OOF stack weights [1.011 0.   ]
+combiner fit on 927,045 holdout rows; best_iter 883
+rows keeping v23: 143239
+shape: (10, 4)
+| ADEP_mvt | len   | mean_diff | rms_diff |
+| ---      | ---   | ---       | ---      |
+| str      | u32   | f64       | f64      |
+|----------|-------|-----------|----------|
+| EDDF     | 36317 | -5.1      | 20.2     |
+| EDDM     | 25966 | 13.7      | 84.0     |
+| EGLL     | 39840 | -13.5     | 85.9     |
+| EHAM     | 38182 | -5.1      | 40.2     |
+| LEBL     | 30080 | -6.5      | 21.8     |
+| LEMD     | 36954 | -10.6     | 64.4     |
+| LFPG     | 39872 | -1.2      | 10.4     |
+| LIRF     | 26899 | 0.0       | 0.0      |
+| LSZH     | 23150 | -3.4      | 25.2     |
+| LTFM     | 47581 | 0.0       | 1.5      |
+wrote smart-jigsaw_v27ctxc1sel_1fits3.parquet: RMS diff vs v23 46.3 s; median 961, mean 1042.8
+=== ctxc1sel_1fits3 neighbour Wed Oct  7 21:28:50 RST 2026
+stack weights: {'lgb': np.float64(0.9483), 'catcorr': np.float64(0.063)}
+thin-day rule: 115 days kept, 7 dropped
+shape: (7, 5)
+| day        | status   | bad_members | points | med        |
+| ---        | ---      | ---         | ---    | ---        |
+| str        | str      | i64         | i64    | f64        |
+|------------|----------|-------------|--------|------------|
+| 2025-08-10 | tolerant | 1           | 211018 | 1.572131e6 |
+| 2025-10-04 | ok       | 0           | 0      | 1672691.5  |
+| 2025-10-07 | tolerant | 1           | 206056 | 1672691.5  |
+| 2025-11-19 | tolerant | 1           | 142500 | 1.549465e6 |
+| 2025-11-22 | tolerant | 1           | 247284 | 1.549465e6 |
+| 2025-12-10 | tolerant | 1           | 671427 | 1586008.5  |
+| 2025-12-28 | tolerant | 1           | 251232 | 1586008.5  |
+OOF-month ADS-B rows: 660,242 on 115 days (['2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12']); OOF stack weights [1.011 0.   ]
+part (a) fit on 927,045 rows, best_iter 0; part (b) fit on 1,004,525 rows, best_iter 446
+rows by part: {'v27': 209127, 'b': 135714}
+shape: (20, 5)
+| ADEP_mvt | part | len   | mean_diff | rms_diff |
+| ---      | ---  | ---   | ---       | ---      |
+| str      | str  | u32   | f64       | f64      |
+|----------|------|-------|-----------|----------|
+| EDDF     | b    | 14063 | 0.0       | 47.4     |
+| EDDF     | v27  | 22254 | 0.0       | 0.0      |
+| EDDM     | b    | 149   | -0.0      | 30.3     |
+| EDDM     | v27  | 25817 | 0.0       | 0.0      |
+| EGLL     | b    | 4822  | -0.0      | 30.9     |
+| EGLL     | v27  | 35018 | 0.0       | 0.0      |
+| EHAM     | b    | 45    | -0.0      | 49.2     |
+| EHAM     | v27  | 38137 | 0.0       | 0.0      |
+| LEBL     | b    | 2815  | 0.0       | 22.1     |
+| LEBL     | v27  | 27265 | 0.0       | 0.0      |
+| LEMD     | b    | 9070  | -0.0      | 30.2     |
+| LEMD     | v27  | 27884 | 0.0       | 0.0      |
+| LFPG     | b    | 35930 | 0.0       | 28.4     |
+| LFPG     | v27  | 3942  | 0.0       | 0.0      |
+| LIRF     | b    | 19374 | 0.0       | 84.3     |
+| LIRF     | v27  | 7525  | 0.0       | 0.0      |
+| LSZH     | b    | 1936  | 0.1       | 53.0     |
+| LSZH     | v27  | 21214 | 0.0       | 0.0      |
+| LTFM     | b    | 47510 | 0.0       | 73.4     |
+| LTFM     | v27  | 71    | 0.0       | 0.0      |
+wrote chain_ctxc1sel_1fits3.parquet: RMS diff vs v27 37.1 s
+=== ctxc1sel_1fits3 window Wed Oct  7 21:29:16 RST 2026
+rows moved: 35 of 344,841; up 23, mean |shift| 83 s
+by airport: {'EDDM': 2, 'EHAM': 5, 'LEBL': 2, 'LEMD': 5, 'LFPG': 7, 'LIRF': 1, 'LSZH': 1, 'LTFM': 12}
+wrote chain_ctxc1sel_1fits3_win.parquet
+=== ctxc1sel_1fits3 lines Wed Oct  7 21:29:17 RST 2026
+(holdout printout skipped: diagnostic only)
+12-month fit: {'EDDF': (909, 0.01), 'EDDM': (885, 0.024), 'EGLL': (1371, 0.027), 'EHAM': (481, 0.027), 'LEBL': (904, 0.021), 'LEMD': (954, 0.024), 'LFPG': (1135, 0.008), 'LIRF': (-2818, 1.062), 'LSZH': (547, 0.042), 'LTFM': (912, 0.153)} | Rome a=43089 b=0.526 (15 rows)
+ranking: line rows 96, Rome rows 4; mean shift on changed rows +1880 s; RMS change over all rows 69.6 s
+wrote chain_ctxc1sel_1fits3_final.parquet
+=== build Wed Oct  7 21:29:18 RST 2026
+checks: 344,841 rows, ID set = template, no nulls, no negatives; LIRF NM-unmatched rows 383 identical to v42
+vs v42: RMS 9.04 s, mean -0.031 s, rows changed 294,829, max |d| 196
+  EDDF  RMS   8.64  mean  +0.13
+  EDDM  RMS   7.37  mean  +0.04
+  EGLL  RMS   7.53  mean  -0.05
+  EHAM  RMS   7.40  mean  -0.07
+  LEBL  RMS   6.04  mean  +0.05
+  LEMD  RMS   5.89  mean  +0.07
+  LFPG  RMS   9.89  mean  -0.14
+  LIRF  RMS  13.63  mean  -0.03
+  LSZH  RMS   7.59  mean  +0.07
+  LTFM  RMS  12.20  mean  -0.23
+wrote smart-jigsaw_v44.parquet
+=== end Wed Oct  7 21:29:18 RST 2026
