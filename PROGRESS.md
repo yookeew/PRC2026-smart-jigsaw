@@ -5586,3 +5586,9 @@ Code:
     - Past transfer ratios: v50 and v54 about 1:1, v53 about 0.3.
     - So v56's score puts the LIRF part between slightly harmful and slightly helpful, centred near zero. P(v55 < v56) ≈ 50–60%.
     - **Rule for the v55 upload:** below 240.7425 → the LIRF update hurt; v55 is the new best and later builds drop it. Above → the LIRF update helped; v56 stays the base.
+- **ansperformance.eu/data/ reviewed in full (2026-10-09):** nothing new is usable.
+  - The CSV catalogue is the one already covered.
+  - **CODA taxi-time planning values** stop at summer 2022 (stale planning values).
+  - **`Stakeholder_Punctuality.xlsx`** (airport OTP15, Network Manager source) is a snapshot: last day / week / year-to-date rankings only, no daily history for January/July 2026.
+  - **Network punctuality** is network level only.
+  - **OPDI** is already known (weak, LSZH events).
