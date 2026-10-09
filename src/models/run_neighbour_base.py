@@ -13,6 +13,10 @@ Run:  .venv/Scripts/python.exe src/models/run_neighbour_base.py holdout
       .venv/Scripts/python.exe src/models/run_neighbour_base.py oof       (only after the stage-B gate passes)
       .venv/Scripts/python.exe src/models/run_neighbour_base.py prod      (only after the stage-B gate passes)
 First build the features: src/features/neighbour_feats.py -> cache/features_nb/.
+
+PRC_SCOPE=final4m (src/scope.py): prod reads cache/features_nb/final4m/, writes
+data/submissions/final4m/lgb_mixed_nb.parquet (Jan+Feb+Jun+Jul 2026) and saves the refit to
+models/lgb_mixed_nb/; the holdout round counts are the same file as for the live board.
 """
 
 from __future__ import annotations
@@ -22,18 +26,22 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
-from models.fit import run, run_oof  # noqa: E402
+from models.fit import MODEL_DIR, SUB_DIR, run, run_oof  # noqa: E402
+import scope  # noqa: E402
 
-FEAT = ROOT / "cache" / "features_nb"
+FEAT = scope.out_dir(ROOT / "cache" / "features_nb")
 NAME = "lgb_mixed_nb"
 EV = ROOT / "cache" / "eval" / f"{NAME}_holdout_ev.parquet"
 OOF = ROOT / "cache" / "oof" / NAME
-SUBMISSION = ROOT / "data" / "submissions" / f"{NAME}.parquet"
+SUBMISSION = SUB_DIR / f"{NAME}.parquet"
+MODELS = MODEL_DIR / NAME
 
 
 def main() -> None:
     stage = sys.argv[1] if len(sys.argv) > 1 else "holdout"
     assert (FEAT / "train2025.parquet").exists(), "run src/features/neighbour_feats.py first"
+    if stage != "prod":
+        assert not scope.FINAL, "holdout/oof do not depend on the ranking scope; run them without PRC_SCOPE"
     if stage == "holdout":
         if EV.exists() and EV.with_suffix(".rounds.json").exists():
             print(f"holdout: {EV.name} exists, nothing to do")
@@ -46,7 +54,8 @@ def main() -> None:
             print(f"prod: {SUBMISSION.name} exists, nothing to do")
             return
         run(engine="lgb", target="mixed", seed=42, feat_dir=FEAT, name=NAME, submit=True, ev_out=EV,
-            resume=True)   # reuses the holdout predictions and round counts; refits only
+            resume=True,   # reuses the holdout predictions and round counts; refits only
+            model_out=MODELS if not MODELS.exists() else None)
     else:
         raise SystemExit(f"unknown stage {stage!r} (holdout | oof | prod)")
 

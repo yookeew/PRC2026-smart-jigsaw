@@ -16,6 +16,7 @@ import polars as pl
 ROOT = Path.cwd()
 sys.path.insert(0, str(ROOT))
 import src.link.adsb_pushback as A  # noqa: E402
+from src.scope import day_path  # noqa: E402
 from src.ingest.normalise_adsb import available_days, load_day  # noqa: E402
 from src.ingest.stands import attach_stand_coords, load_stands, stand_positions  # noqa: E402
 from src.ingest.stand_infer import load_inferred  # noqa: E402
@@ -102,7 +103,7 @@ if __name__ == "__main__":
     if "--check" in sys.argv:
         day = dt.date.fromisoformat(args[0])
         t0 = time.time(); new = detect_day(day, pos); print(f"{day}: {time.time() - t0:.1f}s, {new.height} rows")
-        old = pl.read_parquet(ROOT / "cache" / "adsb_pushback_v4" / f"day={day.isoformat()}.parquet")
+        old = pl.read_parquet(day_path(ROOT / "cache" / "adsb_pushback_v4", day))
         cols = [c for c in old.columns]
         a = old.sort("MVT_ID_mvt").select(cols); b = new.sort("MVT_ID_mvt").select(cols)
         print("shared columns identical:", a.equals(b, null_equal=True))
@@ -114,7 +115,7 @@ if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
     days = [dt.date.fromisoformat(a) for a in args] or available_days()
     for day in days:
-        f = OUT / f"day={day.isoformat()}.parquet"
+        f = day_path(OUT, day)
         if f.exists():
             continue
         t0 = time.time()

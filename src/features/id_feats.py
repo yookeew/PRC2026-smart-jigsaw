@@ -2,11 +2,16 @@
 Label-free cues (2025 check: type differs & operator matches & origin differs -> 77% re-occupier; type match & origin
 match -> 0.1%): appended to reocc_feats.parquet (v50's 9 columns) -> reocc_feats6.parquet.
 Columns: fa_tmatch, fa_omatch, fa_origin (arrival ADEP == our ADES), fa_flnear (same 2-letter prefix, numbers +-1),
-fa_tin_x (its taxi-in minus the 2025 median for its stand/runway); null when there is no such arrival."""
-import os, glob
+fa_tin_x (its taxi-in minus the 2025 median for its stand/runway); null when there is no such arrival.
+PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §126): 2026 rows from final_ranking.parquet; reads and writes
+cache/v50/final4m/ (run src/features/reocc_feats.py in that scope first)."""
+import os, glob, sys
+from pathlib import Path
 os.environ.setdefault("POLARS_UNKNOWN_EXTENSION_TYPE_BEHAVIOR", "load_as_storage")
 import polars as pl
-SCR = os.environ.get("SCR", "cache/v50")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import scope  # noqa: E402
+SCR = os.environ.get("SCR", str(scope.out_dir(Path("cache/v50"))))
 
 
 def fl_num(c):
@@ -48,7 +53,7 @@ if __name__ == "__main__":
                    a_tin=(pl.col("BLOCK_TIME_UTC_mvt") - pl.col("MVT_TIME_UTC_mvt")).dt.total_seconds().cast(pl.Float64))
            .filter(pl.col("a_tin").is_between(0, 3600)).group_by("apt", "stand", "a_rwy").agg(a_tin_med=pl.col("a_tin").median()))
     a = build(tr, med)
-    b = build(pl.read_parquet("data/ranking/ranking.parquet"), med)
+    b = build(pl.read_parquet(scope.RANKING), med)
     m = pl.concat([a, b]).unique("MVT_ID_mvt", keep="first")
     base = pl.read_parquet(f"{SCR}/reocc_feats.parquet")
     out = base.join(m, on="MVT_ID_mvt", how="left")

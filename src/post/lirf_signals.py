@@ -11,6 +11,9 @@ Only the echo weight moves: P' = P + (q - p) (offc - P_ne), P_ne = (P - p offc) 
 correction inside the non-echo branch is kept. Rows with off >= 6 h (nm_lines) or p >= 0.99 are untouched.
 
 Run:  .venv/Scripts/python.exe -u src/post/lirf_signals.py IN.parquet OUT.parquet
+PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §126): final_ranking rows (every 2026 month is complete, so the
+same-month signals keep their meaning); 2026 echo probabilities from the four-month refits (LightGBM
+lgb_mixed_nb via predict_saved, CatBoost cat_mixed_f4m from Colab) in cache/eval/final4m/.
 """
 
 from __future__ import annotations
@@ -26,9 +29,12 @@ import polars as pl
 from sklearn.linear_model import LogisticRegression
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "src"))
+import scope  # noqa: E402
+
 RAW = ROOT / "data" / "raw"
-RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
-TEMPLATE = ROOT / "data" / "ranking" / "submitting.parquet"
+RANKING = scope.RANKING
+TEMPLATE = scope.TEMPLATE
 EVAL, OOF = ROOT / "cache" / "eval", ROOT / "cache" / "oof"
 W_LGB, W_CAT = 0.577, 0.428          # §101/§103 stack convention
 WIDE = 140000.0
@@ -82,6 +88,8 @@ def p_2025() -> pl.DataFrame:
 
 
 def p_2026() -> pl.DataFrame:
+    if scope.FINAL:
+        return p_frame([scope.out_dir(EVAL) / "lgb_mixed_nb_rank.parquet"], [scope.out_dir(EVAL) / "cat_mixed_f4m_rank.parquet"])
     return p_frame([EVAL / "lgb_direct_nolirf_nb_rank.parquet"], [EVAL / "cat_mixed_rank.parquet"])
 
 
@@ -140,13 +148,13 @@ def main() -> None:
           f"p90 {np.quantile((q - p)[k], .9):+.3f}; mean p {p[k].mean():.3f} -> mean q {q[k].mean():.3f}")
     dP = (new - P)[k]
     print(f"  change on scope: mean {dP.mean():+.0f} s, RMS {np.sqrt(np.mean(dP ** 2)):.0f} s, max |{np.abs(dP).max():.0f}| s; "
-          f"RMS over all 344,841 rows {np.sqrt(np.sum(dP ** 2) / sub.height):.1f} s")
+          f"RMS over all {sub.height:,} rows {np.sqrt(np.sum(dP ** 2) / sub.height):.1f} s")
     upd = d26.select("MVT_ID_mvt").with_columns(new=pl.Series(new), k=pl.Series(k)).filter(pl.col("k"))
     out = (sub.with_columns(_id=I64).join(upd.rename({"MVT_ID_mvt": "_id"}), on="_id", how="left")
            .with_columns(TAXITIME_SEC_mvt=pl.when(pl.col("k")).then(pl.col("new").round()).otherwise(pl.col("TAXITIME_SEC_mvt").cast(pl.Float64)).cast(dtype))
            .select(sub.columns))
     tpl = pl.read_parquet(TEMPLATE)
-    assert out.height == tpl.height == 344_841 and out["TAXITIME_SEC_mvt"].null_count() == 0
+    assert out.height == tpl.height and out["TAXITIME_SEC_mvt"].null_count() == 0
     assert set(out["MVT_ID_mvt"].to_list()) == set(tpl["MVT_ID_mvt"].to_list())
     assert float(out["TAXITIME_SEC_mvt"].min()) >= 0
     diff = out.with_columns(_id=I64).join(sub.select(_id=I64, old="TAXITIME_SEC_mvt"), on="_id").filter(

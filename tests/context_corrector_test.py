@@ -22,9 +22,10 @@ import polars as pl
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from post import nm_lines as NL  # noqa: E402
+import scope  # noqa: E402  (PRC_SCOPE=final4m: final_ranking rows, final4m caches; PROGRESS.md §126)
 
 RAW = ROOT / "data" / "raw"
-RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
+RANKING = scope.RANKING
 HOLDOUT = ROOT / "cache" / "eval" / "v31_chain_holdout.parquet"
 REFS = ["SCHED_TIME_UTC_mvt", "LOBT_flt", "IOBT_flt", "EOBT_1_flt", "AOBT_3_flt"]
 CELL_MIN, CELL_CLIP = 30, 7200.0
@@ -36,7 +37,7 @@ RWY = os.environ.get("CTX_RWY") == "1"    # block 7, reports/ctx_runway_preregis
 AIR = os.environ.get("CTX_AIR") == "1"    # block 8, reports/ctx_airline_preregistration.md
 ADSB = os.environ.get("CTX_ADSB") == "1"  # block 9, reports/ctx_adsb_preregistration.md
 RO = os.environ.get("CTX_RO") == "1"      # block 10, stand re-occupation (PROGRESS.md §123; src/features/reocc_feats.py)
-RO_FILE = os.environ.get("CTX_RO_FILE", "cache/v50/reocc_feats3.parquet")
+RO_FILE = os.environ.get("CTX_RO_FILE", str(scope.out_dir(ROOT / "cache" / "v50") / "reocc_feats3.parquet"))
 RO_COLS = ["ro_gap_last", "ro_tm_last", "ro_om_last", "ro_two_dep", "ro_tm_next", "ro_gap_prev", "ro_tm_prev",
            "ro_n_since_s", "ro_first_since_s", "ro_last_tin_x", "ro_last_land_gap"]
 DET4 = ROOT / "cache" / "adsb_pushback_v4"
@@ -209,8 +210,8 @@ def airline_block(dep: pl.DataFrame, p: np.ndarray) -> pl.DataFrame:
     out = x.select(al_res=pl.when(ok).then(pl.col("Sr") / pl.col("N")), al_copy=pl.when(ok).then(pl.col("Sc") / pl.col("N")),
                    al_n=pl.col("N").cast(pl.Float64),
                    al_op=code(x["op"], "op"))
-    rot = (pl.concat([pl.scan_parquet(FEATS / f) .select("MVT_ID_mvt", "inbound_arr_delay", "sched_ground", "actual_ground", "link_confidence")
-                      for f in ("train2025.parquet", "ranking.parquet")], how="vertical_relaxed")
+    rot = (pl.concat([pl.scan_parquet(f) .select("MVT_ID_mvt", "inbound_arr_delay", "sched_ground", "actual_ground", "link_confidence")
+                      for f in (FEATS / "train2025.parquet", scope.out_dir(FEATS) / "ranking.parquet")], how="vertical_relaxed")
            .with_columns(pl.col("MVT_ID_mvt").cast(pl.Int64)).unique("MVT_ID_mvt").collect())
     sec = lambda c: (pl.col(c).dt.total_seconds() if rot.schema[c] == pl.Duration else pl.col(c)).cast(pl.Float64)
     rot = rot.select("MVT_ID_mvt", ro_inb_delay=sec("inbound_arr_delay"), ro_sched_ground=sec("sched_ground"),
@@ -225,7 +226,7 @@ def adsb_block(dep: pl.DataFrame, p: np.ndarray) -> pl.DataFrame:
     """Block 9: ADS-B track state from the v4 detector (reports/ctx_adsb_preregistration.md). Rows of
     days that were never fetched have ab_avail = 0 and null track columns."""
     if "d" not in _DET:
-        _DET["d"] = (pl.concat([pl.read_parquet(f) for f in sorted(DET4.glob("day=*.parquet"))], how="diagonal")
+        _DET["d"] = (pl.concat([pl.read_parquet(f) for f in scope.day_files(DET4)], how="diagonal")
                      .with_columns(pl.col("MVT_ID_mvt").cast(pl.Int64)).unique("MVT_ID_mvt"))
     x = dep.select("MVT_ID_mvt", "T").join(_DET["d"], on="MVT_ID_mvt", how="left")
     assert x.height == dep.height

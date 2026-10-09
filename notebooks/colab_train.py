@@ -139,5 +139,100 @@ while queue or running:
 print('all done'); print(open(f'{OUT}/manifest.csv').read())
 
 # %%
+# SETUP FOR THE FOUR-MONTH PIPELINE - RUN THIS FIRST (fresh runtime, T4 GPU)
+# Checks out the "febjune" branch into the Drive project folder (tracked files only: the
+# git-ignored data under cache/, data/, models/ is left alone and must be uploaded separately).
+# Does not import anything from src/, so the CatBoost cell below still sees a fresh scope.
+from google.colab import drive
+drive.mount('/content/drive')
+
+PROJ = '/content/drive/MyDrive/smart-jigsaw'
+%cd {PROJ}
+
+import os, sys
+if not os.path.exists(f'{PROJ}/.git'):
+    !git init -q
+    !git remote add origin https://github.com/yookeew/dumb-puzzle.git
+!git remote set-url origin https://github.com/yookeew/dumb-puzzle.git
+!git fetch -q --depth 1 origin febjune
+!git checkout -q -f -B febjune FETCH_HEAD
+!git log -1 --format='%h %ad %s' --date=format:'%Y-%m-%d %H:%M'
+
+!pip -q install polars==1.44.1 lightgbm==4.7.0 xgboost catboost
+sys.path.insert(0, f'{PROJ}/src')
+for d in ('cache/eval/final4m', 'data/submissions/final4m', 'reports/eval/final4m', 'models'):
+    os.makedirs(f'{PROJ}/{d}', exist_ok=True)
+need = ['src/scope.py', 'data/ranking/final_submitting.parquet'] + \
+       [f'cache/features/final4m/{f}.parquet' for f in ('train2025', 'holdout_gap2025', 'labels2025', 'ranking')]
+for f in need:
+    p = f'{PROJ}/{f}'
+    print(f'{"ok     " if os.path.exists(p) else "MISSING"} {f}' + (f'  {os.path.getsize(p) / 1e6:.1f} MB' if os.path.exists(p) else ''))
+!md5sum cache/features/final4m/ranking.parquet   # expect 04bcbf67...
+
+# %%
+# CatBoost for the four-month pipeline (PROGRESS.md §126). T4 runtime, ~40 min.
+# The production CatBoost was never saved and its round counts were not recorded, so this
+# repeats the holdout fits (round counts -> .rounds.json) and the all-2025 refit, saves the
+# refit to models/cat_mixed_f4m/ and predicts Jan+Feb+Jun+Jul 2026. New names only: nothing
+# the live-board files were built from is touched. Start from a FRESH runtime (scope is read
+# when models.fit is first imported) and run the setup cell above first (it checks out src/).
+# Upload first (git-ignored, to the same paths under R):
+#   cache/features/final4m/{train2025,holdout_gap2025,labels2025,ranking}.parquet,
+#   data/ranking/final_submitting.parquet.
+# Copy back: models/cat_mixed_f4m/ (whole folder), cache/eval/cat_mixed_f4m_holdout_ev.parquet
+#   (+ .rounds.json), cache/eval/final4m/cat_mixed_f4m_rank.parquet,
+#   data/submissions/final4m/cat_mixed_f4m.parquet, reports/eval/final4m/cat_mixed_f4m.md.
+import os, sys
+os.environ["PRC_SCOPE"] = "final4m"; os.environ["PRC_MEMLOG"] = "1"
+R = '/content/drive/MyDrive/smart-jigsaw'
+sys.path.insert(0, f'{R}/src'); os.chdir(R)
+import scope; assert scope.FINAL and scope.TEMPLATE.exists(), 'fresh runtime + final_submitting.parquet needed'
+from pathlib import Path
+from models.fit import run
+run(engine="cat", target="mixed", eta=0.05, name="cat_mixed_f4m", submit=True,
+    feat_dir=Path("cache/features/final4m"),
+    ev_out="cache/eval/cat_mixed_f4m_holdout_ev.parquet",
+    rank_out="cache/eval/final4m/cat_mixed_f4m_rank.parquet",
+    model_out="models/cat_mixed_f4m", resume=True)   # resume: a dropped session restarts at the refit
+
+# %%
+# ADS-B re-fetch of the short Feb/Jun 2026 days (2026-10-09). The first pull lost them to
+# "Connection reset by peer": tolerant mode kept the truncated read (02-17, 02-20, 02-22,
+# 06-23), and on 02-28 / 06-11 the fallback staging replica is itself thin. fetch_adsb.py now
+# resumes a dropped download with an HTTP Range request and never keeps a network-truncated
+# read. --force overwrites a day only if the new read has more points, so re-running is safe.
+# Copy the updated src/ingest/fetch_adsb.py to Drive first (the assert checks).
+# Copy back: the six adsb_2026MMDD.parquet files + manifest.csv -> external-data/adsb-final2026/.
+import subprocess, time, pathlib
+from google.colab import drive
+drive.mount('/content/drive')
+R   = '/content/drive/MyDrive/smart-jigsaw'
+OUT = f'{R}/adsb_final2026'
+MAX_PAR = 2   # the resets came with 4 parallel downloads
+src = pathlib.Path(f'{R}/src/ingest/fetch_adsb.py')
+assert '--force' in src.read_text() and 'RESUMES' in src.read_text(), 'old fetch_adsb.py on Drive; copy the new one'
+jobs = [('feb_a', '2026-02-17 2026-02-20 2026-02-22'), ('feb_b', '2026-02-28'),
+        ('jun',   '2026-06-11 2026-06-23')]
+queue, running = list(jobs), {}
+while queue or running:
+    while queue and len(running) < MAX_PAR:
+        k, days = queue.pop(0)
+        running[k] = subprocess.Popen(
+            f'python -u {src} --force --days {days} --out {OUT} > {OUT}/refetch_{k}.log 2>&1', shell=True)
+    time.sleep(120)
+    for k in list(running):
+        lines = pathlib.Path(f'{OUT}/refetch_{k}.log').read_text().strip().splitlines()
+        print(time.strftime('%H:%M'), k, '|', lines[-1] if lines else '(starting)')
+        if running[k].poll() is not None:
+            print(time.strftime('%H:%M'), k, 'finished, exit', running[k].returncode)
+            del running[k]
+import polars as pl
+for d in ['20260217', '20260220', '20260222', '20260228', '20260611', '20260623']:
+    a = pl.scan_parquet(f'{OUT}/adsb_{d}.parquet').group_by('airport').agg(
+        pl.len().alias('n'), ((pl.col('ts') // 3600) % 24).n_unique().alias('hrs')).collect()
+    print(d, f"{int(a['n'].sum()):>10,} pts  airports {a.height}  min hours {int(a['hrs'].min())}")
+print('normal day: ~1.4-1.9M pts, 10 airports, 22-24 h')
+
+# %%
 # Submissions land in data/submissions/<name>.parquet — download and upload to
 # the challenge portal as <team>_v<n>.parquet.

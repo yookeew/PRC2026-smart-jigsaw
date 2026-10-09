@@ -14,7 +14,8 @@ from scipy.optimize import nnls
 ROOT = Path.cwd()
 sys.path.insert(0, str(ROOT / "src")); sys.path.insert(0, str(ROOT / "tests"))
 assert os.environ.get("PRC_LGB", "").startswith("ctxc1sel")   # ctxc1sel, or a variant of it (e.g. ctxc1sel_ro, v54)
-SCR = Path(os.environ.get("SCR", "cache/v50"))
+import scope  # noqa: E402  (PRC_SCOPE=final4m: final_ranking rows, final4m caches/outputs; PROGRESS.md §126)
+SCR = Path(os.environ.get("SCR", str(scope.out_dir(Path("cache/v50")))))
 sys.argv = [sys.argv[0]]                       # post.adsb_combiner reads flags at import: none -> v4 detections
 import adsb_combiner_test as C  # noqa: E402
 import adsb_combiner_v2_test as C2  # noqa: E402
@@ -26,7 +27,7 @@ from post import adsb_combiner as PC  # noqa: E402
 
 RO = ["ro_gap_last", "ro_tm_last", "ro_om_last", "ro_two_dep", "ro_tm_next", "ro_gap_prev", "ro_tm_prev",
       "ro_n_since_s", "ro_first_since_s"]
-RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
+RANKING = scope.RANKING
 ENG = ["lgb", "catcorr"]
 
 

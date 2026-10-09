@@ -11,11 +11,20 @@ Uses only arrival in-block times, departure takeoff times, stands, aircraft type
   ro_tm_prev    type(previous arrival) == type(departure)
   ro_n_since_s  arrivals at the stand with in-block in (SOBT + 5 min, T)
   ro_first_since_s  T - earliest such arrival (s)
+
+PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §126): 2026 rows from final_ranking.parquet, output in
+cache/v50/final4m/, plus reocc_feats.parquet there (the first nine columns, which is what the jj
+cache/v50/reocc_feats.parquet holds; checked equal 2026-10-09) for src/features/id_feats.py.
 """
-import os, glob
+import os, glob, sys
+from pathlib import Path
 os.environ.setdefault("POLARS_UNKNOWN_EXTENSION_TYPE_BEHAVIOR", "load_as_storage")
 import polars as pl
-SCR = os.environ.get("SCR", "cache/v50")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import scope  # noqa: E402
+SCR = os.environ.get("SCR", str(scope.out_dir(Path("cache/v50"))))
+V50_COLS = ["MVT_ID_mvt", "ro_gap_last", "ro_tm_last", "ro_om_last", "ro_two_dep", "ro_tm_next", "ro_gap_prev",
+            "ro_tm_prev", "ro_n_since_s", "ro_first_since_s"]
 MED = None
 
 
@@ -107,11 +116,13 @@ if __name__ == "__main__":
     arr25 = tr.filter(pl.col("PHASE_mvt") == "ARR").select(apt="ADES_mvt", stand="STAND_mvt", a_rwy="RUNWAY_mvt", a_tin=(pl.col("BLOCK_TIME_UTC_mvt") - pl.col("MVT_TIME_UTC_mvt")).dt.total_seconds().cast(pl.Float64))
     MED = arr25.filter(pl.col("a_tin").is_between(0, 3600) & pl.col("stand").is_not_null()).group_by("apt", "stand", "a_rwy").agg(a_tin_med=pl.col("a_tin").median())
     a = build(tr)
-    rk = pl.read_parquet("data/ranking/ranking.parquet")
+    rk = pl.read_parquet(scope.RANKING)
     b = build(rk)
     out = pl.concat([a, b])
     assert out["MVT_ID_mvt"].n_unique() == out.height
     out.write_parquet(f"{SCR}/reocc_feats3.parquet")
+    if scope.FINAL:
+        out.select(V50_COLS).write_parquet(f"{SCR}/reocc_feats.parquet")
     print("rows", a.height, b.height)
     print(out.select([pl.col(c).is_not_null().mean().alias(c) for c in out.columns if c != "MVT_ID_mvt"]))
     # drift check 2025 vs 2026 (label-free)

@@ -11,6 +11,8 @@ scored on Jan+Jul 2025 (cache/eval/v31_chain_holdout.parquet, + LOBT window = v3
 Ranking: fitted on all 12 months.
 
 Run:  .venv/Scripts/python.exe src/post/nm_lines.py IN.parquet OUT.parquet
+PRC_SCOPE=final4m: applied to final_ranking.parquet rows, checked against final_submitting.parquet
+(src/scope.py); the fit is unchanged.
 """
 
 from __future__ import annotations
@@ -27,10 +29,11 @@ import polars as pl
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 from post.lobt_window import HALF  # noqa: E402
+import scope  # noqa: E402
 
 RAW = ROOT / "data" / "raw"
-RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
-TEMPLATE = ROOT / "data" / "ranking" / "submitting.parquet"
+RANKING = scope.RANKING
+TEMPLATE = scope.TEMPLATE
 HOLDOUT = ROOT / "cache" / "eval" / "v31_chain_holdout.parquet"
 LINE_MIN_D = 6 * 3600
 ROME_LO, ROME_HI = 15 * 3600, 30 * 3600

@@ -13,6 +13,8 @@ Run:  .venv/Scripts/python.exe src/post/neighbour_state.py [--v2]
   --v2 (reports/neighbour_state_v2_preregistration.md): part (b) only, with its correction
   demeaned per (airport, UTC day) over the rows it is applied to; rows with ADS-B information
   keep v27 -> data/submissions/smart-jigsaw_v30.parquet
+PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §126): ranking inputs/outputs and template from the
+final4m/ subfolders; the fit is unchanged.
 """
 
 from __future__ import annotations
@@ -36,8 +38,9 @@ import adsb_v3_test as V  # noqa: E402
 import ltfm_egll_anatomy as A  # noqa: E402
 import neighbour_state_test as N  # noqa: E402
 from post import adsb_combiner as PC  # noqa: E402
+import scope  # noqa: E402
 
-SUB = ROOT / "data" / "submissions"
+SUB = scope.out_dir(ROOT / "data" / "submissions")
 V2 = "--v2" in sys.argv
 # PRC_LGB=lgb_mixed_nb (reports/base_neighbour_preregistration.md stage C): the chain on the
 # LightGBM with the neighbour features -> v27nb in, smart-jigsaw_v31.parquet out (--v2 only).
@@ -48,8 +51,8 @@ V27 = SUB / (f"smart-jigsaw_v27{TAG}.parquet" if NB else "smart-jigsaw_v27.parqu
 V29 = SUB / ("smart-jigsaw_v31.parquet" if LGB == "lgb_mixed_nb" else f"chain_{LGB}.parquet" if NB
              else "smart-jigsaw_v30.parquet" if V2 else "smart-jigsaw_v29.parquet")
 assert not NB or V2, "the neighbour-feature chain is only pre-registered with --v2"
-RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
-TEMPLATE = ROOT / "data" / "ranking" / "submitting.parquet"
+RANKING = scope.RANKING
+TEMPLATE = scope.TEMPLATE
 ENG = ["lgb", "catcorr"]
 
 

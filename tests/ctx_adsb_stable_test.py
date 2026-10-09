@@ -28,7 +28,8 @@ EVAL, OOF, SUB = ROOT / "cache" / "eval", ROOT / "cache" / "oof", ROOT / "data" 
 
 
 def _airports() -> pl.DataFrame:
-    srcs = [str(ROOT / "data" / "raw" / "training_*.parquet"), str(ROOT / "data" / "ranking" / "ranking.parquet")]
+    import scope
+    srcs = [str(ROOT / "data" / "raw" / "training_*.parquet"), str(scope.RANKING)]
     return (pl.concat([pl.scan_parquet(s).filter(pl.col("PHASE_mvt") == "DEP")
                        .select(pl.col("MVT_ID_mvt").cast(pl.Float64), _apt=pl.col("ADEP_mvt")) for s in srcs])
             .collect().unique("MVT_ID_mvt"))

@@ -5,6 +5,11 @@
   3  LIRF NM-unmatched rows with off >= 87,000 s: P = min(P, off + e_T)
 
 Run:  .venv/Scripts/python.exe -u src/post/v49_bundle.py IN.parquet OUT.parquet   (files in data/submissions)
+
+PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §126): final_ranking rows, files in data/submissions/final4m; fix 1 runs
+for every month present; fix 2 reads the v4 detections (2026 days from cache/adsb_pushback_v4/final4m; v6 equals v4 on
+adsb_tier / adsb_pushback_ts on all 245 days both hold) and uses the scope's corrector (ctxc1sel_ro) as its reference,
+and is skipped when no storm day is found.
 """
 
 from __future__ import annotations
@@ -12,7 +17,6 @@ from __future__ import annotations
 import os
 os.environ.setdefault("POLARS_UNKNOWN_EXTENSION_TYPE_BEHAVIOR", "load_as_storage")
 
-import glob
 import sys
 from pathlib import Path
 
@@ -20,9 +24,13 @@ import numpy as np
 import polars as pl
 
 ROOT = Path(__file__).resolve().parents[2]
-RAW, SUB = ROOT / "data" / "raw", ROOT / "data" / "submissions"
-RANKING, TEMPLATE = ROOT / "data" / "ranking" / "ranking.parquet", ROOT / "data" / "ranking" / "submitting.parquet"
-ADSB = ROOT / "cache" / "adsb_pushback_v6"
+sys.path.insert(0, str(ROOT / "src"))
+import scope  # noqa: E402
+
+RAW, SUB = ROOT / "data" / "raw", scope.out_dir(ROOT / "data" / "submissions")
+RANKING, TEMPLATE = scope.RANKING, scope.TEMPLATE
+ADSB = ROOT / "cache" / ("adsb_pushback_v4" if scope.FINAL else "adsb_pushback_v6")
+CORR = "ctxc1sel_ro" if scope.FINAL else "ctxc1sel"
 I64 = pl.col("MVT_ID_mvt").cast(pl.Int64)
 CLIP = 300.0
 STORM_MIN_NMU = 40
@@ -54,7 +62,7 @@ def main() -> None:
     d25 = frame(str(RAW / "training_*.parquet"))
 
     # 1. LSZH level
-    for m in (1, 7):
+    for m in sorted(r["mo"].unique().to_list()):
         k26 = (r["apt"] == "LSZH") & ~r["nmu"] & (r["mo"] == m)
         z26 = r.filter(k26 & r["a"].is_not_null())
         z25 = d25.filter((pl.col("apt") == "LSZH") & ~pl.col("nmu") & (pl.col("mo") == m) & pl.col("a").is_not_null())
@@ -65,7 +73,7 @@ def main() -> None:
         print(f"fix 1 LSZH month {m}: o26 {o26:+.1f}, o25 {o25:+.1f} -> shift {shift:+.1f} s on {kk.sum()} rows")
 
     # 2. EHAM storm-day NM-unmatched rows without ADS-B
-    ad = pl.concat([pl.read_parquet(f) for f in glob.glob(str(ADSB / "day=2026-0[17]-*.parquet")) + glob.glob(str(ADSB / "day=2025-01-*.parquet"))],
+    ad = pl.concat([pl.read_parquet(f) for f in scope.day_files(ADSB, "day=2026-*.parquet") + scope.day_files(ADSB, "day=2025-01-*.parquet")],
                    how="diagonal_relaxed").filter(pl.col("airport") == "EHAM").select("MVT_ID_mvt", "adsb_tier", "adsb_pushback_ts")
     good = pl.col("adsb_tier").is_in(["dwell", "pass"])
     t25 = (d25.filter((pl.col("apt") == "EHAM") & (pl.col("mo") == 1)).join(ad, on="MVT_ID_mvt").filter(good)
@@ -73,18 +81,21 @@ def main() -> None:
     lag = float((t25["y"] - t25["at"]).median())
     eh = r.filter(pl.col("apt") == "EHAM")
     storm = eh.filter(pl.col("nmu")).group_by("day").len().filter(pl.col("len") >= STORM_MIN_NMU)["day"].to_list()
-    C = pl.read_parquet(SUB / "ctxc1sel.parquet").select(I64, C=pl.col("TAXITIME_SEC_mvt").cast(pl.Float64))
-    s = (eh.filter(pl.col("nmu") & pl.col("day").is_in(storm)).join(ad, on="MVT_ID_mvt", how="left").join(C, on="MVT_ID_mvt")
-         .with_columns(at=pl.col("T") - pl.col("adsb_pushback_ts")))
-    tr = s.filter(good & pl.col("at").is_between(60, 7200))
-    dC = float((tr["at"] + lag - tr["C"]).median())
-    un = s.filter(pl.col("adsb_tier").is_null())
-    delta = dC - float((un["P"] - un["C"]).median())
-    ids = set(un["MVT_ID_mvt"].to_list())
-    k2 = np.array([i in ids for i in r["MVT_ID_mvt"].to_list()])
-    P[k2] = np.maximum(P[k2] + delta, 0)
-    print(f"fix 2 EHAM storm days {sorted(str(x) for x in storm)}; lag {lag:.0f}; tracked rows {tr.height}, corrector bias dC {dC:+.0f}; "
-          f"untracked rows {un.height}, median(P-C) {float((un['P'] - un['C']).median()):+.0f} -> delta {delta:+.0f} s")
+    if not storm:
+        print(f"fix 2 EHAM: no storm day (>= {STORM_MIN_NMU} NM-unmatched departures), skipped")
+    else:
+        C = pl.read_parquet(SUB / f"{CORR}.parquet").select(I64, C=pl.col("TAXITIME_SEC_mvt").cast(pl.Float64))
+        s = (eh.filter(pl.col("nmu") & pl.col("day").is_in(storm)).join(ad, on="MVT_ID_mvt", how="left").join(C, on="MVT_ID_mvt")
+             .with_columns(at=pl.col("T") - pl.col("adsb_pushback_ts")))
+        tr = s.filter(good & pl.col("at").is_between(60, 7200))
+        dC = float((tr["at"] + lag - tr["C"]).median())
+        un = s.filter(pl.col("adsb_tier").is_null())
+        delta = dC - float((un["P"] - un["C"]).median())
+        ids = set(un["MVT_ID_mvt"].to_list())
+        k2 = np.array([i in ids for i in r["MVT_ID_mvt"].to_list()])
+        P[k2] = np.maximum(P[k2] + delta, 0)
+        print(f"fix 2 EHAM storm days {sorted(str(x) for x in storm)}; lag {lag:.0f}; tracked rows {tr.height}, corrector bias dC {dC:+.0f}; "
+              f"untracked rows {un.height}, median(P-C) {float((un['P'] - un['C']).median()):+.0f} -> delta {delta:+.0f} s")
 
     # 3. dominated rows
     eT = ((r["T"] + 30) % 60 - 30).to_numpy().astype(float)
@@ -99,7 +110,7 @@ def main() -> None:
     out = (sub.with_columns(_id=I64).join(r.select(pl.col("MVT_ID_mvt").alias("_id"), new=pl.Series(np.round(P))), on="_id", how="left")
            .with_columns(TAXITIME_SEC_mvt=pl.col("new").cast(dtype)).select(sub.columns))
     tpl = pl.read_parquet(TEMPLATE)
-    assert out.height == tpl.height == 344_841 and out["TAXITIME_SEC_mvt"].null_count() == 0
+    assert out.height == tpl.height and out["TAXITIME_SEC_mvt"].null_count() == 0
     assert set(out["MVT_ID_mvt"].to_list()) == set(tpl["MVT_ID_mvt"].to_list()) and float(out["TAXITIME_SEC_mvt"].min()) >= 0
     out.write_parquet(dst)
     print(f"wrote {dst.name}")

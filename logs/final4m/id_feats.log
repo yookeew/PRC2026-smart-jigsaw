@@ -1,0 +1,7 @@
+C:\Users\yuqiw\prc2025\src\features\id_feats.py:33: UserWarning: Sortedness of columns cannot be checked when 'by' groups provided
+  j = dep.filter(pl.col("t_lo").is_not_null()).sort("t_lo").join_asof(
+fa_tmatch  2025 nonnull 0.1134 mean    0.389 | 2026 nonnull 0.1163 mean    0.402
+fa_omatch  2025 nonnull 0.1108 mean    0.595 | 2026 nonnull 0.1129 mean    0.589
+fa_origin  2025 nonnull 0.1137 mean    0.137 | 2026 nonnull 0.1167 mean    0.145
+fa_flnear  2025 nonnull 0.1137 mean    0.097 | 2026 nonnull 0.1167 mean    0.104
+fa_tin_x   2025 nonnull 0.1137 mean  130.909 | 2026 nonnull 0.1161 mean  144.504

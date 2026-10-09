@@ -6,6 +6,8 @@ Every 2025 departure with a LOBT has |BLOCK - LOBT| <= 3606 s, so its taxi lies 
 
 Run:  .venv/Scripts/python.exe src/post/lobt_window.py IN.parquet OUT.parquet
   e.g. data/submissions/smart-jigsaw_v31.parquet -> data/submissions/smart-jigsaw_v32.parquet
+PRC_SCOPE=final4m: windows from final_ranking.parquet, checked against final_submitting.parquet
+(src/scope.py).
 """
 
 from __future__ import annotations
@@ -19,8 +21,11 @@ from pathlib import Path
 import polars as pl
 
 ROOT = Path(__file__).resolve().parents[2]
-RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
-TEMPLATE = ROOT / "data" / "ranking" / "submitting.parquet"
+sys.path.insert(0, str(ROOT / "src"))
+import scope  # noqa: E402
+
+RANKING = scope.RANKING
+TEMPLATE = scope.TEMPLATE
 HALF = 3606
 
 

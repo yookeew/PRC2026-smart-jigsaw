@@ -5683,3 +5683,96 @@ handling listed in the guide.*
     - no reading of which individual LIRF rows were wrong;
     - no refit of the LIRF prior, the shrink 0.75 or the LSZH skip from these two scores.
     - Any later change to the day-level stage goes through the holdout first (§82).
+
+## 126. Four-month pipeline for the blind board (Jan + Feb + Jun + Jul 2026) -- in progress (2026-10-09)
+
+*Note: the organisers released `final_ranking.parquet` / `final_submitting.parquet` (Jan, Feb, Jun, Jul 2026) for a blind board, due 2026-10-14. The live Jan/Jul board (due 10-11) continues. We get no feedback on Feb/Jun rows.*
+
+**Plan.** One pipeline over the four-month frame; the live-board file is its output filtered to `submitting.parquet`'s IDs.
+- `PRC_SCOPE=final4m` (`src/scope.py`) switches a script to the four-month ranking file, `final_submitting.parquet` as template, and a `final4m/` subfolder for every output. Without it every script behaves exactly as before.
+- Until the rebuilt chain's Jan/Jul rows are checked against v55, the blind-board file takes Jan/Jul from v55 unchanged.
+- Feb/Jun gets each stage only where the evidence supports it (below).
+
+**Both releases carry their own time jitter; neither is clean.** On the 689,534 Jan/Jul movements the two files share:
+- `MVT_TIME_UTC_mvt` differs on 92% of rows. The difference is triangular on ±12 s (sd 4.9, the same at every airport and in both months), the shape of the difference of two independent ±6 s draws. Arrival `BLOCK_TIME_UTC_mvt` moves the opposite way (corr −0.99) and arrival taxi-in changes by ≤ 24 s. Scheduled, LOBT, IOBT, EOBT, AOBT_3 and every other column are identical; no row is added or dropped.
+- **Mechanism (arrivals):** within each release, landing + block time is preserved to the second. Each release jitters the taxi-in duration and re-centres both times about the same midpoint.
+- **Which release is noisy:** against NM's flown arrival time (`ARVT_3_flt`), both releases fit equally well (mean −10.68 s, sd 36.50 in each). The release-to-release difference d has var 24.3, and cov(first-release deviation, d) = −12.04 (bootstrap CI [−12.57, −11.49]). A clean first release would give 0; independent jitter in both gives −var(d)/2 = −12.13. So both releases are jittered, each by about ±6 s on the movement time.
+- **Organiser ruling (challenge Discord, 2026-10-08):** the dither is deliberate ("that is the 'randomness' I had to introduce"); each export is a fresh draw, the 2025 training files carry the same pattern, and the final phase uses `final_ranking.parquet` / `final_submitting.parquet`. Our copies are the definitive upload: bucket `final_ranking.parquet` uploaded 2026-10-08 11:04:30 UTC, same size (85,853,399 B), downloaded 11:19 UTC; `final_submitting.parquet` md5 2c1f4072… equals the bucket ETag.
+- **Decision (revised the same evening):** the four-month pipeline reads `final_ranking.parquet` for every row, Jan/Jul included (`src/scope.py`). A first build mixed the first release's Jan/Jul rows with the final release's Feb/Jun rows; it was replaced before anything was built on it. The live board keeps `ranking.parquet`.
+- So the blind board's Jan/Jul rows are predicted from the final release's own (dithered) inputs, and no per-row adjustment between the two draws is made.
+
+**Feature check, Jan/Jul rows, two-month vs four-month frame** (`tests/final4m_feature_check.py`):
+- The current code rebuilds `cache/features/ranking.parquet` (22 Sep) bit for bit, so there is no code drift.
+- Four-month frame (first-release Jan/Jul rows): every family-1/3/7 and neighbour (`nb*`, `arrx*`) column is identical outside 36 h of the month edges. Three explained exceptions:
+  1. **Long-range edges.** 2,221 July departures now link to a June (2,090) or February (131) arrival as their inbound. In the two-month file the linker reached back across the gap to January for stands with no earlier July arrival (median 30 h, up to 31 days into July). `prev_gap`/`sat_run` (~165 rows) and `has_next`/`bound_binding` (~94) are the same effect.
+  2. **A bug in `n_deprwy_30m_prev` / `n_deprwy_15m_next`** (`build_features._roll_count`). The grouped `rolling` returns groups in a different order from the sorted input, and the counts are attached by position. Only 44% (ranking) / 59% (Mar 2025) of departures get their own runway count; the rest get another row's. The airport-level counts and `n_arr_60m_around` are aligned (100%). The scrambling depends on the frame's contents, so these two columns change on ~180k Jan/Jul rows when Feb/Jun is added. They have been noise in training and ranking alike since stage 2. **Not fixed now:** a fix changes the training features and needs the whole chain refit and re-gated. Logged as a candidate (a real runway-level count is a plausible genuine gain).
+  3. With the final release's own Jan/Jul rows (the production choice), the dither also moves the time-window features: the rolling counts on ~65k rows, the runway configuration on ~10–19k, `hour` on 1.6k, and the METAR join on ~1k. That is input noise of the same kind the 2025 training files carry.
+
+**External data for Feb/Jun 2026.**
+- METAR: `fetch_metar_data.py` gained the 2026-02 and 2026-06 windows; 672 / 720 hourly reports per station, complete.
+- ADS-B: all 116 Feb/Jun days (2025 + 2026) present across `adsb-final2026` and `adsb-restofyear`, but six 2026 days were truncated: 02-17, 02-20, 02-22, 06-23 (a "Connection reset by peer" mid-download, which tolerant mode skipped as one bad member and so kept a partial day), and 02-28, 06-11 (thin fallback replica).
+  - `fetch_adsb.py` now resumes a dropped download with an HTTP Range request (tested: 206, bytes identical), never keeps a network-truncated read, and `--force` replaces a day only with a read that has more points. Colab cell "ADS-B re-fetch of the short Feb/Jun 2026 days".
+  - The 52 good Feb/Jun 2026 days are normalised (`normalise_adsb.py --only … --skip-existing`, no existing day rewritten). Feb/Jun 2025 stays out of the store until its own gated change, because the combiner trains on what is there.
+  - 2025 Feb volume is ~half of 2026, the same ratio as Jan 2025 vs Jan 2026 (receiver growth, already in the training data).
+
+**Saved models.** No base model or corrector had been saved: only predictions were kept. `fit.py` now saves the all-2025 refit (`save_models`: native booster files + `state.pkl` with the encoders) and predicts any feature frame from it (`predict_saved`). `models/` is git-ignored (size).
+- LightGBM base `lgb_mixed_nb`: refit with the recorded round counts (flip 7,996 / direct 2,896 / classifier 397), saved to `models/lgb_mixed_nb/`, predicting the four months (local, running).
+- CatBoost: round counts were never recorded, so the Colab cell "CatBoost for the four-month pipeline" repeats the holdout fits and the refit, saved to `models/cat_mixed_f4m/`. GPU CatBoost is not bit-reproducible (27 s RMS between runs, REPRODUCE §4), so its Jan/Jul output will not equal the live-board inputs; Jan/Jul stays on v55.
+
+**Stage wiring (scope-aware, 2026-10-09 evening).** Each stage under `PRC_SCOPE=final4m` reads the final release and writes to `final4m/` subfolders. Holdout and OOF fits stay scope-independent: they are never rewritten in the four-month scope.
+- Per-day ADS-B caches: 2025 days are shared; 2026 days are built from the scope's ranking file into `<cache>/final4m/` (`scope.day_path` / `scope.day_files`). The 52 Feb/Jun files written into the base folders by the first run were moved into `final4m/`, so the base folders hold exactly the 62 Jan/Jul days again. Jan/Jul 2026 detections are being recomputed from `final_ranking.parquet` into `final4m/` (v1, v3, v4, positions).
+- `corrector_v2.py`: the gate's meta file was never in this checkout (the corrector was built on the teammate's machine). It was restored from the logs: full_rounds 5,500 (`logs/oof_corrector_v2_test.log`, `logs/corrector_v2_build.log`). In the four-month scope only the 12-month ranking corrector is fitted and applied (to Colab's `cat_mixed_f4m` ranking rows); the holdout file is not rewritten.
+- `stack_submit.py`, `adsb_combiner.py`, `neighbour_state.py`, `lobt_window.py`, `nm_lines.py`, `v50_assemble.py`, `pru_daily_recon.py`, the three LIRF hedges, `v50_comb_delta.py` / `v50_nb_delta.py`, `ctx_armc.py` (prod and the ranking half of sel; `inputs` refuses to run there), `tests/context_corrector_test.py` / `tests/ctx_adsb_stable_test.py` (the vocabulary, feature-cache, detection and re-occupation reads), `reocc_feats.py` / `id_feats.py`. Hard-coded 344,841 row checks became template-height checks.
+- LIRF hedges: 2026 echo probabilities came from `lgb_direct_nolirf_nb`'s ranking file (its LIRF echo classifier is the base's). In the four-month scope they come from the saved `lgb_mixed_nb` model (`predict_saved`) and Colab's CatBoost.
+- Re-occupation and identity features (`cache/v50/final4m/`): 2025 rows bit-identical to the live-board files. On Jan/Jul 2026 the continuous gaps move by seconds on most rows (dither); the yes/no features change on ~0.3% (dither at boundaries, long-range edges).
+- EUROCONTROL daily delays: the 2026 file has every Feb and Jun day at all 10 airports (and Jan–Jul; August partly empty).
+
+**ADS-B coverage, 2025 vs 2026** (share of departures with ADS-B information = matched or fallback tier; v4 detections; 2025 Feb/Jun = the 12 OOF days per month in the store; 2026 Feb/Jun = 24 / 28 good days, re-fetch pending for 6):
+
+| airport | 2025-01 | 2025-02 | 2025-06 | 2025-07 | 2026-01 | 2026-02 | 2026-06 | 2026-07 |
+|---|---|---|---|---|---|---|---|---|
+| EDDF | 73.5 | 84.1 | 79.8 | 78.8 | 56.2 | 17.5 | 66.8 | 65.1 |
+| EDDM | 97.6 | 93.5 | 68.0 | 38.2 | 99.6 | 99.6 | 99.2 | 99.3 |
+| EGLL | 46.7 | 47.8 | 13.6 | 15.5 | 75.7 | 73.0 | 99.3 | 99.3 |
+| EHAM | 98.0 | 97.2 | 99.4 | 99.9 | 99.8 | 99.8 | 99.9 | 100.0 |
+| LEBL | 95.9 | 96.3 | 95.9 | 82.6 | 89.1 | 89.2 | 91.3 | 91.7 |
+| LEMD | 0.3 | 0.4 | 96.5 | 16.9 | 96.5 | 96.3 | 73.6 | 57.9 |
+| LFPG | 0.0 | 0.0 | 3.4 | 13.6 | 9.1 | 5.0 | 19.8 | 10.5 |
+| LIRF | 0.0 | 0.0 | 57.9 | 74.2 | 67.6 | 59.3 | 0.0 | 0.3 |
+| LSZH | 85.9 | 89.3 | 81.3 | 79.4 | 93.0 | 94.2 | 88.9 | 90.6 |
+| LTFM | 0.0 | 0.0 | 0.0 | 0.0 | 0.1 | 0.0 | 0.2 | 0.1 |
+
+- Feb 2026 looks like Jan 2026 and Jun 2026 like Jul 2026 at every airport except EDDF February (17.5% vs 56%). So the ADS-B stages, whose Jan/Jul 2026 behaviour the board has confirmed (v23–v31, v50, v54), face the same 2025-vs-2026 coverage shift in Feb/Jun that they face in Jan/Jul. Rows without ADS-B take the non-ADS-B path, so EDDF February only loses coverage.
+- Decision: Feb/Jun get the ADS-B stages with the production recipe (no per-airport ADS-B fits, per §123's v51 lesson).
+
+**Second gate: Feb/Jun 2025 out of fold.** The production stages were gated on the Jan+Jul 2025 holdout. These checks ask whether they also hold in February and June.
+- **Context corrector** (`ctxc1sel_ro` OOF blocks vs the base stack 0.577·LightGBM + 0.428·CatBoost OOF, same rows). It improves every OOF month:
+
+| month | full | non-LIRF | body (NM-matched, y ≤ 1 h) |
+|---|---|---|---|
+| 2025-02 | 286.70 → 259.38 | 280.71 → 252.10 | 193.08 → 182.23 |
+| 2025-06 | 317.67 → 308.04 | 201.34 → 186.00 | 202.64 → 190.59 |
+| other 8 months | −7.1 to −14.2 | −8.3 to −16.6 | −8.5 to −11.9 |
+
+- **Day-level reconciliation** (`tests/final4m_daily_recon_oof.py`, `logs/final4m/daily_recon_oof.log`). Production code and settings (non-LIRF shift ×0.75, LIRF untouched, LSZH skipped) on the corrector's OOF predictions with the 2025 EUROCONTROL file:
+  - Full RMSE improves in every month, CI excluding 0 (airport-day bootstrap). Feb −10.74 [−21.3, −0.2]; Jun −0.59 [−0.98, −0.37]; the other months −0.27 to −1.49. 6–8 of the 8 shifted airports improve in each month.
+  - Body improves in every month except February (+10.2). 98% of that comes from three LTFM days (19, 23, 6 Feb 2025; mean taxi ~750 s above the prediction). There the uniform shift wins on full (−3.1e8 and −4.0e8 SSE on the two worst days) and overshoots the ordinary flights, because the day's excess sits in the tail. This is the trade-off the holdout already chose (uniform beats variance-weighted on full). Kept as is.
+  - Decision: Feb/Jun get the day-level stage with v55's settings.
+- **LIRF NM-unmatched hedges, per month** (leave-one-month-out, from the pre-registered tests' logs; in-scope SSE ratio treatment/base):
+
+| hedge | Feb 2025 | Jun 2025 | worse months | pooled |
+|---|---|---|---|---|
+| signals (v45) | 1.051 (49 rows) | 1.019 (165) | Feb, Jun, Nov | 0.947, 9/12 better |
+| twin bounds (v47) | better | better | none | 12/12 better |
+| round 2 (v48) | 1.114 (49) | 0.943 (156) | Feb | 0.912, 11/12 better |
+
+  - The worse months show no seasonal pattern: the signal hedge is better in the neighbouring months (Jan, Mar, May, Jul). Each month has 40–300 in-scope rows, and February's SSE is under 1% of the pooled total. The gates were pooled by design, and the pooled effect is the best estimate for a new month.
+  - **Decision (judgement call, open to the team):** all three hedges apply to Feb/Jun.
+- **v49's fixes are general procedures**, made scope-aware in `src/post/v49_bundle.py`:
+  - LSZH level: run per month present, from that month's 2025 vs 2026 anchor offsets.
+  - EHAM storm days: found by the same rule (≥ 40 NM-unmatched departures a day); skipped when there are none. The 2026 detections are read from v4, which equals v6 on `adsb_tier` / `adsb_pushback_ts` on all 245 days both hold. The scope's corrector (`ctxc1sel_ro`) is the reference.
+  - Dominated LIRF rows: unchanged.
+  - Order differs from history: v49 used to run before the identity deltas and the new corrector. In the four-month chain it runs after them, so its offsets are measured on the final base.
+- **Teammate's v52 (LSZH, OPDI): left out.** Its code is not in this branch. LSZH keeps v55's treatment otherwise: v49's level fix, and LSZH skipped in the day stage.
+- **Driver:** `run_final4m.sh` runs steps 1–10 (echo probabilities from the saved LightGBM, corrector_v2, re-occupation/identity features, the two context-corrector members + sel, the chain, the identity deltas, assembly, LIRF hedges, v49, the day stage) → `data/submissions/final4m/f4m_full.parquet`. Finished steps are skipped on re-run, so any ADS-B-dependent output must be deleted by hand before ADS-B days are added. `src/post/final4m_compose.py` then takes Jan/Jul from v55 and Feb/Jun from the build, checks the result against `final_submitting.parquet`, and prints the rebuilt-vs-v55 Jan/Jul comparison.
+- **ADS-B re-fetch:** the Colab run read five of the six days in full (1.44–1.83M points, min hours 22–24). The copies on this machine are still the old reads; they are waiting on Drive sync. 2026-06-11 stays thin at source (305k points, 8 airports) and stays out of the store.

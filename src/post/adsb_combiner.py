@@ -22,6 +22,8 @@ Run:  .venv/Scripts/python.exe src/post/adsb_combiner.py [--restricted]
   -> data/submissions/smart-jigsaw_m12.parquet (rename to the next free version on upload)
   --full (reports/adsb_combiner_fullyear_preregistration.md): as --m12 with Feb-Jun, Aug added
   -> data/submissions/smart-jigsaw_v27.parquet
+PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §126): ranking inputs/outputs, template and 2026
+detections from the final4m/ subfolders; the fit (holdout + 2025 OOF days) is unchanged.
 """
 
 from __future__ import annotations
@@ -42,10 +44,11 @@ sys.path.insert(0, str(ROOT / "tests"))
 import adsb_combiner_test as C  # noqa: E402
 import adsb_v3_test as V  # noqa: E402
 import ltfm_egll_anatomy as A  # noqa: E402
+import scope  # noqa: E402
 
-SUB = ROOT / "data" / "submissions"
-RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
-TEMPLATE = ROOT / "data" / "ranking" / "submitting.parquet"
+SUB = scope.out_dir(ROOT / "data" / "submissions")
+RANKING = scope.RANKING
+TEMPLATE = scope.TEMPLATE
 V2 = "--v2" in sys.argv
 V5 = "--v5" in sys.argv
 FULLYEAR = "--full" in sys.argv
@@ -76,7 +79,7 @@ def ranking_frame() -> pl.DataFrame:
           .select(pl.col("MVT_ID_mvt").cast(pl.Int64), "ADEP_mvt",
                   hour=pl.col("MVT_TIME_UTC_mvt").dt.hour(),
                   mvt_ts=pl.col("MVT_TIME_UTC_mvt").dt.epoch("ms") / 1000.0))
-    det = pl.concat([pl.read_parquet(p) for p in sorted(DET_DIR.glob("day=2026-*.parquet"))])
+    det = pl.concat([pl.read_parquet(p) for p in scope.day_files(DET_DIR, "day=2026-*.parquet")])
     det = det.select("MVT_ID_mvt", *V.DET_COLS, "adsb_fallback", *(["adsb_rwy_end"] if V5 else []))
     return (rk.join(mv, on="MVT_ID_mvt", how="left").join(det, on="MVT_ID_mvt", how="left")
             .with_columns(adsb_taxi=pl.col("mvt_ts") - pl.col("adsb_pushback_ts")))
