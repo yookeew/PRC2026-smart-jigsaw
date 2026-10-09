@@ -39,17 +39,16 @@ set up to prevent it:
   rows; no values were changed on that basis. On 2026-10-08 the team wrote
   the rule down explicitly — leaderboard scores are never used to infer
   labels, whether by probing uploads or by solving past score differences
-  (§121) — and closed that line of work. Later sections (§120, §124) apply
-  it.
+  (§121) — and closed that line of work. Later sections apply it.
 
-**Ranking-specific components.** Some later stages target the ranking period
-or data-recording artefacts rather than taxi-out itself, and should not be
+**Ranking-specific components.** Some stages target the ranking period or
+data-recording artefacts rather than taxi-out itself, and should not be
 read as part of a general taxi-out model:
-- the EUROCONTROL daily pre-departure delay reconciliation (§125; cleared
-  with the organisers; §124 records our earlier hesitation about it);
 - Rome-Fiumicino (LIRF) handling of records where block time equals
-  scheduled time (from §7 onward, notably §44, §55, §113–§117, §125);
+  scheduled time (from §7 onward, notably §44, §55, §113–§117);
 - NM-unmatched long-delay lines (§76) and rows frozen in the post-stages.
+
+Later sections that add a stage of this kind say so in a note at their top.
 
 The core model is the split-blind feature builder (departure off-block and
 taxi labels are removed before any feature code runs) plus the LightGBM /
@@ -58,11 +57,14 @@ CatBoost stack and its out-of-fold corrector.
 **Change of scoring.** Near the end of the challenge the organisers released
 `final_ranking.parquet` (Jan, Feb, Jun and Jul 2026). Winners are judged on
 the live Jan/Jul leaderboard and on a blind four-month leaderboard. Sections
-up to §125 target Jan/Jul only.
+written before that release target Jan/Jul only.
 
 **Machine-specific wording.** "This machine", "another machine" and
 "scratch" refer to runs on team members' laptops whose intermediate files
 were not committed. Committed logs are in `logs/`.
+
+**CLAUDE.md** in this log refers to our internal design notes, which are no
+longer published; the design is now in [DESIGN.md](DESIGN.md).
 
 ## Log start — 2026-09-15
 
@@ -5574,6 +5576,13 @@ Code:
 - **Board: v54 = 241.7634 (−0.90 vs v53). Kept; new best.** At the projection (−0.96): the corrector's stand signal transferred about 1:1.
 
 ## 125. EUROCONTROL daily pre-departure delay: day-level reconciliation + LIRF echo update -- v55 built (2026-10-09)
+
+*Note added 2026-10-09: ranking-specific stage (see the reader's guide). The
+day-level reconciliation aligns our output with a published daily aggregate
+rather than modelling taxi-out, and works only for periods where that
+aggregate exists. It was cleared with the organisers; §124 records our
+earlier hesitation about it. The LIRF echo update also belongs to the LIRF
+handling listed in the guide.*
 
 - **Data:** `external-data/all_pre_departure_delays_{2025,2026}.csv` (DATA_SOURCES.md; fetch script updated).
   - EUROCONTROL data is admin-cleared. Asked again on 2026-10-09 about ranking-period aggregates: "no change. still ok".

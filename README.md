@@ -3,7 +3,7 @@
 Predicting `TAXITIME_SEC_mvt` for departures at 11 major European airports
 (EDDF, EDDM, EGLL, EHAM, LEBL, LEMD, LFPG, LIRF, LTAI, LTFM, LSZH) for the
 2026 PRC / OpenSky Network Data Challenge. Full design and rationale live in
-[CLAUDE.md](CLAUDE.md).
+[DESIGN.md](DESIGN.md).
 
 ## Setup (Windows)
 
@@ -79,11 +79,20 @@ committed. Safe to re-run: it skips files already present.
 
 ## Reproducing our submission
 
-See [REPRODUCE.md](REPRODUCE.md). It rebuilds our best leaderboard entry
-(v25, RMSE 264.39) from the raw data, step by step.
+See [REPRODUCE.md](REPRODUCE.md). It currently rebuilds v30 (leaderboard
+RMSE 261.40) from the raw data, step by step; the stages added after v30
+are documented in [PROGRESS.md](PROGRESS.md) and will be added to
+REPRODUCE.md.
 [PROGRESS.md](PROGRESS.md) is the full experiment log, and
 `reports/*_preregistration.md` holds the pre-registered tests behind every
 adopted change.
+
+## How this was built
+
+Development was assisted by AI coding tools (Claude Code). The team set the
+design, chose what to test, set the evaluation rules and reviewed the
+results; all decisions recorded in [PROGRESS.md](PROGRESS.md) are the
+team's.
 
 ## Licence
 
