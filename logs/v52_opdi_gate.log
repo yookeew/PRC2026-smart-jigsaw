@@ -1,0 +1,8 @@
+loaded in 2s; OOF stack w [1.011 0.   ]; OPDI ground-event share: holdout 0.093, OOF ADS-B days 0.091; OPDI day coverage holdout 1.000
+  corrector fit 2025-01: best_iter 730
+  corrector fit 2025-07: best_iter 1347
+control vs cache/v50/chain_all: rows 344339, max |diff| 0.00e+00
+arm all: 135s
+  corrector fit 2025-01: best_iter 632
+  corrector fit 2025-07: best_iter 1496
+arm opdi: 130s

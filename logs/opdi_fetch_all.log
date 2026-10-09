@@ -1,0 +1,49 @@
+  retry 1 221277156-221342691: status 416, 0 bytes
+fetch flight_events_20241226_20250105.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7], 150 of 221 MB, 279,261 events, 20 s
+skip  flight_events_20250105_20250115.parquet
+  retry 1 224849340-224914875: status 416, 0 bytes
+fetch flight_events_20250115_20250125.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7], 152 of 225 MB, 261,067 events, 20 s
+  retry 1 203985751-204051286: status 416, 0 bytes
+fetch flight_events_20250125_20250204.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7], 136 of 204 MB, 198,299 events, 19 s
+  retry 1 250809765-250875300: status 416, 0 bytes
+fetch flight_events_20250204_20250214.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8], 170 of 251 MB, 308,267 events, 21 s
+  retry 1 277609924-277675459: status 416, 0 bytes
+fetch flight_events_20250214_20250224.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 188 of 278 MB, 319,859 events, 22 s
+  retry 1 129246952-129312487: status 416, 0 bytes
+fetch flight_events_20250224_20250306.parquet: row groups [0, 1, 2, 3, 4], 83 of 129 MB, 154,814 events, 16 s
+  retry 1 298643688-298709223: status 416, 0 bytes
+fetch flight_events_20250306_20250316.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 201 of 299 MB, 296,838 events, 28 s
+  retry 1 309313627-309379162: status 416, 0 bytes
+  retry 2 309313627-309379162: status 416, 0 bytes
+fetch flight_events_20250316_20250326.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 208 of 309 MB, 312,865 events, 39 s
+  retry 1 298903240-298968775: status 416, 0 bytes
+fetch flight_events_20250326_20250405.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 198 of 299 MB, 266,086 events, 30 s
+  retry 1 387332525-387398060: status 429, 5932 bytes
+  retry 1 226819333-227875160: status 429, 5932 bytes
+  retry 2 226819333-227875160: status 429, 5932 bytes
+  retry 3 226819333-227875160: status 429, 5932 bytes
+  retry 4 226819333-227875160: status 429, 5932 bytes
+  retry 5 226819333-227875160: status 429, 5932 bytes
+Traceback (most recent call last):
+  File "C:\Users\zhang\smart-jigsaw\src\ingest\fetch_opdi_events.py", line 175, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "C:\Users\zhang\smart-jigsaw\src\ingest\fetch_opdi_events.py", line 171, in main
+    fetch(d0)
+  File "C:\Users\zhang\smart-jigsaw\src\ingest\fetch_opdi_events.py", line 131, in fetch
+    tb = pl.from_arrow(pf.read_row_group(i, columns=COLS))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\zhang\smart-jigsaw\.venv\Lib\site-packages\pyarrow\parquet\core.py", line 483, in read_row_group
+    return self.reader.read_row_group(i, column_indices=column_indices,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pyarrow/_parquet.pyx", line 1818, in pyarrow._parquet.ParquetReader.read_row_group
+    return self.read_row_groups([i], column_indices, use_threads)
+  File "pyarrow/_parquet.pyx", line 1854, in pyarrow._parquet.ParquetReader.read_row_groups
+    return pyarrow_wrap_table(GetResultValue(table_result))
+  File "pyarrow/error.pxi", line 155, in pyarrow.lib.pyarrow_internal_check_status
+    return check_status(status)
+  File "pyarrow/error.pxi", line 89, in pyarrow.lib.check_status
+    RestorePyError(status)
+  File "C:\Users\zhang\smart-jigsaw\src\ingest\fetch_opdi_events.py", line 87, in read
+    raise IOError(f"range {self.pos}-{end} failed")
+OSError: range 226819333-227875160 failed

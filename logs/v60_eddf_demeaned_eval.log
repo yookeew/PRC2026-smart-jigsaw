@@ -1,0 +1,11 @@
+P: 19,332 EDDF rows on 31 days, covered 0.472
+  full            ctl  122.34  demeaned  117.50 ( -4.84)  raw  117.39 ( -4.96)
+  body            ctl  119.41  demeaned  114.42 ( -4.99)  raw  114.30 ( -5.11)
+  body covered    ctl  114.23  demeaned  102.90 (-11.33)  raw  102.64 (-11.59)
+  body uncovered  ctl  123.90  demeaned  123.90 ( +0.00)  raw  123.89 ( -0.01)
+  body by month (demeaned): {'2025-09': -4.94, '2025-10': -3.82, '2025-11': -6.93, '2025-12': -4.05}
+  body day-cluster bootstrap 95% CI [-6.42, -3.73]
+  GATE (body<=-2.0, >=3/4 months, CI<0, full<=0): [True, True, np.True_, True] -> PASS
+  per covered row dMSE (ctl - demeaned) 2460 s^2; 2025 daily mean raw delta on covered rows: median +2.8 s, IQR [+1.2, +4.6]
+  2026 EDDF covered rows on kept days 16,937 (51 days); daily mean raw delta median +2.1 s, IQR [-1.9, +6.6] (removed by the demeaning)
+  2026 projection (2025 covered-row dMSE x 2026 covered rows): board -0.252 s

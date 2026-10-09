@@ -1,0 +1,48 @@
+rows 1,740,628; ADS-B days 115; OOF stack w [1.011 0.   ]
+C:\Users\zhang\smart-jigsaw\tests\adsb_queue_oracle.py:126: RuntimeWarning: Mean of empty slice
+  f["prev3_r"][ix] = np.nanmean(P, axis=1); f["next3_r"][ix] = np.nanmean(N, axis=1)
+C:\Users\zhang\smart-jigsaw\tests\adsb_queue_oracle.py:127: RuntimeWarning: Mean of empty slice
+  f["prev3_y"][ix] = np.nanmean(PY, axis=1)
+own-label invariance OK on 27 features; eval rows 609,238
+fold 2025-02 done
+fold 2025-03 done
+fold 2025-04 done
+fold 2025-05 done
+fold 2025-06 done
+fold 2025-08 done
+fold 2025-09 done
+fold 2025-10 done
+fold 2025-11 done
+fold 2025-12 done
+
+RMSE on held-out months (non-LIRF, 115 OOF ADS-B days)
+slice                                s         C        O1        O2    O1-C    O2-C
+full                            186.47    184.56    178.79    170.29   -5.77  -14.27
+trimmed y<=5h                   186.46    184.55    178.77    170.28   -5.78  -14.27
+body                            170.50    167.43    163.34    157.13   -4.09  -10.31
+body, no own pushback           184.37    184.64    179.69    172.21   -4.95  -12.42
+body, own pushback              117.08     95.55     95.77     95.81   +0.22   +0.27
+y 30-60 min NM-matched          497.62    515.19    503.36    479.42  -11.83  -35.77
+
+body by month (O1-C, O2-C):
+  2025-02: C  168.85  O1-C  -1.18  O2-C  -6.06
+  2025-03: C  162.08  O1-C  -3.49  O2-C -10.06
+  2025-04: C  155.38  O1-C  -3.82  O2-C  -9.01
+  2025-05: C  170.27  O1-C  -5.51  O2-C -13.98
+  2025-06: C  168.41  O1-C  -3.71  O2-C  -9.22
+  2025-08: C  183.53  O1-C  -5.01  O2-C -10.19
+  2025-09: C  171.83  O1-C  -5.04  O2-C  -9.93
+  2025-10: C  165.99  O1-C  -5.14  O2-C -11.28
+  2025-11: C  155.08  O1-C  -4.57  O2-C  -9.90
+  2025-12: C  169.42  O1-C  -2.85  O2-C -13.95
+
+body by airport (C, O1-C, O2-C):
+  EDDF:  131.94   -1.46   -5.80
+  EDDM:  116.99   -0.63   -2.48
+  EGLL:  204.00   -3.71   -8.03
+  EHAM:  109.71   -0.09   -0.97
+  LEBL:  160.04   -1.59   -3.83
+  LEMD:  160.59   -2.57   -8.57
+  LFPG:  206.55   -7.86  -18.71
+  LSZH:  118.89   -1.32   -4.69
+  LTFM:  214.48   -9.33  -22.50
