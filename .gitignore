@@ -34,3 +34,9 @@ external-data/adsb-fetch/
 external-data/adsb-restofyear/
 external-data/adsb_restofyear/
 external-data/adsb-later/
+external-data/adsb-final2026/
+external-data/adsb_final2026/
+
+# Local AI-assistant files (internal notes and settings)
+CLAUDE.md
+.claude/

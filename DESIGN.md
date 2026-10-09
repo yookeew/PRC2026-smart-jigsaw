@@ -10,7 +10,7 @@ submission is in [REPRODUCE.md](REPRODUCE.md).
 Predict `TAXITIME_SEC_mvt` (taxi-out, in seconds) for departures at the
 challenge airports, scored by RMSE. Training data is every movement
 (arrivals and departures) at 11 airports in 2025. The ranking data is
-January, February, June and July 2026, with `BLOCK_TIME_UTC_mvt` and
+January, July (+ later February and June)  2026, with `BLOCK_TIME_UTC_mvt` and
 `TAXITIME_SEC_mvt` blanked on departures. Antalya (LTAI) has no departures
 in either set, so the target covers 10 airports.
 
@@ -114,8 +114,11 @@ model already sees, and the screen bounded its gain near zero
 
 ## Compute and conventions
 
-- Developed on laptops and free-tier Google Colab: Polars for features,
-  LightGBM on CPU, CatBoost on a Colab T4 GPU. No neural networks.
+- Developed on two laptops with the same specification: Intel Core Ultra 7
+  155H (16 cores / 22 threads), 32 GB RAM, Windows 11, integrated Intel Arc
+  graphics (not used for training). GPU work (CatBoost) ran on free-tier
+  Google Colab (NVIDIA T4). Polars for features, LightGBM on CPU. No neural
+  networks.
 - Fixed seeds; LightGBM with `deterministic=true` and `force_row_wise=true`.
 - Fetch scripts and small derived tables are committed; caches are local
   and rebuildable from source.

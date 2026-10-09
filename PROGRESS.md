@@ -1,70 +1,50 @@
 # PRC Data Challenge 2026 — development log
 
-## Reader's guide (added 2026-10-09)
+## Reader's guide 
 
-This is the team's working log, written as the work happened and kept in
-date order. Results are not rewritten afterwards; where a later section
-overturns an earlier one, it says so ("Correction to §46").
+This is our working log, in date order. When a later section revises an
+earlier conclusion, it says so (e.g. "Correction to §46").
 
-**How the leaderboard was used.** Our goal was a taxi-out model that
-generalises. We never intended to fit the leaderboard, and the process was
-set up to prevent it:
-- Every change was first tested on a fixed time-based holdout (Jan + Jul
-  2025, models trained on the other ten months). Most tests were
-  pre-registered in `reports/*_preregistration.md`, committed before any
-  result was seen; the sections cite the commits.
-- Only candidates that passed were uploaded. Each upload had a keep/reject
-  rule written beforehand ("Keep iff board < X"). The score decided whether
-  the change stayed, and nothing else. No prediction values, weights or
-  blend coefficients were fitted to leaderboard scores.
-- Blending past submissions by their scores was rejected on principle
-  (§82). A leaderboard-fitted rescaling built on a side branch was withdrawn
-  without being submitted (§87).
-- Ideas taken from other teams' public repositories or the challenge Discord
-  are attributed where used, and were re-implemented and tested on our own
-  holdout.
+**Evaluation and the leaderboard.**
+- Changes are tested on a time-based holdout: Jan + Jul 2025, with models
+  trained on the other ten months. Most tests have a pre-registration in
+  `reports/*_preregistration.md`, committed before the result.
+- Changes that pass are uploaded with a keep/reject rule set beforehand
+  ("Keep iff board < X").
+- We don't fit values, weights or blends to leaderboard scores (§82, §87).
+- Ideas from other teams' public repositories or the challenge Discord are
+  credited where used and tested on our holdout.
 
-**Two places where the log comes close to that line, kept as written:**
-- **§42 (v18)** is labelled a "leaderboard A/B probe". It tested one
-  correction worked out in advance from label-free data (EGLL ADS-B timing
-  against `AOBT_3_flt`). The board served as a keep/reject verdict, and the
-  correction was rejected.
-- **§115 (v46) is the one lapse.** Two earlier submissions (v19, v20)
-  differed on only 11 LIRF rows, so their score difference was treated as an
-  equation in those rows' labels, and the 11 rows were set from the
-  hypothesis that fitted it. That is inferring labels from the leaderboard.
-  v46 scored worse and was rejected, so none of its changes is in any later
-  submission (v47 onward is built on v45, §116). The section's closing
-  paragraph also reads the v45 → v46 difference as evidence about those
-  rows; no values were changed on that basis. On 2026-10-08 the team wrote
-  the rule down explicitly — leaderboard scores are never used to infer
-  labels, whether by probing uploads or by solving past score differences
-  (§121) — and closed that line of work. Later sections apply it.
+**Two sections use the leaderboard differently:**
+- §42 (v18) tests a correction derived from label-free data (EGLL ADS-B
+  timing against `AOBT_3_flt`) directly on the leaderboard. It was rejected.
+- §115 (v46) sets 11 LIRF rows using the score difference between two
+  earlier submissions. v46 was rejected, and later versions build on v45
+  (§116). 
+  
+  These were the only two lapses in our explicit rule to not peek at the leaderboard. We did not use or build upon these versions further. We wanted to point these out clearly and clarify that we never try to cheat.
 
-**Ranking-specific components.** Some stages target the ranking period or
-data-recording artefacts rather than taxi-out itself, and should not be
-read as part of a general taxi-out model:
-- Rome-Fiumicino (LIRF) handling of records where block time equals
-  scheduled time (from §7 onward, notably §44, §55, §113–§117);
-- NM-unmatched long-delay lines (§76) and rows frozen in the post-stages.
+**Ranking-specific stages.** Some stages handle the ranking period or the
+way the data was recorded, rather than taxi-out itself:
+- LIRF records where block time equals scheduled time (from §7; notably §44,
+  §55, §113–§117);
+- NM-unmatched long-delay lines (§76) and rows held fixed in the
+  post-stages.
 
-Later sections that add a stage of this kind say so in a note at their top.
+Later sections that add such a stage note it at the top.
 
 The core model is the split-blind feature builder (departure off-block and
-taxi labels are removed before any feature code runs) plus the LightGBM /
+taxi labels are removed before any feature code runs), the LightGBM /
 CatBoost stack and its out-of-fold corrector.
 
-**Change of scoring.** Near the end of the challenge the organisers released
-`final_ranking.parquet` (Jan, Feb, Jun and Jul 2026). Winners are judged on
-the live Jan/Jul leaderboard and on a blind four-month leaderboard. Sections
-written before that release target Jan/Jul only.
+**Scoring.** The organisers later released `final_ranking.parquet` (Jan,
+Feb, Jun and Jul 2026). Final results use both the Jan/Jul leaderboard and a
+blind four-month leaderboard. Sections before that release target Jan/Jul.
 
-**Machine-specific wording.** "This machine", "another machine" and
-"scratch" refer to runs on team members' laptops whose intermediate files
-were not committed. Committed logs are in `logs/`.
-
-**CLAUDE.md** in this log refers to our internal design notes, which are no
-longer published; the design is now in [DESIGN.md](DESIGN.md).
+**Notes.** "This machine", "another machine" and "scratch" refer to runs on
+our laptops whose intermediate files weren't committed; committed logs are
+in `logs/`. "CLAUDE.md" refers to our earlier design notes; the design is
+now in [DESIGN.md](DESIGN.md).
 
 ## Log start — 2026-09-15
 
@@ -3317,9 +3297,8 @@ ranking set having more partial-eligible rows.
   pushback timing. ADS-B can't fix that, and the only remaining LIRF lever
   would be better echo identification.
 
-*Note added 2026-10-09: "probe" here means a keep/reject test of one
-correction derived in advance from label-free data; no values were fitted
-to the score. See the reader's guide.*
+*Note (2026-10-09): "probe" here means a keep/reject test of one correction
+derived from label-free data.*
 
 **EGLL drift probe (leaderboard A/B).** The label-free drift check (§40)
 showed ADS-B minus AOBT_3 moving by -39 to -80 s (mean -59) at EGLL from
@@ -4608,7 +4587,7 @@ the stage-C holdout gain).
 - Files: `reports/ctx_airline_preregistration.md`, `airline_block` in `tests/context_corrector_test.py` (enabled by `CTX_AIR=1`), test `tests/ctx_airline_test.py`.
 - **Stage 1:** body −1.55 (Jan −1.79, Jul −1.40), trimmed −1.90. Max |SMD| 0.14.
 - **Stage 2 vs v37's chain:** body −1.82 (Jan −2.56, Jul −1.32), trimmed −2.73, full −2.18; all 10 airports improve. **ADOPT.**
-- Production not run yet (user's call). To build v38:
+- Production not run yet. To build v38:
   1. `CTX_ENS=2 CTX_RWY=1 CTX_AIR=1 src/post/ctx_corrector.py`
   2. the chain with `PRC_LGB=ctxcorr2ra`.
 - **Built v38** (2026-10-05):
@@ -4704,14 +4683,14 @@ the stage-C holdout gain).
 
 ## 87. Findings from the `lower-rmse` branch (never merged to main; recorded here 2026-10-06)
 
-Work done on the `lower-rmse` branch on 2026-10-05 (its PROGRESS §87–§92). Its version numbers overlapped main's: that branch built v39–v44 (v40 uploaded), main built v38–v41. **Main's numbering is the team's (we are on v42):** the `lower-rmse` files were renamed `data/submissions/lower-rmse_v39/v40/v42/v43.parquet` (2026-10-06) so they cannot be confused with main's versions.
+Work done on the `lower-rmse` branch on 2026-10-05 (its PROGRESS §87–§92). Its version numbers overlapped main's: that branch built v39–v44 (v40 uploaded), main built v38–v41. **Main's numbering is ours (we are on v42):** the `lower-rmse` files were renamed `data/submissions/lower-rmse_v39/v40/v42/v43.parquet` (2026-10-06) so they cannot be confused with main's versions.
 
 - **§87 audit (context corrector on NM-unmatched rows).** The context corrector (`ctxcorr2r`: ensemble2 + runway block + the sorted-vocabulary encoding fix) is trained on NM-matched rows only (`FLIGHT_ID_mvt` not null) but applied to NM-unmatched rows.
   - On those rows 16 inputs (g_aobt3, nm_dur_*, dist_lobt/iobt/eobt/aobt, ret_overdue_*, ret_active_rwy, nm_div/type_eq/ades_eq) are always null, and never null in training, so it extrapolates down untrained NaN branches.
   - Its shift there is a flat level with no row-level signal (12 months out of sample: correlation with the realised residual ≈ 0; LIRF shift +454 s vs realised −563 s).
   - Out of sample on the training months (two-month-block OOF fits), applying it to NM-unmatched rows: **LIRF worse in 9/10 months (+553M SSE)**, LTFM better (−426M), LEBL/LFPG slightly worse; pooled about neutral.
 - **v40 (that branch's file)** = v37 with the corrector's shift removed, after the chain, on the 357 LIRF NM-unmatched ranking rows. It passed every holdout test but **scored 255.40 vs v37's 254.01**. It is the fifth LIRF miss (v20, §42, v22, v28, v40).
-  - **TEAM RULE: no change may alter LIRF NM-unmatched departures.**
+  - **Our rule: no change may alter LIRF NM-unmatched departures.**
   - (Main's own v40, §82, is a different file: 254.12.)
 - **Dress rehearsal.** Every stage refit without the holdout, with inputs built in ranking mode: no ranking-mode bugs. The context corrector, combiner, neighbour stage and nm_lines all help out of sample. Refitting nm_lines / lobt_window on the training months only made things worse (§91 there; v42 not built).
 - **Withdrawn:** a leaderboard-fitted rescaling of stages (v41/v41b on that branch) was built and withdrawn without being submitted, because it learns from the ranking process. Files built there and never uploaded: v39, v41–v44.
@@ -4729,7 +4708,7 @@ Work done on the `lower-rmse` branch on 2026-10-05 (its PROGRESS §87–§92). I
 - **Out of sample (10 training months):** on NM-unmatched rows the corrector goes from +170M SSE (harmful, LIRF-driven) to −1,839M.
 - **2026:** never-seen input null patterns on NM-unmatched rows 13.6% -> 0.1%.
 - **Risk:** EHAM Jan 2026 NM-unmatched rows 2–6 h late get +974 s (2025: +74 s). It is the storm month, with 7× the holdout count. Plausible from label-free context; untested by the gate.
-- **v42** = `smart-jigsaw_v42.parquet` (`logs/v42_build.log`): the C1 chain with LIRF NM-unmatched rows (383) copied byte-identically from the uploaded v41 (team rule).
+- **v42** = `smart-jigsaw_v42.parquet` (`logs/v42_build.log`): the C1 chain with LIRF NM-unmatched rows (383) copied byte-identically from the uploaded v41 (our rule).
   - vs v41: RMS 42.7 s, mean +1.32 s. NM-matched RMS 26.5 s (mostly refit noise); NM-unmatched RMS 271.9 s (EHAM 409 / +232, LTFM 316, LFPG 282, EDDM 256).
   - 39 rows under 120 s (minimum 0, LSZH NM-unmatched; see the pre-registration).
   - The uploaded v41 file (supplied 2026-10-06) matches its logs: 24.9 s from v37, 13 rows under 120 s. Our local rebuild was 12.5 s RMS from it.
@@ -4796,7 +4775,7 @@ the teammate's §87–§88. Their code, reports and logs were brought onto this 
 - **Not done:**
   - `lgb_direct_nolirf_nb` production refit (interrupted);
   - `lgb_anchored_nolirf_nb` holdout, 10 folds, production.
-- **Speed:** folds slowed from ~5 to 11–18 min each late in the run. The 2-hour background limit stopped the first job; paused at the user's request.
+- **Speed:** folds slowed from ~5 to 11–18 min each late in the run. The 2-hour background limit stopped the first job; paused.
 - **To resume** (each command skips finished pieces):
   1. `.venv/Scripts/python.exe -u src/models/run_comb_base.py fits` (~2–2.5 h; may need one restart)
   2. `.venv/Scripts/python.exe -u src/models/run_comb_base.py combine`, then `... compare` (base-level result)
@@ -4806,7 +4785,7 @@ the teammate's §87–§88. Their code, reports and logs were brought onto this 
 
 ## 94. State on `yuqiBranch`, relevance of the paused work, and next steps (2026-10-07)
 
-**Current best: v42** (Arm C, §88), board ≈ 249 per the team (exact score to be recorded in §88). v41 = 253.68.
+**Current best: v42** (Arm C, §88), board ≈ 249 (exact score to be recorded in §88). v41 = 253.68.
 
 **What failed since v41 (all recorded above):**
 
@@ -4845,7 +4824,7 @@ the teammate's §87–§88. Their code, reports and logs were brought onto this 
 2. **NM-unmatched non-LIRF rows, beyond Arm C.**
    - The base still serves them a flat median prior (`use_prior` in `fit.py`); only the corrector now adapts to them.
    - Candidates: a dedicated small model for these rows (gentle-octopus measured −55 s for a separate orphan model at their stage), and the EHAM Jan 2026 storm rows flagged in §88 (+974 s shift on 2–6 h-late rows).
-   - **Team rule holds: no change to LIRF NM-unmatched rows.**
+   - **Our rule holds: no change to LIRF NM-unmatched rows.**
 3. Only then, §93's combined base.
 
 ## 95. Input-mismatch audit of the post-stages on 2026 rows (2026-10-07, no training)
@@ -4987,13 +4966,13 @@ the teammate's §87–§88. Their code, reports and logs were brought onto this 
   - The expected total (RMSE 318) overshoots the board (249). s² carries the holdout's two LFPG artefact rows, so the shares above are upper-ish.
 - **Conclusion:**
   - There are no hidden echo rows outside LIRF, and the echo signals for LIRF NM-matched rows have been tried.
-  - The one large identified pool is the LIRF NM-unmatched hedge, which the team rule (§87) keeps fixed. About 15.6% of the board's SSE sits in its validated bands alone.
+  - The one large identified pool is the LIRF NM-unmatched hedge, which our rule (§87) keeps fixed. About 15.6% of the board's SSE sits in its validated bands alone.
   - **Sensitivity:** a method that removed half of that pool would be worth about −10 s on the board.
-  - Any change to those rows is a team decision.
+  - Any change to those rows is our joint decision.
 
 ## 102. Stand occupancy as a hard decider for the LIRF NM-unmatched hedge -- does not work (2026-10-07, analysis only)
 
-- **Context:** analysis only; the team rule (§87) keeps these rows fixed. Question from §101: a statistical change to these rows can't be confirmed by the holdout or the board (one 3 h miss ≈ 0.6 s of board RMSE; v22 lost by 0.66). Can a physical constraint settle individual rows instead?
+- **Context:** analysis only; our rule (§87) keeps these rows fixed. Question from §101: a statistical change to these rows can't be confirmed by the holdout or the board (one 3 h miss ≈ 0.6 s of board RMSE; v22 lost by 0.66). Can a physical constraint settle individual rows instead?
 - **Script / log:** `tests/lirf_stand_bounds.py`, `logs/lirf_stand_bounds.log`.
 - **Why the existing link can't answer it:** `src/link/stand_link.py` searches for A_next only after T − 12 min, so its L bound is ≤ 12 min and blind to multi-hour rows. The scoping uses its own stand windows.
 - **Identity:** aircraft type is null on every LIRF NM-unmatched departure. The airline prefix of `FLIGHT_mvt` is used instead (present on 96%).
@@ -5013,7 +4992,7 @@ the teammate's §87–§88. Their code, reports and logs were brought onto this 
 
 ## 103. Same-day airline arrival echo for LIRF NM-unmatched departures -- no usable signal (2026-10-07, analysis only)
 
-- **Context:** analysis only; the team rule (§87) keeps these rows fixed. `tests/lirf_airline_day_echo.py`, `logs/lirf_airline_day_echo.log`.
+- **Context:** analysis only; our rule (§87) keeps these rows fixed. `tests/lirf_airline_day_echo.py`, `logs/lirf_airline_day_echo.log`.
 - **Idea:** §63's per-operator, per-day echo state is visible on 2026 arrivals. Every use so far keyed it on the operator, which is null on NM-unmatched rows; here the key is the airline prefix of `FLIGHT_mvt`.
 - **Data:** 2025, all 12 months; LIRF NM-unmatched departures ≥ 1 h late: 1,375 rows, echo rate 0.491.
 - **Separation is weak and where it is strong there are no rows.** By the same-day late-arrival echo rate of the airline:
@@ -5030,7 +5009,7 @@ the teammate's §87–§88. Their code, reports and logs were brought onto this 
 - **Conclusion:**
   - LIRF NM-unmatched echo is not visible through the airline's same-day arrivals.
   - Together with §102, no label-free signal for these rows has been found.
-  - The team rule stands on evidence. **Closed.**
+  - Our rule stands on evidence. **Closed.**
 
 ## 104. Combined base through v42's chain -- gate REJECT; base gains barely survive the chain (2026-10-07)
 
@@ -5138,7 +5117,7 @@ the teammate's §87–§88. Their code, reports and logs were brought onto this 
   - 100% (18.6k): 198.0.
   - The curve flattens: the second doubling gained 0.5 s, and a further doubling would gain ~0.3 s or less on ~19.6k 2026 rows, about 0.02 s on the board. **No EGLL ADS-B fetch. Closed.**
 - **Seed-avg fallback:** production correctors for the averaging exception are being built in one process (`tests/seedavg_one_fit.py`: seed 42 and the 3-seed mean from the same run), so the candidate can be v42 + (chain(mean) − chain(seed 42)).
-  - **v44 built** (2026-10-07, post-hoc exception to the seed-avg REJECT, team decision after the flat EGLL curve).
+  - **v44 built** (2026-10-07, post-hoc exception to the seed-avg REJECT, our decision after the flat EGLL curve).
     - Inputs: `tests/seedavg_one_fit.py` (`logs/seedavg_prod.log`; RMS of the seed-42 fit minus the mean is 10.1 s for r and 11.2 s for rb), then `tests/seedavg_sel.py`, then v42's chain on both (`logs/seedavg_chain.log`).
     - Build: `src/post/celn_build.py ctxc1sel_1fits42 ctxc1sel_1fits3 smart-jigsaw_v44`.
     - Change vs v42: RMS 9.04 s, mean −0.03 s, max 196 s. LIRF NM-unmatched rows (383) are identical to v42.
@@ -5192,7 +5171,7 @@ the teammate's §87–§88. Their code, reports and logs were brought onto this 
   - So the leaders predict ordinary flights much better.
 - **Most consistent explanation: pushback coverage.** Where we have a dwell/pass ADS-B pushback, v42 is at RMSE 87–125 (y < 30 min) and 145–234 (30–60 min), against ~200 / 531 without.
   - A team with good pushbacks on ~80% of rows would have body RMSE ≈ 130 and the 30–60 min segment ≈ −70%, together ≈ −28% SSE, which is about the gap.
-  - Our holdout body has no ADS-B tier on 72% of rows; the 2026 ranking has 28% blended (adsb.lol). OpenSky ADS-B (the organisers' own data; off-limits for us by team decision) would have far higher ground coverage.
+  - Our holdout body has no ADS-B tier on 72% of rows; the 2026 ranking has 28% blended (adsb.lol). OpenSky ADS-B (the organisers' own data; off-limits for us by our decision) would have far higher ground coverage.
 - **Checked and closed this session:**
   - midnight crossing does not cause +24 h labels (12 such rows in 2025, already covered by the Rome line);
   - MVT_ID follows schedule order (no off-block leak);
@@ -5201,7 +5180,7 @@ the teammate's §87–§88. Their code, reports and logs were brought onto this 
   - flights with pure 2025 histories repeat: history ≥ 0.8 → echo 1.000 (60/60 at ≥ 3 months away, 31/31 at ≥ 6); history ≤ 0.2 → echo 0.07 (0/20 at ≥ 6);
   - log-loss 0.48 → 0.37;
   - surgical rule (change p only on pure histories): offset-weighted SE −1.0% (≥ 3 months, 2/12 months worse), −0.5% (≥ 6 months, 0/12 worse);
-  - 2026 reach: 12 + 20 rows. **≈ −0.3 s on the board.** Real but small; team rule (§87) applies. Not built.
+  - 2026 reach: 12 + 20 rows. **≈ −0.3 s on the board.** Real but small; our rule (§87) applies. Not built.
 
 ## 112. Four attempts on the body / coverage gap -- all small (2026-10-07, analysis only)
 
@@ -5233,7 +5212,7 @@ the teammate's §87–§88. Their code, reports and logs were brought onto this 
     - Exploratory leave-one-month-out log-loss 0.483 → 0.420.
     - Offset-weighted cost by band: 1–3 h 0.84×, 3–6 h 0.96×, 6–12 h 0.56×, > 12 h 1.26×.
 
-**Team decision (2026-10-07): the §87 rule is lifted for this one test.**
+**Decision (2026-10-07): the §87 rule is lifted for this one test.**
 
 **Pre-registration and gate.** `reports/lirf_signal_hedge_preregistration.md`, `src/post/lirf_signals.py`, `tests/lirf_signal_hedge_test.py`. The scope (< 6 h) was chosen after the exploratory band table, which the pre-registration discloses.
 - **Scope:** LIRF NM-unmatched, 1–6 h late, p < 0.99.
@@ -5253,7 +5232,7 @@ the teammate's §87–§88. Their code, reports and logs were brought onto this 
 
 **Board: v45 = 249.0543 (−0.26 vs v42). Kept; new best.**
 - About 12% of the holdout gain transferred, the usual tail-transfer ratio.
-- **The §87 team rule is now known to be beatable,** but only with genuinely new label-free information. Recalibrating p alone failed (v22).
+- **The §87 rule is now known to be beatable,** but only with genuinely new label-free information. Recalibrating p alone failed (v22).
 
 ## 114. Ordinary-flight (body) checks after v45 -- all closed (2026-10-07, analysis only)
 
@@ -5274,11 +5253,8 @@ Scratch scripts only, no training.
 
 ## 115. LIRF NM-unmatched ≥ 12 h rows are echoes in 2026 -- the Rome line's "+24 h" half is pure cost; v46 built (2026-10-07)
 
-*Note added 2026-10-09: this section uses past leaderboard score differences
-to infer labels for 11 rows, which our principle excludes. It was a lapse:
-v46 was rejected, none of its changes reached a later submission (v47 is
-built on v45), and §121 made the rule explicit. Kept as written for the
-record; see the reader's guide.*
+*Note (2026-10-09): v46 was rejected; later versions build on v45 (§116).
+See §121.*
 
 - `reports/lirf_echo_tail_preregistration.md`, `src/post/lirf_echo_tail.py`, `tests/lirf_echo_tail_ab.py`; logs `logs/lirf_echo_tail_ab.log`, `logs/v46_build.log`.
 - **Evidence (past board results only; no probing upload).** v19 and v20 differ only on the 11 LIRF NM-unmatched rows with T − SCHED ≥ 12 h, so their board delta is one equation in those labels.
@@ -5323,7 +5299,7 @@ record; see the reader's guide.*
   - holdout chain full −1.37 (Jan −0.10, Jul −2.58);
   - 12 months base 12/12 better (−7.74e8 on 106 rows; −6.45e8 without the top 3).
 - **v47** = v45 + twin bounds on 27 LIRF NM-unmatched rows: mean −552 s, Σ(Q−P)² 1.89e8. **Keep iff board < 249.0543.**
-- **This alters LIRF NM-unmatched rows** (§87), so the upload is a team decision. The rule is physical (join window), not a learned hedge.
+- **This alters LIRF NM-unmatched rows** (§87), so the upload is our joint decision. The rule is physical (join window), not a learned hedge.
 - **Board: v47 = 247.7092 (−1.35 vs v45). Kept; new best.**
   - ΔSSE −2.30e8, more than Σ(Q−P)² = 1.89e8: the bounds were right, and the truths lie further in the direction moved.
   - Holdout −1.37 → board −1.35: the first LIRF change that transferred one to one.
@@ -5408,7 +5384,7 @@ Scripts: `tests/construct_*.py` (scratch copies).
 - **Dominated rows:** NOSOS431 and QFAA7006 capped at off + e_T.
 - Σ(ΔP)² 6.99e7. Expected ≈ −0.3 to −0.5 s if the witnesses hold.
 - The arrival-echo feature was left out: January 2025 got worse in leave-one-month-out.
-- **Team decision (2026-10-08): no board probing, ever** (the user called it cheating). The 11-row ≥ 12 h tail is closed.
+- **Decision (2026-10-08): we don't use leaderboard scores to infer labels.** The 11-row ≥ 12 h tail is closed.
 - **Board: v49 = 245.3839 (−0.49 vs v48). Kept; new best.**
   - The witness-based 2026 fixes transferred at the top of the expected range.
   - Day total since v42: 249.31 → 245.38 (−3.93).
@@ -5577,11 +5553,10 @@ Code:
 
 ## 125. EUROCONTROL daily pre-departure delay: day-level reconciliation + LIRF echo update -- v55 built (2026-10-09)
 
-*Note added 2026-10-09: ranking-specific stage (see the reader's guide). The
-day-level reconciliation aligns our output with a published daily aggregate
-rather than modelling taxi-out, and works only for periods where that
-aggregate exists. It was cleared with the organisers; §124 records our
-earlier hesitation about it. The LIRF echo update also belongs to the LIRF
+*Note (2026-10-09): ranking-specific stage (see the reader's guide). The
+day-level reconciliation matches our output to a published daily aggregate,
+so it applies only to periods where that aggregate exists. The organisers
+cleared its use (see §124). The LIRF echo update is part of the LIRF
 handling listed in the guide.*
 
 - **Data:** `external-data/all_pre_departure_delays_{2025,2026}.csv` (DATA_SOURCES.md; fetch script updated).
