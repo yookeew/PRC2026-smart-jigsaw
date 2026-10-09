@@ -10,7 +10,7 @@ submission is in [REPRODUCE.md](REPRODUCE.md).
 Predict `TAXITIME_SEC_mvt` (taxi-out, in seconds) for departures at the
 challenge airports, scored by RMSE. Training data is every movement
 (arrivals and departures) at 11 airports in 2025. The ranking data is
-January, February, June and July 2026, with `BLOCK_TIME_UTC_mvt` and
+January, July (+ later February and June)  2026, with `BLOCK_TIME_UTC_mvt` and
 `TAXITIME_SEC_mvt` blanked on departures. Antalya (LTAI) has no departures
 in either set, so the target covers 10 airports.
 
