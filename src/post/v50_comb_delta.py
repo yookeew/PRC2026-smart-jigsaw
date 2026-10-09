@@ -13,7 +13,7 @@ import polars as pl
 from scipy.optimize import nnls
 ROOT = Path.cwd()
 sys.path.insert(0, str(ROOT / "src")); sys.path.insert(0, str(ROOT / "tests"))
-assert os.environ.get("PRC_LGB") == "ctxc1sel"
+assert os.environ.get("PRC_LGB", "").startswith("ctxc1sel")   # ctxc1sel, or a variant of it (e.g. ctxc1sel_ro, v54)
 SCR = Path(os.environ.get("SCR", "cache/v50"))
 import adsb_combiner_test as C  # noqa: E402
 import adsb_v3_test as V  # noqa: E402
@@ -24,8 +24,10 @@ import adsb_combiner_fullyear_test as TF  # noqa: E402
 POS = ["adsb_first_x", "adsb_first_y", "adsb_first_dx", "adsb_first_dy"]
 RO = ["ro_gap_last", "ro_tm_last", "ro_om_last", "ro_two_dep", "ro_tm_next", "ro_gap_prev", "ro_tm_prev",
       "ro_n_since_s", "ro_first_since_s"]
-ARMS = {"pos": POS, "ro_c": RO, "all": POS + RO, "e2": [], "pos_e2": POS}
-ENS_ARMS = {"e2", "pos_e2"}
+RO2X = ["ro_last_tin_x", "ro_last_land_gap"]
+FA = ["fa_tmatch", "fa_omatch", "fa_origin", "fa_flnear", "fa_tin_x"]
+ARMS = {"pos": POS, "ro_c": RO, "all": POS + RO, "e2": [], "pos_e2": POS, "all2_e2": POS + RO + RO2X, "all_id": POS + RO + FA}
+ENS_ARMS = {"e2", "pos_e2", "all2_e2"}
 ARM = os.environ.get("ARM", "pos")
 EXTRA = ARMS[ARM]
 _fit0 = C.fit_combiner
@@ -88,7 +90,7 @@ def feats(df, s, airports, extra):
 
 
 def main():
-    ro = pl.read_parquet(SCR / "reocc_feats.parquet").with_columns(pl.col("MVT_ID_mvt").cast(pl.Int64))
+    ro = pl.read_parquet(SCR / os.environ.get("RO_FILE", "reocc_feats.parquet")).with_columns(pl.col("MVT_ID_mvt").cast(pl.Int64))
     ho = with_det(A.load(), read_det(POSDIR)).join(ro, on="MVT_ID_mvt", how="left")
     w, _ = nnls(ho.select(ENG).to_numpy(), ho["taxi"].to_numpy())
     print("stack weights:", dict(zip(ENG, np.round(w, 4))))

@@ -1,6 +1,6 @@
 # Label-free occupancy at LFPG / LTFM -- scoping and stop bar
 
-Written 2026-10-08 **before any proxy number was computed**. Follows `reports/adsb_queue_scoping.md` (PROGRESS §124).
+Written 2026-10-08 **before any proxy number was computed**. Follows `reports/adsb_queue_scoping.md` (PROGRESS §126).
 
 ## Target (already measured, `logs/occ_oracle_split.log`)
 

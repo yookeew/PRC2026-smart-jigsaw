@@ -1,7 +1,7 @@
 # v52: OPDI ground events in the post-stages -- gate pre-registration
 
 Written 2026-10-08 **before any gate number was computed**. Follows `reports/opdi_scoping.md` (S1 coverage PASS;
-S2 screen body −1.53, Jan −1.18, Jul −1.79; condition 3 failed as literally written, see PROGRESS §126).
+S2 screen body −1.53, Jan −1.18, Jul −1.79; condition 3 failed as literally written, see PROGRESS §128).
 
 ## Inputs
 

@@ -27,16 +27,20 @@ FILES = [
     "airport_traffic_2025.csv",
     "airport_traffic_2026.csv",
 ]
+# daily all-causes pre-departure delay per airport (PROGRESS §125; src/post/pru_daily_recon.py). Listed on
+# ansperformance.eu/csv/, served from eurocontrol.int.
+EUROCONTROL_URL = "https://www.eurocontrol.int/performance/data/download/csv"
+FILES_EC = ["all_pre_departure_delays_2025.csv", "all_pre_departure_delays_2026.csv"]
 
 
 def main() -> None:
     EXTERNAL_DIR.mkdir(parents=True, exist_ok=True)
-    for name in FILES:
+    for name, base in [(f, BASE_URL) for f in FILES] + [(f, EUROCONTROL_URL) for f in FILES_EC]:
         dest = EXTERNAL_DIR / name
         if dest.exists():
             print(f"skip  {dest} (already present)")
             continue
-        url = f"{BASE_URL}/{name}"
+        url = f"{base}/{name}"
         print(f"fetch {url} -> {dest}")
         urllib.request.urlretrieve(url, dest)
     print("Done.")

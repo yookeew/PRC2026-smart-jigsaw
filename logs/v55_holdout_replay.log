@@ -1,0 +1,15 @@
+=== PRU_OTHER=1 PRU_LIRF=1
+holdout rows 344,339; base full 296.427
+full -2.306  body -1.781  bodyJan -2.371  bodyJul -1.385  fullJan -1.284  fullJul -3.330
+  per airport: {'EDDF': np.float64(-1.04), 'EDDM': np.float64(-0.38), 'EGLL': np.float64(-1.98), 'EHAM': np.float64(-0.09), 'LEBL': np.float64(-2.22), 'LEMD': np.float64(-2.25), 'LFPG': np.float64(-0.46), 'LIRF': np.float64(-9.34), 'LSZH': np.float64(-0.38), 'LTFM': np.float64(-3.26)}
+  full delta, airport-day bootstrap: 95% CI [-5.005, +0.502], P(worse) 0.060
+=== PRU_OTHER=0 PRU_LIRF=1
+holdout rows 344,339; base full 296.427
+full -1.325  body -0.241  bodyJan -0.168  bodyJul -0.293  fullJan -0.252  fullJul -2.388
+  per airport: {'EDDF': np.float64(0.0), 'EDDM': np.float64(0.0), 'EGLL': np.float64(0.0), 'EHAM': np.float64(0.0), 'LEBL': np.float64(0.0), 'LEMD': np.float64(0.0), 'LFPG': np.float64(0.0), 'LIRF': np.float64(-9.34), 'LSZH': np.float64(0.0), 'LTFM': np.float64(0.0)}
+  full delta, airport-day bootstrap: 95% CI [-4.062, +1.366], P(worse) 0.200
+=== PRU_OTHER=1 PRU_LIRF=0
+holdout rows 344,339; base full 296.427
+full -0.977  body -1.539  bodyJan -2.201  bodyJul -1.091  fullJan -1.031  fullJul -0.933
+  per airport: {'EDDF': np.float64(-1.04), 'EDDM': np.float64(-0.38), 'EGLL': np.float64(-1.98), 'EHAM': np.float64(-0.09), 'LEBL': np.float64(-2.22), 'LEMD': np.float64(-2.25), 'LFPG': np.float64(-0.46), 'LIRF': np.float64(0.0), 'LSZH': np.float64(-0.38), 'LTFM': np.float64(-3.26)}
+  full delta, airport-day bootstrap: 95% CI [-1.247, -0.748], P(worse) 0.000

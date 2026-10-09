@@ -21,6 +21,7 @@ sys.path.insert(0, str(ROOT / "src")); sys.path.insert(0, str(ROOT / "tests"))
 assert os.environ.get("PRC_LGB") == "ctxcorr2r"
 SCR = Path(os.environ.get("SCR", "cache/v50"))
 EVAL, OOF = ROOT / "cache" / "eval", ROOT / "cache" / "oof"
+CORR = os.environ.get("CORR", "ctxc1sel")
 import adsb_combiner_test as C  # noqa: E402
 import adsb_v3_test as V  # noqa: E402
 import base_neighbour_chain_test as B  # noqa: E402
@@ -77,13 +78,23 @@ def x_b(df, s, nb, airports):
 
 
 C.features, N.x_b = features, x_b
+RO2 = ["ro_last_tin_x", "ro_last_land_gap"]
+NBR = [f"nbro_rate_{s}_{w}" for s in ("apt", "rwy") for w in (900, 1800, 3600)]
+NBG = [f"nbro_gap_{s}_{w}" for s in ("apt", "rwy") for w in (900, 1800, 3600)]
+FA = ["fa_tmatch", "fa_omatch", "fa_origin", "fa_flnear", "fa_tin_x"]
 RO3X = ["ro_last_tin_x", "ro_last_land_gap", "ro_prevdep_gap", "ro_prevdep_after_last", "ro_tm_prevdep_last", "ro_tm_prevdep_self"]
 ARM_DEF = {"ctl": ([], []), "pos": (POS, []), "ro_c": (RO, []), "ro_b": ([], RO), "all": (POS + RO, RO),
            "pos_rob": (POS, RO), "e2": ([], []), "pos_e2": (POS, []), "all_e2": (POS + RO, RO),
            "all2": (POS + RO + ["ro_last_tin_x", "ro_last_land_gap"], RO + ["ro_last_tin_x", "ro_last_land_gap"]),
-           "all3": (POS + RO + RO3X, RO + RO3X)}
-ENS_ARMS = {"e2", "pos_e2", "all_e2"}
+           "all3": (POS + RO + RO3X, RO + RO3X),
+           "all2_e2": (POS + RO + ["ro_last_tin_x", "ro_last_land_gap"], RO + ["ro_last_tin_x", "ro_last_land_gap"]),
+           "a2e2_nbr": (POS + RO + RO2 + NBR, RO + RO2 + NBR), "a2e2_nbrg": (POS + RO + RO2 + NBR + NBG, RO + RO2 + NBR + NBG),
+           "a2e2_nbe2": (POS + RO + RO2, RO + RO2),
+           "all_id": (POS + RO + FA, RO + FA)}
+ENS_ARMS = {"e2", "pos_e2", "all_e2", "all2_e2", "a2e2_nbr", "a2e2_nbrg", "a2e2_nbe2"}
 _fit_combiner0 = C.fit_combiner
+_nfit0 = N.fit
+NB_ENS_ARMS = {"a2e2_nbe2"}
 
 
 class Ens2:
@@ -99,6 +110,17 @@ class Ens2:
             if k.any():
                 out[k] = 0.5 * out[k] + 0.5 * m.predict(X[k])
         return out
+
+
+def nfit_ens2(X, y, inner, cat_idx):
+    """Neighbour stage (b) as the equal-weight mean of the global and a per-airport fit (column 0 = airport code)."""
+    g, best = _nfit0(X, y, inner, cat_idx)
+    per = {}
+    for code in np.unique(X[:, 0]):
+        k = X[:, 0] == code
+        if k.sum() >= 5000 and inner[k].any() and (~inner[k]).any():
+            per[code], _ = _nfit0(X[k], y[k], inner[k], cat_idx)
+    return Ens2(g, per), best
 
 
 def fit_combiner_ens2(X, y, inner):
@@ -119,10 +141,10 @@ def main():
     paths = sorted(N.RAW.glob("training_*.parquet"))
     arr = N.arrivals(paths, paths)
     ro = pl.read_parquet(SCR / os.environ.get("RO_FILE", "reocc_feats.parquet")).with_columns(pl.col("MVT_ID_mvt").cast(pl.Int64))
-    ev = pl.read_parquet(EVAL / "ctxc1sel_holdout_ev.parquet").select(pl.col("MVT_ID_mvt").cast(pl.Int64), lgb_new=pl.col("pred"))
+    ev = pl.read_parquet(EVAL / f"{CORR}_holdout_ev.parquet").select(pl.col("MVT_ID_mvt").cast(pl.Int64), lgb_new=pl.col("pred"))
     df2 = df.join(ev, on="MVT_ID_mvt", how="left"); assert df2["lgb_new"].null_count() == 0
     df2 = df2.with_columns(lgb=pl.col("lgb_new")).drop("lgb_new").join(ro, on="MVT_ID_mvt", how="left")
-    oof = pl.concat([pl.read_parquet(p) for p in sorted((OOF / "ctxc1sel").glob("fold=*.parquet"))]).select(
+    oof = pl.concat([pl.read_parquet(p) for p in sorted((OOF / CORR).glob("fold=*.parquet"))]).select(
         pl.col("MVT_ID_mvt").cast(pl.Int64), lgb_new=pl.col("pred"))
     ex2 = ex.join(oof, on="MVT_ID_mvt", how="left"); assert ex2["lgb_new"].null_count() == 0
     ex2 = ex2.with_columns(lgb=pl.col("lgb_new")).drop("lgb_new")
@@ -144,6 +166,7 @@ def main():
         STATE["comb_extra"], STATE["b_extra"] = ARM_DEF[arm]
         C.FEATS = FEATS0 + ARM_DEF[arm][0]
         C.fit_combiner = fit_combiner_ens2 if arm in ENS_ARMS else _fit_combiner0
+        N.fit = nfit_ens2 if arm in NB_ENS_ARMS else _nfit0
         chain = fin(B.v30_method(df2, ex2, lag, arr))
         pred = np.where(lirf_nmu, info["v41"].to_numpy(), chain)
         pl.DataFrame({"MVT_ID_mvt": df["MVT_ID_mvt"], "pred": pred}).write_parquet(SCR / f"chain_{arm}.parquet")

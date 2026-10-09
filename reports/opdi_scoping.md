@@ -1,6 +1,6 @@
 # OPDI flight events (OpenSky-derived ground milestones) -- scoping and stop bars
 
-Written 2026-10-08 **before any OPDI-vs-label number was computed**. Context: PROGRESS §124–§125 (the remaining
+Written 2026-10-08 **before any OPDI-vs-label number was computed**. Context: PROGRESS §126–§127 (the remaining
 body gap is per-flight off-block information), §80 (a first OPDI look: `exit-parking_position` only, 4–13 Jul 2025).
 
 ## Why this is new information
@@ -12,7 +12,7 @@ body gap is per-flight off-block information), §80 (a first OPDI look: `exit-pa
   LSZH 30% / 11%, LEBL 18% / 25%; median first-sighting lead EDDF 5.7 / 3.8 min (OSN track start −8.6 min).
 - Holdout body RMSE without a pushback tier is far above with one (EDDF 157 vs 97, LSZH 140 vs 60).
 - So OSN may see the start of the taxi on flights adsb.lol misses. **It cannot help LFPG / LTFM** (OSN sees nothing
-  there), which closes the "OpenSky data for the §124 oracle" route regardless of policy.
+  there), which closes the "OpenSky data for the §126 oracle" route regardless of policy.
 
 ## Licence / rules
 
@@ -56,7 +56,7 @@ treatment − control, body (NM-matched, y ≤ 1 h), trimmed (y ≤ 5 h) and ful
 If S2 passes, the gate is the v50 chain with OPDI inputs added to the combiner / neighbour stages (as §123 did for
 ADS-B position), v52 = v50 + (treatment − control), fit in one process.
 
-## Outcome (2026-10-08, added after the runs; PROGRESS §126)
+## Outcome (2026-10-08, added after the runs; PROGRESS §128)
 
 - S1: PASS (2026 new-information reach 6.0% / 8.5%; LSZH 2025 → 2026 ratio within [0.5, 2]).
 - S2: body −1.53 (Jan −1.18, Jul −1.79), trimmed −1.47, full −1.09. Conditions 1–2 pass. **Condition 3 fails as
