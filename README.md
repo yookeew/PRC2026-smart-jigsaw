@@ -87,12 +87,6 @@ REPRODUCE.md.
 `reports/*_preregistration.md` holds the pre-registered tests behind every
 adopted change.
 
-## Development decisions
-
-Development was assisted by Claude Code. We set the
-design, chose what to test, set the evaluation rules and reviewed the
-results.
-
 ## Licence
 
 The source code in this repository is licensed under the **GNU General

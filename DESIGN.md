@@ -114,8 +114,11 @@ model already sees, and the screen bounded its gain near zero
 
 ## Compute and conventions
 
-- Developed on laptops and free-tier Google Colab: Polars for features,
-  LightGBM on CPU, CatBoost on a Colab T4 GPU. No neural networks.
+- Developed on two laptops with the same specification: Intel Core Ultra 7
+  155H (16 cores / 22 threads), 32 GB RAM, Windows 11, integrated Intel Arc
+  graphics (not used for training). GPU work (CatBoost) ran on free-tier
+  Google Colab (NVIDIA T4). Polars for features, LightGBM on CPU. No neural
+  networks.
 - Fixed seeds; LightGBM with `deterministic=true` and `force_row_wise=true`.
 - Fetch scripts and small derived tables are committed; caches are local
   and rebuildable from source.
