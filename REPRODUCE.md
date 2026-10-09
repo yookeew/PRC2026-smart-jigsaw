@@ -1,7 +1,7 @@
 # Reproducing this project
 
 This rebuilds our best submission, **v30** (leaderboard RMSE 261.40), from
-the raw challenge data. The design is in [CLAUDE.md](CLAUDE.md). The
+the raw challenge data. The design is in [DESIGN.md](DESIGN.md). The
 experiment log, including every rejected idea, is in
 [PROGRESS.md](PROGRESS.md). Every adopted change has a pre-registration in
 `reports/*_preregistration.md`.

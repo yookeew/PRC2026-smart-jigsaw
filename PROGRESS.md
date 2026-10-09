@@ -1,4 +1,72 @@
-# Progress log — 2026-09-15
+# PRC Data Challenge 2026 — development log
+
+## Reader's guide (added 2026-10-09)
+
+This is the team's working log, written as the work happened and kept in
+date order. Results are not rewritten afterwards; where a later section
+overturns an earlier one, it says so ("Correction to §46").
+
+**How the leaderboard was used.** Our goal was a taxi-out model that
+generalises. We never intended to fit the leaderboard, and the process was
+set up to prevent it:
+- Every change was first tested on a fixed time-based holdout (Jan + Jul
+  2025, models trained on the other ten months). Most tests were
+  pre-registered in `reports/*_preregistration.md`, committed before any
+  result was seen; the sections cite the commits.
+- Only candidates that passed were uploaded. Each upload had a keep/reject
+  rule written beforehand ("Keep iff board < X"). The score decided whether
+  the change stayed, and nothing else. No prediction values, weights or
+  blend coefficients were fitted to leaderboard scores.
+- Blending past submissions by their scores was rejected on principle
+  (§82). A leaderboard-fitted rescaling built on a side branch was withdrawn
+  without being submitted (§87).
+- Ideas taken from other teams' public repositories or the challenge Discord
+  are attributed where used, and were re-implemented and tested on our own
+  holdout.
+
+**Two places where the log comes close to that line, kept as written:**
+- **§42 (v18)** is labelled a "leaderboard A/B probe". It tested one
+  correction worked out in advance from label-free data (EGLL ADS-B timing
+  against `AOBT_3_flt`). The board served as a keep/reject verdict, and the
+  correction was rejected.
+- **§115 (v46) is the one lapse.** Two earlier submissions (v19, v20)
+  differed on only 11 LIRF rows, so their score difference was treated as an
+  equation in those rows' labels, and the 11 rows were set from the
+  hypothesis that fitted it. That is inferring labels from the leaderboard.
+  v46 scored worse and was rejected, so none of its changes is in any later
+  submission (v47 onward is built on v45, §116). The section's closing
+  paragraph also reads the v45 → v46 difference as evidence about those
+  rows; no values were changed on that basis. On 2026-10-08 the team wrote
+  the rule down explicitly — leaderboard scores are never used to infer
+  labels, whether by probing uploads or by solving past score differences
+  (§121) — and closed that line of work. Later sections apply it.
+
+**Ranking-specific components.** Some stages target the ranking period or
+data-recording artefacts rather than taxi-out itself, and should not be
+read as part of a general taxi-out model:
+- Rome-Fiumicino (LIRF) handling of records where block time equals
+  scheduled time (from §7 onward, notably §44, §55, §113–§117);
+- NM-unmatched long-delay lines (§76) and rows frozen in the post-stages.
+
+Later sections that add a stage of this kind say so in a note at their top.
+
+The core model is the split-blind feature builder (departure off-block and
+taxi labels are removed before any feature code runs) plus the LightGBM /
+CatBoost stack and its out-of-fold corrector.
+
+**Change of scoring.** Near the end of the challenge the organisers released
+`final_ranking.parquet` (Jan, Feb, Jun and Jul 2026). Winners are judged on
+the live Jan/Jul leaderboard and on a blind four-month leaderboard. Sections
+written before that release target Jan/Jul only.
+
+**Machine-specific wording.** "This machine", "another machine" and
+"scratch" refer to runs on team members' laptops whose intermediate files
+were not committed. Committed logs are in `logs/`.
+
+**CLAUDE.md** in this log refers to our internal design notes, which are no
+longer published; the design is now in [DESIGN.md](DESIGN.md).
+
+## Log start — 2026-09-15
 
 Context: local holdout RMSE was consistently ~200s lower than the actual
 ranking RMSE returned on submission (309s local vs 508s actual on
@@ -3249,6 +3317,10 @@ ranking set having more partial-eligible rows.
   pushback timing. ADS-B can't fix that, and the only remaining LIRF lever
   would be better echo identification.
 
+*Note added 2026-10-09: "probe" here means a keep/reject test of one
+correction derived in advance from label-free data; no values were fitted
+to the score. See the reader's guide.*
+
 **EGLL drift probe (leaderboard A/B).** The label-free drift check (§40)
 showed ADS-B minus AOBT_3 moving by -39 to -80 s (mean -59) at EGLL from
 2025 to 2026, in all four cells. This can't be validated offline, so it's
@@ -5201,6 +5273,12 @@ Scratch scripts only, no training.
 - **ADS-B runway-queue length from other aircraft:** not built. §23 #8 (realised queue from true pushbacks) found no gain, so an ADS-B estimate of the same quantity can't do better.
 
 ## 115. LIRF NM-unmatched ≥ 12 h rows are echoes in 2026 -- the Rome line's "+24 h" half is pure cost; v46 built (2026-10-07)
+
+*Note added 2026-10-09: this section uses past leaderboard score differences
+to infer labels for 11 rows, which our principle excludes. It was a lapse:
+v46 was rejected, none of its changes reached a later submission (v47 is
+built on v45), and §121 made the rule explicit. Kept as written for the
+record; see the reader's guide.*
 
 - `reports/lirf_echo_tail_preregistration.md`, `src/post/lirf_echo_tail.py`, `tests/lirf_echo_tail_ab.py`; logs `logs/lirf_echo_tail_ab.log`, `logs/v46_build.log`.
 - **Evidence (past board results only; no probing upload).** v19 and v20 differ only on the 11 LIRF NM-unmatched rows with T − SCHED ≥ 12 h, so their board delta is one equation in those labels.
