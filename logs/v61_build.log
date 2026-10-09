@@ -1,0 +1,16 @@
+S3 production slopes (bands < 0 / 0-15 / 15-60 / >= 60 min): {'EDDF': [0.33, 0.68, 1.0, 1.0], 'EDDM': [0.27, 0.53, 0.77, 1.0], 'EGLL': [0.42, 0.81, 1.0, 1.0], 'EHAM': [0.12, 0.31, 0.51, 0.63], 'LEBL': [0.1, 0.57, 1.0, 1.0], 'LEMD': [0.47, 0.81, 1.0, 1.0], 'LFPG': [0.24, 0.56, 0.9, 1.0], 'LTFM': [0.09, 0.3, 0.79, 1.0]}
+days solved 495; 2026 max |lam| vs 2025 max |lam| per airport: {'EDDF': (94.0, 107.0), 'EDDM': (71.0, 408.0), 'EGLL': (118.0, 210.0), 'EHAM': (533.0, 158.0), 'LEBL': (116.0, 127.0), 'LEMD': (37.0, 95.0), 'LFPG': (183.0, 145.0), 'LTFM': (334.0, 1294.0)}
+per airport: mean shift taxi (v61 - base p) vs v55's (v55 - v54); RMS vs v60
+  EDDF: v61 shift mean   -0.25 | v55 shift mean   -5.78 | vs v60 RMS    8.86 mean   +5.49
+  EDDM: v61 shift mean   +2.30 | v55 shift mean   -0.52 | vs v60 RMS    4.03 mean   +2.82
+  EGLL: v61 shift mean   +8.13 | v55 shift mean   -6.52 | vs v60 RMS   17.06 mean  +14.65
+  EHAM: v61 shift mean   +5.92 | v55 shift mean   +6.30 | vs v60 RMS    9.51 mean   -0.39
+  LEBL: v61 shift mean   -7.12 | v55 shift mean  -16.84 | vs v60 RMS   14.34 mean   +9.72
+  LEMD: v61 shift mean   +1.34 | v55 shift mean   -5.10 | vs v60 RMS    7.46 mean   +6.45
+  LFPG: v61 shift mean  +18.91 | v55 shift mean   +4.47 | vs v60 RMS   17.33 mean  +14.44
+  LIRF: v61 shift mean   +0.00 | v55 shift mean   +0.00 | vs v60 RMS    0.00 mean   +0.00
+  LSZH: v61 shift mean   +0.00 | v55 shift mean   +0.00 | vs v60 RMS    5.77 mean   +0.00
+  LTFM: v61 shift mean  -15.66 | v55 shift mean  -50.76 | vs v60 RMS   42.36 mean  +35.09
+vs v60: rows changed 307,747, RMS 19.01, mean +10.49, max |d| 234
+rows < 120 s: 76 (v60 76)
+wrote data/submissions/smart-jigsaw_v61.parquet

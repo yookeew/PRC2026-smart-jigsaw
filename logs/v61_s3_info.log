@@ -1,0 +1,2 @@
+S1: 2026 projection vs R0 -0.070 s (without Feb 2025 in the per-row estimate -0.061); full / body excl. Feb -0.082 / -0.045; per airport full {'EDDF': -0.01, 'EDDM': 0.02, 'EGLL': -0.41, 'EHAM': -0.08, 'LEBL': 0.1, 'LEMD': -0.01, 'LFPG': -0.18, 'LTFM': -0.01}
+S3: 2026 projection vs R0 -0.388 s (without Feb 2025 in the per-row estimate -0.133); full / body excl. Feb -0.185 / -0.110; per airport full {'EDDF': -0.13, 'EDDM': -0.35, 'EGLL': -0.54, 'EHAM': -0.11, 'LEBL': -0.3, 'LEMD': -0.1, 'LFPG': -0.3, 'LTFM': -1.61}

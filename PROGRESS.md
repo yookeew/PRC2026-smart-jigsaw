@@ -5996,3 +5996,70 @@ rows shifted by a·(λ̂_g − month mean):
 1. **v60** (EDDF only; clean read against v55; projected −0.25 s, range ≈ 0 to −0.25).
 2. **v58** (LSZH only; ≈ −0.02 s): not worth a submission alone; fold it into a combined file once v60 is read.
 - Not built: v57 (C1 / C1b) and v59 (C2). Next free version: **v61**.
+
+## 131. Learned day-shift allocation on top of v60: S3 misses its body condition by 0.025 s, built as v61 on the team's override (2026-10-10)
+
+`reports/v61_learned_dayshift_preregistration.md` (written first; discloses that the 2025 data were already used for §130's
+C1b). `tests/v61_learned_dayshift.py` (per-row 2025 λ cached in `cache/v57/lam_row_2025.parquet`), `src/post/v61_build.py`;
+logs `logs/v61_*.log`. One submission was left for the day, so v60 became the fallback and the base.
+
+**Variants** (shift = s·λ̂, expectation solve, slopes through the origin learned on the other five 2025 periods). vs R0
+(v55's recipe), 2025, 12 months, 8 airports:
+
+| variant | full | body | trimmed | months full better | pass |
+|---|---|---|---|---|---|
+| S1 per-airport slope | −0.094 | −0.042 | −0.093 | 9 | no (full misses −0.10) |
+| S2 band slopes, normal / disrupted days (\|λ̂\| > 60 s) | −0.387 | +0.353 | −0.409 | 10 | no |
+| **S3 band slopes clipped to [0, 1]** | **−0.510** | **+0.025** | −0.540 | 11 | **no (body)** |
+| S4 band × time-of-day slopes | +0.415 | +0.387 | +0.455 | 10 | no |
+
+- S3's body loss is February (+1.70, LTFM's 19 / 23 Feb snow days) and January (+0.83, holdout chain, §106). The other
+  months are −0.05 to −0.71, with Dec +0.12. Without February: full −0.19, body −0.11. On the holdout-chain months
+  (slopes learned on OOF periods): Jan full +0.31, Jul −0.22.
+- Per airport, S3 full vs R0: LTFM −1.61, EGLL −0.54, EDDM −0.35, LEBL −0.30, LFPG −0.30, EDDF −0.13, EHAM −0.11,
+  LEMD −0.10.
+- 2026 projection: −0.39 s, or −0.13 s without February-type days.
+
+**Team decision (user, 2026-10-10): build S3 anyway, as v61 = v60 + S3 + v58's LSZH rows. This overrides the
+pre-registered body condition; disclosed here.**
+- **v61:** for the 8 airports, p = v54 (+ v60's EDDF demeaned OPDI delta); λ̂ from the 2026 sums with η from the 2025
+  holdout chain (495 airport-days); δ = s_{airport, band}·λ̂, using production slopes from all six periods; LOBT window last.
+  - Slopes for bands < 0 / 0–15 / 15–60 / ≥ 60 min: EDDF 0.33 / 0.68 / 1 / 1, EDDM 0.27 / 0.53 / 0.77 / 1,
+    EGLL 0.42 / 0.81 / 1 / 1, EHAM 0.12 / 0.31 / 0.51 / 0.63, LEBL 0.10 / 0.57 / 1 / 1, LEMD 0.47 / 0.81 / 1 / 1,
+    LFPG 0.24 / 0.56 / 0.90 / 1, LTFM 0.09 / 0.30 / 0.79 / 1.
+  - LSZH rows = v58; LIRF rows = v55.
+  - vs v60: 307,747 rows changed, RMS 19.0 s, **mean +10.5 s** (it hands back much of the downward taxi shift that
+    v55 made), max |Δ| 234.
+  - Mean shift vs v54, v61 vs v55: LTFM −15.7 vs −50.8, LEBL −7.1 vs −16.8, EGLL +8.1 vs −6.5, LFPG +18.9 vs +4.5,
+    EDDF −0.3 vs −5.8.
+  - 2026 max |λ̂| is outside its 2025 range at EHAM (533 vs 158 s, the storm) and LFPG (183 vs 145).
+- **Main risk, found after the decision: LTFM** (47,581 rows).
+  - v55 shifted every LTFM band by ≈ −51 s; v61 shifts them by −4 / −12 / −35 / −46.
+  - If v55's uniform LTFM level was right (a 2026 model drift hitting all flights), v61 costs **+0.52 s** on the board.
+    That exceeds S3's whole projected gain.
+  - Witness (`logs/v61_ltfm_anchor_witness.log`): LTFM predicted level minus T − AOBT_3 (mostly a per-runway default at
+    LTFM, so effectively 2026 predicted level against the 2025 true level in the same month). January matches v60
+    (e.g. on-time band −202 vs 2025 −203; v61 −164); July matches v61 (on-time −138 vs −126; 15–60 min −65 vs −65).
+    Split; it does not settle the bet.
+- **Expected:** v60's −0.25 (0 to −0.25) plus S3's −0.13 to −0.39, minus up to +0.52 if the LTFM level is uniform drift.
+  The read is confounded between EDDF (v60) and S3.
+- **Keep iff board < 239.40.**
+- Next free version: **v62**.
+
+**v62 (team decision, user, 2026-10-10): v61 with every LTFM row from v60.** This removes the LTFM bet (up to +0.52 s
+if v55's uniform LTFM level was right) and keeps S3 at the other seven airports, all negative vs R0 on 2025 (−0.10 to
+−0.54 s per airport). Airport-days are solved independently, so the swap is exact. Choosing the airport scope after
+seeing results is a disclosed post-hoc decision, like the override.
+- vs v60: 260,986 rows, RMS 10.7 s, mean +5.65; LTFM, LIRF identical; LSZH = v58.
+- S3 at 7 airports, 2026 projection vs R0: −0.16 s (−0.15 without February-type days), so the 2025 projection for v62 is
+  about v60's 0 to −0.25 plus −0.15, plus v58's −0.02.
+- Script: inline in `logs/v62_build.log` (v61 + v60's LTFM rows). md5 d706e820….
+- **Keep iff board < 239.40.** Next free version: **v63**.
+
+**Board: v62 = 238.79 (−0.61 vs v55 = 239.40). Kept; new best; v62 is the base from now on.**
+- ΔSSE −1.01e8 over 344,841 rows (239.40² → 238.79²).
+- The 2025-based projection was ≈ −0.15 to −0.4 s (v60's EDDF 0 to −0.25, S3 at seven airports ≈ −0.15, v58 ≈ −0.02),
+  so the result is at or above the top of that range. Level-type, sums-driven changes again transferred at ≥ 1:1, as v55 did.
+- The read is confounded: EDDF (v60), S3 at seven airports and LSZH (v58) were uploaded together, so the board cannot
+  split the −0.61 between them. v60 alone was never scored.
+- S3 at LTFM is left out (§131) and is the open, clean follow-up: v63 = v62 with S3 at LTFM would read that piece alone.

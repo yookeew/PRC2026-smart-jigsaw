@@ -1,0 +1,13 @@
+  EDDF: vs v60 RMS   8.86 mean  +5.49
+  EDDM: vs v60 RMS   4.03 mean  +2.82
+  EGLL: vs v60 RMS  17.06 mean +14.65
+  EHAM: vs v60 RMS   9.51 mean  -0.39
+  LEBL: vs v60 RMS  14.34 mean  +9.72
+  LEMD: vs v60 RMS   7.46 mean  +6.45
+  LFPG: vs v60 RMS  17.33 mean +14.44
+  LIRF: vs v60 RMS   0.00 mean  +0.00
+  LSZH: vs v60 RMS   5.77 mean  +0.00
+  LTFM: vs v60 RMS   0.00 mean  +0.00
+v62 vs v60: rows changed 260,986, RMS 10.68, mean +5.65
+S3 at 7 airports (no LTFM), 2026 projection vs R0, all months: -0.161 s
+S3 at 7 airports (no LTFM), 2026 projection vs R0, without Feb 2025: -0.152 s
