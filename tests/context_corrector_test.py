@@ -35,6 +35,10 @@ TRIM = 18000
 RWY = os.environ.get("CTX_RWY") == "1"    # block 7, reports/ctx_runway_preregistration.md
 AIR = os.environ.get("CTX_AIR") == "1"    # block 8, reports/ctx_airline_preregistration.md
 ADSB = os.environ.get("CTX_ADSB") == "1"  # block 9, reports/ctx_adsb_preregistration.md
+RO = os.environ.get("CTX_RO") == "1"      # block 10, stand re-occupation (PROGRESS.md §123; src/features/reocc_feats.py)
+RO_FILE = os.environ.get("CTX_RO_FILE", "cache/v50/reocc_feats3.parquet")
+RO_COLS = ["ro_gap_last", "ro_tm_last", "ro_om_last", "ro_two_dep", "ro_tm_next", "ro_gap_prev", "ro_tm_prev",
+           "ro_n_since_s", "ro_first_since_s", "ro_last_tin_x", "ro_last_land_gap"]
 DET4 = ROOT / "cache" / "adsb_pushback_v4"
 AB_TIERS = ["none", "appear", "dwell", "pass", "fb_dwell", "fb_appear"]
 AB_DROP = [c for c in os.environ.get("CTX_ADSB_DROP", "").split(",") if c]   # shift-check drops (pre-registration rule)
@@ -260,6 +264,15 @@ def apply_cells(df: pl.DataFrame, tables) -> pl.DataFrame:
     return res.select(cols)
 
 
+def reocc_block(dep: pl.DataFrame) -> pl.DataFrame:
+    """Label-free stand re-occupation features (arrival in-blocks, departure takeoffs, stands, types), row order of dep."""
+    ro = pl.read_parquet(RO_FILE).select(pl.col("MVT_ID_mvt").cast(pl.Int64), *RO_COLS)
+    k = dep.select(pl.col("MVT_ID_mvt").cast(pl.Int64)).with_row_index("_i")
+    out = k.join(ro, on="MVT_ID_mvt", how="left").sort("_i")
+    assert out.height == dep.height
+    return out.select([pl.col(c).cast(pl.Float64) for c in RO_COLS])
+
+
 def build(dep: pl.DataFrame, arr: pl.DataFrame, p: np.ndarray, cells) -> tuple[pl.DataFrame, list[str], list[str]]:
     T = dep["T"]
     g = {c: T - dep[f"t_{c}"] for c in REFS}
@@ -278,7 +291,7 @@ def build(dep: pl.DataFrame, arr: pl.DataFrame, p: np.ndarray, cells) -> tuple[p
                                          n_plans=pl.sum_horizontal([g[c].is_not_null().cast(pl.Float64) for c in REFS]))
     b56 = time_blocks(dep, arr, p)
     parts = ([base, b1, b2, b3, b4, b56] + ([runway_block(dep, arr)] if RWY else []) + ([airline_block(dep, p)] if AIR else [])
-             + ([adsb_block(dep, p)] if ADSB else []))
+             + ([adsb_block(dep, p)] if ADSB else []) + ([reocc_block(dep)] if RO else []))
     X = pl.concat(parts, how="horizontal")
     return X, ctrl, ["apt_c", "stand_pfx"] + (["al_op"] if AIR else [])
 

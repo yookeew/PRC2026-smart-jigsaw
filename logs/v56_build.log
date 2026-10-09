@@ -1,0 +1,15 @@
+LIRF calibration (Jan+Jul 2025 holdout): noise sd 191 min (x1.5), bias +161 min/day
+airport-days 624; our rows / published flights median 1.000
+vs base: RMS 47.62, mean -1.80, rows changed 26,504, max |d| 17136
+  EDDF RMS    0.00 mean   +0.00
+  EDDM RMS    0.00 mean   +0.00
+  EGLL RMS    0.00 mean   +0.00
+  EHAM RMS    0.00 mean   +0.00
+  LEBL RMS    0.00 mean   +0.00
+  LEMD RMS    0.00 mean   +0.00
+  LFPG RMS    0.00 mean   +0.00
+  LIRF RMS  170.51 mean  -23.12
+  LSZH RMS    0.00 mean   +0.00
+  LTFM RMS    0.00 mean   +0.00
+LIRF hedged rows 4246: posterior mean 0.094; >= 0.8: 58, <= 0.05: 2421
+wrote C:/Users/yuqiw/AppData/Local/Temp/claude/c--Users-yuqiw-prc2025/5e729efd-48bf-4599-b8de-df5ad33f25bb/scratchpad/v56_lirf.parquet

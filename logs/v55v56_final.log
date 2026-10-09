@@ -1,0 +1,37 @@
+=== HOLDOUT non-LIRF, LSZH skipped
+holdout rows 344,339; base full 296.427
+full -0.986  body -1.565  bodyJan -2.212  bodyJul -1.129  fullJan -1.027  fullJul -0.955
+  per airport: {'EDDF': np.float64(-1.04), 'EDDM': np.float64(-0.38), 'EGLL': np.float64(-1.98), 'EHAM': np.float64(-0.09), 'LEBL': np.float64(-2.22), 'LEMD': np.float64(-2.25), 'LFPG': np.float64(-0.46), 'LIRF': np.float64(0.0), 'LSZH': np.float64(0.0), 'LTFM': np.float64(-3.47)}
+  full delta, airport-day bootstrap: 95% CI [-1.237, -0.768], P(worse) 0.000
+=== BUILD v55
+LIRF calibration (Jan+Jul 2025 holdout): noise sd 191 min (x1.5), bias +161 min/day
+airport-days 624; our rows / published flights median 1.000
+vs base: RMS 29.41, mean -9.21, rows changed 281,061, max |d| 399
+  EDDF RMS   19.84 mean   -5.78
+  EDDM RMS    8.26 mean   -0.52
+  EGLL RMS   13.51 mean   -6.52
+  EHAM RMS   34.58 mean   +6.30
+  LEBL RMS   27.12 mean  -16.84
+  LEMD RMS   12.64 mean   -5.10
+  LFPG RMS   23.28 mean   +4.47
+  LIRF RMS    0.00 mean   +0.00
+  LSZH RMS    0.00 mean   +0.00
+  LTFM RMS   61.44 mean  -50.76
+LIRF hedged rows 4246: posterior mean nan; >= 0.8: 0, <= 0.05: 0
+wrote C:/Users/yuqiw/AppData/Local/Temp/claude/c--Users-yuqiw-prc2025/5e729efd-48bf-4599-b8de-df5ad33f25bb/scratchpad/v55_final.parquet
+=== BUILD v56
+LIRF calibration (Jan+Jul 2025 holdout): noise sd 191 min (x1.5), bias +161 min/day
+airport-days 624; our rows / published flights median 1.000
+vs base: RMS 37.63, mean -1.75, rows changed 26,503, max |d| 15195
+  EDDF RMS    0.00 mean   +0.00
+  EDDM RMS    0.00 mean   +0.00
+  EGLL RMS    0.00 mean   +0.00
+  EHAM RMS    0.00 mean   +0.00
+  LEBL RMS    0.00 mean   +0.00
+  LEMD RMS    0.00 mean   +0.00
+  LFPG RMS    0.00 mean   +0.00
+  LIRF RMS  134.74 mean  -22.49
+  LSZH RMS    0.00 mean   +0.00
+  LTFM RMS    0.00 mean   +0.00
+LIRF hedged rows 4246: posterior mean 0.094; >= 0.8: 58, <= 0.05: 2420
+wrote C:/Users/yuqiw/AppData/Local/Temp/claude/c--Users-yuqiw-prc2025/5e729efd-48bf-4599-b8de-df5ad33f25bb/scratchpad/v56_final.parquet

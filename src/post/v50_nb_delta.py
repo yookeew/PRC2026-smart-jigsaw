@@ -13,7 +13,7 @@ import polars as pl
 from scipy.optimize import nnls
 ROOT = Path.cwd()
 sys.path.insert(0, str(ROOT / "src")); sys.path.insert(0, str(ROOT / "tests"))
-assert os.environ.get("PRC_LGB") == "ctxc1sel"
+assert os.environ.get("PRC_LGB", "").startswith("ctxc1sel")   # ctxc1sel, or a variant of it (e.g. ctxc1sel_ro, v54)
 SCR = Path(os.environ.get("SCR", "cache/v50"))
 sys.argv = [sys.argv[0]]                       # post.adsb_combiner reads flags at import: none -> v4 detections
 import adsb_combiner_test as C  # noqa: E402
@@ -36,7 +36,7 @@ def xb(df, s, nb, airports, extra):
 
 
 def main():
-    ro = pl.read_parquet(SCR / "reocc_feats.parquet").with_columns(pl.col("MVT_ID_mvt").cast(pl.Int64))
+    ro = pl.read_parquet(SCR / os.environ.get("RO_FILE", "reocc_feats.parquet")).with_columns(pl.col("MVT_ID_mvt").cast(pl.Int64))
     ho = V.with_det(A.load(), V.read_det(C.V4)).join(ro, on="MVT_ID_mvt", how="left")
     w, _ = nnls(ho.select(ENG).to_numpy(), ho["taxi"].to_numpy())
     print("stack weights:", dict(zip(ENG, np.round(w, 4))))
@@ -62,17 +62,19 @@ def main():
     pop = rk.select(C2.has_adsb()).to_series().to_numpy()
     day = pl.from_epoch(rk["mvt_ts"].cast(pl.Int64), "s").dt.date().to_numpy()
     out = {}
-    for arm, extra in (("ctl", []), ("ro_b", RO)):
+    NB_ARM = os.environ.get("NB_ARM", "ro_b")
+    extra_cols = RO + (["ro_last_tin_x", "ro_last_land_gap"] if NB_ARM == "ro2_b" else []) + (["fa_tmatch", "fa_omatch", "fa_origin", "fa_flnear", "fa_tin_x"] if NB_ARM == "ro_id" else [])
+    for arm, extra in (("ctl", []), ("trt", extra_cols)):
         X = np.vstack([xb(ho, s_ho, nb_ho, airports, extra), xb(ex, s_ex, nb_ex, airports, extra)])
         mb, bb = N.fit(X[ok], y[ok], inner[ok], N.CAT_B)
         c = mb.predict(xb(rk, s_rk, nb_rk, airports, extra))
         c = N2.day_demean(c, rk["ADEP_mvt"].to_numpy(), day, ~pop)
         out[arm] = np.clip(s_rk + c, 0, N.CEIL)
         print(f"{arm}: part (b) best_iter {bb}", flush=True)
-    delta = np.where(~pop, out["ro_b"] - out["ctl"], 0.0)
-    res = rk.select("MVT_ID_mvt", "ADEP_mvt").with_columns(ctl=pl.Series(out["ctl"]), trt=pl.Series(out["ro_b"]),
+    delta = np.where(~pop, out["trt"] - out["ctl"], 0.0)
+    res = rk.select("MVT_ID_mvt", "ADEP_mvt").with_columns(ctl=pl.Series(out["ctl"]), trt=pl.Series(out["trt"]),
                                                            served=pl.Series(~pop), delta=pl.Series(delta))
-    res.write_parquet(SCR / "nb_delta_ro_b.parquet")
+    res.write_parquet(SCR / f"nb_delta_{NB_ARM}.parquet")
     print(res.group_by("ADEP_mvt").agg(n=pl.col("served").sum(), rms=(pl.col("delta") ** 2).mean().sqrt(),
                                        mean=pl.col("delta").mean()).sort("ADEP_mvt"))
     print(f"delta RMS over all rows {np.sqrt(np.mean(delta ** 2)):.2f}, served {(~pop).sum()}")

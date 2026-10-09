@@ -5385,3 +5385,204 @@ Scripts: `tests/construct_*.py` (scratch copies).
   - LIRF NM-unmatched ≥ 12 h: recording mode (echo vs +24 h) splits within the same airline and night (Jet2 01-24/25, ITA 07-29); P(+24 h | later day) = 11/27; no separator.
   - AOBT_3 long-taxi slice: 0.5% of SSE, already calibrated.
   - The stale-LOBT / default-AOBT_3 delayed pattern: calibrated in every airport cell.
+- **Board: v50 = 243.4565 (−1.93 vs v49). Kept; new best.** At the top of the projected range (full projection −1.64 / −1.87 with LIRF unchanged; body-only −0.9 to −1.0). The physical stand signal transferred at about 1:1 or better.
+- **Follow-up arms** (same gate, all controls bit-identical across processes):
+  - all2 (+ re-occupier taxi-in excess and landing gap): full −1.87, body −1.60 (Jan −0.78, Jul −2.18);
+  - all3 (+ previous same-stand departure block): full −1.86, body −1.63 — the block adds nothing beyond all2;
+  - all_e2 (+ combiner = mean(global, per-airport)): full −1.74, body −1.57.
+  - Increments over v50's recipe: all2 −0.22 body, e2 −0.19 body, both months better.
+- **Board: v51 = 244.0503 (+0.59 vs v50). REJECTED; v50 (243.4565) stays best.** The holdout increment (body −0.43, both months, CI excluding 0) did not transfer.
+  - Most likely cause: the e2 combiner's per-airport members. They learn from airports with thin 2025 ADS-B and are applied to many more 2026 ADS-B rows (EGLL July 3.2k → 20.4k). v51's EGLL delta was larger (RMS 46.7 vs 41.4, mean +1.6). This is the v40 mechanism; §86's rule (gate ADS-B-dependent changes per airport on 2025-vs-2026 coverage) should have excluded it.
+  - The second change in v51 (two extra re-occupation inputs: the last arrival's taxi-in excess and landing gap) cannot be separated without a board probe. Neither is used further.
+  - **Lesson:** build later candidates on v50's exact recipe plus one change, and avoid per-airport ADS-B fits.
+
+## 124. Identity of the first arrival at the stand -- gate PASS; built into v53 on top of the teammate's v52. EUROCONTROL pre-departure delay series found to be a label aggregate -- NOT used (2026-10-08)
+
+`reports/v50_stand_adsb_preregistration.md` Amendment A2.
+Code:
+- `src/features/id_feats.py` → `cache/v50/reocc_feats6.parquet`;
+- `tests/inbound_identity_check.py`;
+- `tests/v50_chain_gate.py` (arm `all_id`);
+- `src/post/v50_comb_delta.py` (`ARM=all_id RO_FILE=reocc_feats6.parquet`);
+- `src/post/v50_nb_delta.py` (`NB_ARM=ro_id RO_FILE=reocc_feats6.parquet`);
+- deltas in `cache/v53/`.
+
+- **Why:** the first arrival at our stand after SOBT + 5 min is usually our own late inbound, not a re-occupier, and v50's `ro_*` inputs can't tell the two apart.
+  - 2025, non-LIRF, arrival ≥ 30 min before T: type differs, operator matches and origin ≠ our ADES → 77% re-occupier.
+  - Type and origin both match → 0.1%.
+- **Five label-free inputs:** type, operator, origin = our ADES, flight number ±1, and taxi-in excess. Coverage and match rates agree from 2025 to 2026 at every airport (movement data only).
+- **Gate vs v50's recipe (one change):** full −0.35, trimmed −0.44, **body −0.41 (Jan −0.51, Jul −0.34), CI [−0.52, −0.29]**; EGLL −1.91. 2026 projection −0.22 (body-only −0.16).
+- **Identity-only file** (v50 + identity arm, never uploaded) = v49 + (treatment − control) for the all_id combiner and the 14-input neighbour stage, built exactly as v50 (LIRF frozen, NM-line rows frozen, LOBT window last).
+  - vs v50: RMS 16.4 s, mean +0.03.
+  - kept as `cache/v53/identity_only_v50base.parquet` (it was `smart-jigsaw_v53` briefly, then replaced by the combined file).
+  - Not uploaded; superseded by v53 below.
+
+**EUROCONTROL "all-causes pre-departure delay" (ansperformance.eu → eurocontrol.int/performance/data/download/csv/all_pre_departure_delays_YYYY.csv) -- NOT USED.**
+- **What it is:** on 2025 the daily `DLY_ALL_PRE_2` per airport equals Σ max(0, AOBT − SOBT) over our departures, in minutes.
+  - r = 0.9996–1.0000 at all 10 airports; median sum ratio 1.000.
+  - `FLT_DEP_IFR_2` equals the departure count.
+  - The 2026 file has every Jan/Jul day.
+  - So it is an exact daily aggregate of the blanked test off-block times. `taxi_out_additional_time` is the monthly analogue (matches our label means within a few seconds at EGLL/EHAM/LEBL/LEMD/LIRF).
+- **Holdout value (2025 data only):** shifting each airport-day's predictions to match the published sum gives full 302.40 → 301.24 and body 192.60 → 191.11. Removing the oracle airport-day mean gives 300.64.
+- **Status: not used. Recommendation (open for the team to decide):** use only with an explicit organiser ruling on this file.
+  - It reads an aggregate of the answer key rather than modelling.
+  - Its strongest use, spotting a +1,440 min jump to classify a LIRF ≥ 12 h row, would be label inference, which §121's no-probing principle excludes.
+  - The 2026-09-17 Discord ruling named only slot adherence, apt_dly and airport traffic.
+  - The files were downloaded to scratch only; no code in the repo reads them.
+
+**Context corrector with the stand re-occupation block (in progress).**
+- `tests/context_corrector_test.py` `CTX_RO=1` (9 `ro_*` + `ro_last_tin_x`, `ro_last_land_gap`); members `ctxc1r_ro` (done) and `ctxc1rb_ro` (running, `logs/armc_inputs_ctxc1rb_ro.log`).
+- First read: hybrid `ctxc1selh_ro` = `ctxc1r_ro` at the non-STABLE airports + `ctxc1sel` at the four STABLE ones (`tests/ctx_ro_hybrid_sel.py`). It goes through v50's post-stage recipe and is compared with the old corrector's same chain.
+- **Pre-stated rule:** body pooled / Jan / Jul all better, full not worse, 2026 projection better.
+- **Caveat:** `ctxc1r_ro` was fit on this machine and `ctxc1sel` on another (refit noise ~17 s RMS, §105e), so a small gain is not evidence.
+- **Hybrid result** (`scratch h1_eval.log`):
+
+| hybrid vs old corrector | full | trimmed | body | body Jan / Jul | 2026 projection |
+|---|---|---|---|---|---|
+| with v50's post-stages (`all`) | −0.94 | −1.10 | −0.57 | −0.99 / −0.28 | −0.60 (body-only −0.39) |
+| with the old post-stages (`ctl`) | −2.46 | −2.89 | −1.87 | −1.88 / −1.88 | −2.44 (body-only −1.49) |
+
+  - **With `all`:** body CI [−0.91, −0.16]; EGLL −7.1, LTFM −1.8, LFPG −0.8; EDDF +0.7, LSZH +0.7.
+  - **Passes the pre-stated rule**, but the top 20 rows hold 168% of the body gain. That is the concentration outgoing-boat saw fail to transfer (their v37).
+  - The corrector's stand block takes over most of what the post-stages' block gave: −1.87 alone vs −0.57 on top.
+- `ctxc1rb_ro` finished at 16:05. `ctx_armc.py sel` (ARMC_ARM=c1 PRC_ARMC_TAG=_ro) gives **`ctxc1sel_ro`**, both members with the stand block. Gate in scratch `h2/`:
+
+| ctxc1sel_ro vs ctxc1sel | full | trimmed | body | body Jan / Jul | 2026 projection |
+|---|---|---|---|---|---|
+| with v50's post-stages (`all`) | −1.12 | −1.29 | **−0.83** | −1.29 / −0.51 | **−0.96** (body-only −0.73) |
+| with the old post-stages (`ctl`) | −2.65 | −3.14 | −2.17 | −2.11 / −2.23 | −2.63 (body-only −1.68) |
+
+  - **With `all`:** body CI [−1.16, −0.47], P(worse) 0.000.
+  - Every airport except LIRF improves: EGLL −7.0, LTFM −2.0, LFPG −1.0, EDDF −0.7, EDDM −0.6, LEBL/LEMD −0.2, LSZH −0.1, EHAM −0.1; LIRF +0.3, which stays frozen in production.
+  - Top-20 share 110% (hybrid 168%).
+  - **PASSES the pre-stated rule.** Better than the hybrid, so the rb member's stand block also helps.
+- Production fits for both `_ro` members started 2026-10-08 16:10 (`logs/armc_prod_ctxc1{r,rb}_ro.log`, new file names only).
+
+**Ideas queued for 2026-10-09:**
+1. **v54 from `ctxc1sel_ro`.** The gate passed and both production fits finished 2026-10-08 16:48.
+   - Output: `data/submissions/ctxc1sel_ro.parquet` (rb at the 4 STABLE airports, 127,729 rows).
+   - vs `ctxc1sel` on 2026: RMS 42.4 s, mean −0.46, no nulls.
+   - Per airport: EGLL 58 s, LTFM 49 s, LIRF 80 s (frozen), the rest 18–40 s.
+   - Steps:
+   - run the production chain with PRC_LGB=ctxc1sel_ro, and the old one with PRC_LGB=ctxc1sel, on this machine (check output names first; nothing may overwrite v49–v53 inputs);
+   - recompute the identity-arm deltas on both;
+   - v54 = best kept file + [(P_new + Δ_new) − (P_old + Δ_old)] on non-LIRF rows, NM-line rows frozen, LOBT window last;
+   - `v50_comb_delta.py` / `v50_nb_delta.py` assert PRC_LGB == ctxc1sel and need a switch.
+2. The identity inputs (`fa_*`) in the corrector as well, if (1) passes.
+3. Extend the identity window backwards: an arrival at our stand between SOBT − 30 min and SOBT + 5 min that is *not* our inbound (identity cues) means we pushed early and gives a hard lower bound on taxi. the identity window starts at SOBT + 5 min.
+
+**Teammate's v52 and the combined v53 (2026-10-08 evening).**
+- **v52 (teammate, OPDI) = 242.7323 on the board (−0.72 vs v50).** New best. Code not yet merged into this branch.
+  - It changes only LSZH: 22,666 rows, RMS 72 s, mean 0.
+- **The identity-only file** changes every airport but LIRF. On the 20,810 LSZH rows both touch, the two deltas correlate at +0.06, so they are close to independent.
+- **v53** = v52 + (identity-only file − v50), via `assemble.py` (LIRF frozen, NM-line rows frozen, LOBT window last); delta in `cache/v53/delta_v53_minus_v50.parquet`.
+  - vs v52: RMS 16.4 s, mean +0.03.
+  - **Keep iff board < 242.7323.** Since v52 only moved LSZH, v53 − v52 is a clean read of the identity arm everywhere else; the identity-only file is not uploaded.
+- **Board: v53 = 242.6657 (−0.07 vs v52). Kept; new best.**
+  - The holdout projected −0.22 (−0.16 counting ordinary flights only), so the identity arm transferred at about a third of that. That is the weakest stand-signal transfer so far (v50 transferred at about 1:1).
+  - v54 (stand-aware corrector) is built on v53.
+
+**v54 = v53 + the stand-aware context corrector (2026-10-09).**
+- `src/post/v54_delta.py`, `logs/v54_chains.log`, `logs/v54_comb_delta.log`, `logs/v54_nb_delta.log`, `logs/v54_build.log`, deltas in `cache/v54/`.
+- **Chains on this machine:** the production chain with PRC_LGB=ctxc1sel_ro, and with PRC_LGB=ctxc1selcp (a byte copy of ctxc1sel's ranking, holdout and OOF files).
+  - The old-corrector chain reproduces `chain_ctxc1sel_final` exactly (RMS 0.0), so the post-stages are deterministic and v53's identity deltas apply to it.
+  - new − old chain: RMS 37.6 s, mean −0.93.
+- **Identity-arm deltas refit on the new chain:** combiner 23.7 s RMS (201,602 rows), neighbour stage 24.3 s (135,714 rows).
+- **delta** = (new chain + its identity deltas) − (old chain + v53's identity deltas): RMS 38.1 s.
+- **v54** = `assemble.py` v53 + delta, FREEZE_LIRF=1 (every LIRF row keeps v53's value), NM-line rows frozen, LOBT window last.
+  - vs v53: RMS 30.8 s, mean −0.71, 307,241 rows changed, max |Δ| 1,696.
+  - Per airport: EGLL 40.7, LTFM 39.5, LFPG 33.9 (mean −2.6), EDDF 31.8 (mean −1.7), the rest 21–30.
+- **Expected:** the gate (v50's `all` recipe on both correctors) projected −0.96 (body-only −0.73).
+  - Caveats: the top 20 rows hold 110% of the gain; the identity arm on the new corrector was not gated separately; v53's identity arm transferred at about a third of its projection.
+- **Keep iff board < 242.6657 (v53).**
+- **Board: v54 = 241.7634 (−0.90 vs v53). Kept; new best.** At the projection (−0.96): the corrector's stand signal transferred about 1:1.
+
+## 125. EUROCONTROL daily pre-departure delay: day-level reconciliation + LIRF echo update -- v55 built (2026-10-09)
+
+- **Data:** `external-data/all_pre_departure_delays_{2025,2026}.csv` (DATA_SOURCES.md; fetch script updated).
+  - EUROCONTROL data is admin-cleared. Asked again on 2026-10-09 about ranking-period aggregates: "no change. still ok".
+  - Per airport × off-block date (UTC): `DLY_ALL_PRE_2` = Σ max(0, AOBT − SOBT) [min], `FLT_DEP_IFR_2` = departures.
+  - 2025: equal to our labels' sum (r ≥ 0.9996 at every airport).
+  - Our rows / published flights is the same in 2025 and 2026 at every airport (EHAM 1.006, LSZH 1.01, LFPG/LTFM 0.997, others 1.000).
+- **Scripts:** `tests/pru_daily/` (holdout analysis) and `src/post/pru_daily_recon.py` (production); `logs/v55_build.log`.
+- **Holdout proxy for v54:** `ctxc1sel_ro` chain with v50's post-stages (scratch `h2/chain_all`) at non-LIRF airports, and the v48-method chain at LIRF (`cache/v54/v48m_chain_holdout.parquet`). Base full 296.43.
+- **(a) Day shift, non-LIRF:** per airport-day (day = predicted off-block date) solve λ with Σ max(0, d̂ + λ) = D, then apply 0.75·λ.
+  - Shrink 0.75 beats 0.5 and 1.0. Variance-weighted and delay-proportional allocations are worse (they push the correction onto tail rows).
+  - A cap and the choice of row scope don't matter.
+  - Centring λ per airport (removing a structural offset) is worse, so the per-airport level is information.
+  - Holdout non-LIRF: full −0.98, body −1.54 (Jan −2.20, Jul −1.09). Every airport improves.
+  - **January is inflated** by the §106 artefact (the holdout chain over-predicts January); July is the clean read.
+- **(b) LIRF echo update:** hedged rows (T − S ≥ 45 min, < 12 h, prediction strictly between the echo and real branches) are two-point mixtures:
+  - echo → taxi = T − S, adds 0 to D;
+  - real → taxi = N, adds T − S − N.
+  - Prior: isotonic map from (p − 1100)/(T − S − 1100) and the NM flag to echo, fitted cross-month on the holdout. N = (p − π·E)/(1 − π).
+  - Posterior from the day's residual: non-hedged rows' noise sd ×1.5 and bias (+161 min/day), by enumeration (≤ 16 rows) or a Gaussian approximation.
+  - Then 0.5·λ shift on LIRF's non-hedged rows.
+  - Holdout LIRF RMSE 549 → 540; posterior calibrated (≥ 0.8 → 86–89% echo).
+  - ≥ 12 h rows are excluded: echo and +24 h both add 0 to D, so the sum cannot separate them.
+- **(a) + (b) on the holdout:** full −2.35, body −1.85 (Jan −2.52, Jul −1.39); full Jan −1.35, Jul −3.35. Every airport improves.
+- **The monthly taxi-out-additional-time file is not used:** its offset to our labels is unstable in winter (EDDM January estimate 126 s low), and it worsens the holdout at β = 1.
+- **First combined build (superseded, never uploaded):** (a) + (b) on v54 (vs v54 RMS 57.3 s); kept as `cache/v54/v55_both_firstbuild_buggyLIRF.parquet`.
+- **Verification before upload (2026-10-09), `logs/v55_holdout_replay.log`:**
+  - **Definition pinned down:** UTC off-block date; each flight's delay is rounded to the minute.
+    - EDDM/EGLL/LEBL/LEMD/LIRF/LTFM match our labels exactly on every day (median |error| 0).
+    - EDDF and LSZH are within minutes.
+    - EHAM/LFPG show ±35–40 min a day (about 5 fewer / 2 more flights published). Local-date and schedule-date conventions are far worse.
+  - **Replay:** `pru_daily_recon.py --holdout` runs the production code on the holdout (LIRF calibration cross-month) and reproduces the analysis.
+
+| component | holdout full | body (Jan / Jul) | full delta 95% CI (airport-day bootstrap) | P(worse) |
+|---|---|---|---|---|
+| (a) day shift, non-LIRF | −0.98 | −1.54 (−2.20 / −1.09) | [−1.25, −0.75] | 0.000 |
+| (b) LIRF update, as first built | −1.33 | −0.24 | [−4.06, +1.37] | 0.20 |
+
+  - **Freezing ADS-B-tracked rows** (only untracked rows move) is worse: pushback tier frozen −0.60, any ADS-B row frozen +1.16. The day error is shared by tracked rows.
+  - **2026 witnesses for (a), v54 → v55:**
+    - ADS-B taxi on pushback-tier rows: closer in 9 of 11 airport-months (LEBL July 17 → −3.5, EHAM January −7.9 → −2.2, LSZH flips sign −23.5 → +18.7 in January).
+    - Anchor T − AOBT_3: closer in 13 of 20 (LTFM January 108 → 51, LIRF July 55 → 23, LEBL July 17 → −7).
+    - Disagreements: LSZH (the anchor says v54 was fine), LTFM July (anchor −1 → −47).
+    - The 2026 λ is a steady level at LTFM (+59/+71, p10 > +34 every day) and LSZH (−45/−19). Worst case if the anchor is right instead: ≈ +0.4 s.
+  - **ATC pre-departure delay file:** delay-code attributed; corr ≤ 0.6 with every exact-sum candidate. No second constraint. Not used.
+  - **Bug in (b):** where p ≈ the echo value, the implied real-branch value N went negative and was clipped to 0 (SVII3006, 2026-07-01: 17,786 → 0 s).
+    - Fix: floor N at 650 s (p5 of LIRF non-echo taxi on ≥ 45 min delays) and re-derive π so the prior mixture still equals p.
+    - Holdout LIRF-only after the fix: full −1.75, body −0.17, Jan −0.29 / Jul −3.21, CI [−4.59, +0.85], P(worse) 0.135 (`logs/v56_lirf_holdout.log`). The same with a 900 s floor.
+    - In 2026 its changes are concentrated: 5 days hold 83% of the change energy (first build).
+- **v55 (as uploaded)** = v54 + (a) only (`PRU_LIRF=0`; `logs/v55_other_build.log`).
+  - vs v54: RMS 30.9 s, mean −7.8, max |Δ| 399. Every LIRF row is identical to v54.
+  - 0 LOBT-window violations; rows < 120 s: 62 (v54 77).
+  - **Expected ≈ −1 s (holdout full −0.98, body −1.54). Keep iff board < 241.7634.**
+- **v56 candidate** = v55 + (b) with the floor fix (`PRU_OTHER=0`), uploaded separately so the two components can be told apart. **Keep iff board < v55's score.**
+- **v56 candidate built** (`data/submissions/smart-jigsaw_v56.parquet`, `logs/v56_build.log`) = v55 + (b) with the floor fix.
+  - Non-LIRF rows identical to v55; vs v55 RMS 47.6 s (LIRF 170.5, mean −23); 58 hedged rows have posterior ≥ 0.8.
+  - Its largest 2026 moves are single-row bets: SVII3006 17,786 → 650, LAV8047 28,465 → 13,270, RYR4852 41,146 → 33,451; ITY108 6,057 → 11,321 goes up.
+  - 5 days hold 85% of the change energy. Each of the top two rows is worth about ±0.3 s of board RMSE alone.
+- **Other EUROCONTROL files reviewed (2026-10-09):** none adds an exact constraint.
+  - The CSV index has no punctuality or histogram series.
+  - Per airport-day: airport_traffic (counts we already have), slot adherence (measured at takeoff), apt_dly (arrival ATFM, §23), ATC pre-departure delay (delay-code attributed, above).
+  - Monthly: taxi-out/taxi-in/ASMA additional time (taxi-out tested above, worse).
+- **Third check round (2026-10-09, before any v55/v56 upload; `tests/pru_daily/diag3.py`–`diag5.py`, `logs/v55v56_fix.log`, `logs/v55v56_final.log`):**
+  - **Bug found: day-boundary population.** A row whose predicted off-block falls before the scored month (e.g. takeoff 1 July, predicted off-block 30 June) formed a 1–2-row "day" solved against the whole published 30 June sum.
+    - Non-LIRF: the solve fails there, so it was skipped.
+    - LIRF: it drove the update. SVII3006 (17,786 → floor) was this bug, and it inflated the 2026 day-surprise spread to z sd 6.9 (max 54).
+    - **Fix:** use only airport-days where our rows / published `FLT_DEP_IFR_2` is within ±5%.
+    - After the fix, 2026 LIRF z: mean +0.24, sd 1.39 (Jan 0.70, Jul 1.36), vs 2025 holdout sd 1.15. The model fits 2026.
+  - **Extreme 2026 days:** EHAM storm, 4–6 January (taxi +112/+399/+150 s); LTFM 19 January (−256 s).
+    - The ADS-B witness on the EHAM storm days supports the shift: RMS vs ADS-B 1,110 → 1,026 (5 Jan), 823 → 802, 504 → 490; EHAM mean offset −67 → −14.
+    - 1–9 January tracked rows: RMS better at EDDF/EGLL/EHAM/LEBL, flat at EDDM, worse at LSZH (139 → 156, mean +31 → +76).
+  - **LSZH skipped (PRU_SKIP default LSZH):** the daily sum (+34 s January, +14 s July) would almost exactly undo v49's board-validated LSZH fix (−39/−28 s). The anchor and ADS-B RMS witnesses say v54 was right, and the 2026 LSZH base carries 2026-only changes the holdout never saw. Holdout cost of skipping: −1.00 → −0.99.
+- **Final files:**
+  - **v55** = v54 + day shift at 8 airports (not LIRF, not LSZH): holdout full −0.99, body −1.57 (Jan −2.21, Jul −1.13), CI [−1.24, −0.77]. vs v54 RMS 29.4 s, mean −9.2, max |Δ| 399.
+  - **v56** = v55 + LIRF update (floor + population fix): holdout LIRF-only full −1.75 (Jan −0.29, Jul −3.21), CI [−4.59, +0.85], P(worse) 0.135. vs v55 RMS 37.6 s (LIRF 134.7, mean −22.5), max |Δ| 15,195 (LAV8047).
+  - md5: v55 aba5f394…, v56 a056c69b…
+- **Board: v56 = 240.7425 (−1.02 vs v54). Kept; new best.**
+  - About what the 8-airport day shift alone was expected to give (holdout −0.99). The LIRF part's contribution is therefore unclear: roughly zero, or one part helped while the other hurt.
+  - Isolating test: upload v55 (8-airport shift only).
+    - v55 ≈ 240.7 → the LIRF part did nothing.
+    - v55 < 240.74 → the LIRF part hurt; drop it.
+    - v55 ≈ 241.7 → the shift did nothing and LIRF gave the −1.
+  - **Can v55 beat v56?** Yes. They differ only on LIRF rows, so v55 < v56 exactly when the LIRF update hurt.
+    - v56's total gain is −1.70e8 SSE (241.7634² → 240.7425², × 344,841 rows).
+    - The 8-airport shift's holdout gain is −2.01e8 SSE. At 1:1 SSE transfer, v55 alone would score ≈ 240.56, and the LIRF part cost ≈ +0.2 s.
+    - At 0.7 transfer, v55 ≈ 241.0 and the LIRF part helped ≈ −0.25 s.
+    - Past transfer ratios: v50 and v54 about 1:1, v53 about 0.3.
+    - So v56's score puts the LIRF part between slightly harmful and slightly helpful, centred near zero. P(v55 < v56) ≈ 50–60%.
+    - **Rule for the v55 upload:** below 240.7425 → the LIRF update hurt; v55 is the new best and later builds drop it. Above → the LIRF update helped; v56 stays the base.

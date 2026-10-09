@@ -67,3 +67,57 @@ Notes:
 - The LOBT window is applied last. This also fixes 3 LSZH rows that v49's level shift left 16–40 s outside it.
 
 **Board rule: keep iff board < 245.3839 (v49).**
+
+## Amendment A1 (2026-10-08, after v50's board result, before v51's upload)
+
+- **v50 board: 243.4565 (−1.93 vs v49). Kept.**
+- **Follow-up arms, same gate** (controls bit-identical across processes):
+  - all2 adds `ro_last_tin_x` (the last arrival's taxi-in minus its 2025 stand/runway median) and `ro_last_land_gap`.
+  - e2 makes the combiner the equal-weight mean of a global and a per-airport LightGBM.
+  - all2_e2 vs v50's recipe: full −0.18, **body −0.43 (Jan −0.50, Jul −0.38), CI [−0.55, −0.30]**.
+  - 2026 projection of the increment: −0.27 (full) / −0.48 (body-only).
+  - A previous-same-stand-departure block (all3) added nothing beyond all2 and is not used.
+- **v51** = v49 + (treatment − control) for the all2_e2 combiner and the 11-feature neighbour stage, built exactly as v50 (LIRF unchanged, NM-line rows frozen, LOBT window last).
+  - vs v50: RMS 22.1 s, mean +0.03.
+  - **Keep iff board < 243.4565 (v50).**
+
+**v51 board: 244.0503 (+0.59 vs v50). REJECTED.** The per-airport combiner members (e2) are the suspect: thin-2025-coverage airports, many more 2026 ADS-B rows (the v40 / §86 mechanism).
+
+## Amendment A2 (2026-10-08, before upload): identity of the first arrival at the stand
+
+- **Why:** the first arrival at our stand after SOBT + 5 min is usually our own late inbound, not a re-occupier.
+  - 2025, non-LIRF, arrival ≥ 30 min before T: type differs, operator matches and origin ≠ our destination → 77% re-occupier.
+  - Type and origin both match → 0.1%.
+  - v50's `ro_*` inputs can't tell the two apart.
+- **Inputs** (`cache/v53/id_feats.py` → `reocc_feats6.parquet` = v50's 9 `ro_*` columns plus 5 new ones), all label-free and null when there is no such arrival:
+  - `fa_tmatch`: type match;
+  - `fa_omatch`: operator match;
+  - `fa_origin`: arrival ADEP == our ADES;
+  - `fa_flnear`: same 2-letter prefix and flight number ±1;
+  - `fa_tin_x`: the arrival's taxi-in minus its 2025 stand/runway median.
+- **2025 vs 2026:** coverage (6–27% of departures per airport) and match rates agree at every airport. This is movement data only, so ADS-B coverage plays no part.
+- **Gate:** v50's recipe + the 5 inputs in the combiner and neighbour stage (b), one change, same process as its control (control bit-identical to the earlier runs).
+
+| | full | trimmed | body | body Jan / Jul |
+|---|---|---|---|---|
+| all_id vs v50's recipe | −0.35 | −0.44 | −0.41 | −0.51 / −0.34 |
+
+- Body CI [−0.52, −0.29], P(worse) 0.000.
+- Per airport: EGLL −1.91, LTFM −0.45, LFPG −0.28, EHAM −0.26, EDDF −0.24; EDDM/LSZH +0.04/+0.05.
+- 2026 projection: −0.22 full, −0.16 body-only.
+- **Identity-only file** (`cache/v53/identity_only_v50base.parquet`, not uploaded) = v49 + (treatment − control) for the all_id combiner and the 14-feature neighbour stage (`cache/v53/`), built exactly as v50: every LIRF row keeps v49's value, NM-line rows frozen, LOBT window last.
+  - vs v50: RMS 16.4 s, mean +0.03 (holdout arm vs control: 15.7 s RMS).
+  - No per-airport members (the v51 suspect).
+- **Board rule: keep iff board < 243.4565 (v50).**
+- **Uploaded form (2026-10-09): v53** = teammate's v52 (OPDI, LSZH only, board 242.7323) + (identity-only file − v50). **Keep iff board < 242.7323.**
+- **Board (2026-10-09): v53 = 242.6657 (−0.07 vs v52). Kept.**
+
+## Amendment A3 (2026-10-09, before v54's upload): stand-aware context corrector
+
+- Corrector `ctxc1sel_ro` = both members of ctxc1sel refit with the 11-column stand re-occupation block (`CTX_RO=1`, `tests/context_corrector_test.py`).
+- **Gate (PROGRESS §124)** vs ctxc1sel, both through v50's post-stage recipe:
+  - full −1.12, body −0.83 (Jan −1.29, Jul −0.51), CI [−1.16, −0.47];
+  - every airport except LIRF improves (LIRF is frozen in production);
+  - 2026 projection −0.96.
+- **v54** = v53 + [(new chain + identity deltas on it) − (old chain + v53's identity deltas)], LIRF frozen, NM-line rows frozen, LOBT window last; vs v53 RMS 30.8 s.
+- **Board rule: keep iff board < 242.6657 (v53).**
