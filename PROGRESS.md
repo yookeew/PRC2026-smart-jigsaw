@@ -29,7 +29,9 @@ way the data was recorded, rather than taxi-out itself:
 - LIRF records where block time equals scheduled time (from §7; notably §44,
   §55, §113–§117);
 - NM-unmatched long-delay lines (§76) and rows held fixed in the
-  post-stages.
+  post-stages;
+- the day-level match to EUROCONTROL's published daily pre-departure delay
+  (§125, organiser-cleared).
 
 Later sections that add such a stage note it at the top.
 
@@ -5551,7 +5553,7 @@ Code:
 - **Keep iff board < 242.6657 (v53).**
 - **Board: v54 = 241.7634 (−0.90 vs v53). Kept; new best.** At the projection (−0.96): the corrector's stand signal transferred about 1:1.
 
-## 125. EUROCONTROL daily pre-departure delay: day-level reconciliation + LIRF echo update -- v55 built (2026-10-09)
+## 125. EUROCONTROL daily pre-departure delay: day-level reconciliation + LIRF echo update -- v55 = 239.45, new best; LIRF update rejected (2026-10-09)
 
 *Note (2026-10-09): ranking-specific stage (see the reader's guide). The
 day-level reconciliation matches our output to a published daily aggregate,
@@ -5606,7 +5608,7 @@ handling listed in the guide.*
     - Fix: floor N at 650 s (p5 of LIRF non-echo taxi on ≥ 45 min delays) and re-derive π so the prior mixture still equals p.
     - Holdout LIRF-only after the fix: full −1.75, body −0.17, Jan −0.29 / Jul −3.21, CI [−4.59, +0.85], P(worse) 0.135 (`logs/v56_lirf_holdout.log`). The same with a 900 s floor.
     - In 2026 its changes are concentrated: 5 days hold 83% of the change energy (first build).
-- **v55 (as uploaded)** = v54 + (a) only (`PRU_LIRF=0`; `logs/v55_other_build.log`).
+- **v55, first build (superseded by the final file below, which skips LSZH)** = v54 + (a) only (`PRU_LIRF=0`; `logs/v55_other_build.log`).
   - vs v54: RMS 30.9 s, mean −7.8, max |Δ| 399. Every LIRF row is identical to v54.
   - 0 LOBT-window violations; rows < 120 s: 62 (v54 77).
   - **Expected ≈ −1 s (holdout full −0.98, body −1.54). Keep iff board < 241.7634.**
@@ -5661,3 +5663,23 @@ handling listed in the guide.*
     - new corrector vs old post-stages: +0.38 / +0.26.
   - This matches §85 (corrector member average rejected), §108 (3-seed average −0.03, rejected) and v51 (per-airport e2 members lost on the board).
   - The versions are nested improvements, not independent models, so averaging dilutes the later fixes.
+- **Board: v55 = 239.4469 (−2.32 vs v54, −1.30 vs v56). Kept; new best.** Uploaded file = the final v55 above (md5 aba5f394dde8b0ed8075d1ac848f7b12).
+  - **By the pre-set rule (v55 below 240.7425), the LIRF update is dropped. Later builds start from v55.**
+  - **Exact split.** v55 differs from v54 only at the 8 shift airports, and v56 from v55 only on LIRF rows. So the board SSE (344,841 rows) splits exactly:
+
+| component | board ΔSSE | holdout ΔSSE | board / holdout |
+|---|---|---|---|
+| (a) day shift, 8 airports (v54 → v55) | −3.84e8 | −2.02e8 | ≈ 1.9 |
+| (b) LIRF update (v55 → v56) | +2.15e8 | −3.57e8 | sign flipped |
+| both (v54 → v56) | −1.70e8 | −5.59e8 | ≈ 0.3 |
+
+  - **(a) transferred about twice its holdout size.** The pre-upload projection at 1:1 was ≈ 240.56; the result is 1.1 s better.
+    - One reading, not tested: the shift corrects day-level errors, and those are larger in 2026 because the model is a year away from its training data.
+  - **(b) lost on the board.** This was always a possibility:
+    - its holdout CI included harm (P(worse) 0.135);
+    - its 2026 changes were a handful of single-row bets (5 days held 85% of the change energy; each of the top two rows was worth about ±0.3 s).
+  - The earlier estimate P(v55 < v56) ≈ 50–60% landed on the "LIRF hurt" side.
+  - **Not done, on purpose:**
+    - no reading of which individual LIRF rows were wrong;
+    - no refit of the LIRF prior, the shrink 0.75 or the LSZH skip from these two scores.
+    - Any later change to the day-level stage goes through the holdout first (§82).
