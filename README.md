@@ -3,7 +3,7 @@
 Predicting `TAXITIME_SEC_mvt` for departures at 11 major European airports
 (EDDF, EDDM, EGLL, EHAM, LEBL, LEMD, LFPG, LIRF, LTAI, LTFM, LSZH) for the
 2026 PRC / OpenSky Network Data Challenge. Full design and rationale live in
-[CLAUDE.md](CLAUDE.md).
+[DESIGN.md](DESIGN.md).
 
 ## Setup (Windows)
 
@@ -35,7 +35,7 @@ You need your own OSN account login and, separately, the MinIO/S3
 `access_key` + `secret_key` for the `competition-data` bucket (from the
 challenge organizers — this is the same thing as "S3 credentials", MinIO is
 just the S3-compatible server OpenSky runs). These are per-person, not
-shared — everyone on the team needs their own.
+shared — each person needs their own.
 
 ### 4. Create/edit the pyopensky config file
 
@@ -79,8 +79,10 @@ committed. Safe to re-run: it skips files already present.
 
 ## Reproducing our submission
 
-See [REPRODUCE.md](REPRODUCE.md). It rebuilds our best leaderboard entry
-(v25, RMSE 264.39) from the raw data, step by step.
+See [REPRODUCE.md](REPRODUCE.md). It currently rebuilds v30 (leaderboard
+RMSE 261.40) from the raw data, step by step; the stages added after v30
+are documented in [PROGRESS.md](PROGRESS.md) and will be added to
+REPRODUCE.md.
 [PROGRESS.md](PROGRESS.md) is the full experiment log, and
 `reports/*_preregistration.md` holds the pre-registered tests behind every
 adopted change.
