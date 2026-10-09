@@ -1,10 +1,8 @@
 # PRC Data Challenge 2026 — development log
 
-## Reader's guide (added 2026-10-09)
+## Reader's guide 
 
-This is the team's working log, written as the work happened and kept in
-date order. Results are not rewritten afterwards; where a later section
-overturns an earlier one, it says so ("Correction to §46").
+This is our day-to-day working log, in date order. Some early conclusions were revised later on; when that happens, the later section notes it (e.g. "Correction to §46").
 
 **How the leaderboard was used.** Our goal was a taxi-out model that
 generalises. We never intended to fit the leaderboard, and the process was
