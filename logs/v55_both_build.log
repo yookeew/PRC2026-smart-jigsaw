@@ -1,0 +1,33 @@
+LIRF calibration (Jan+Jul 2025 holdout): noise sd 191 min (x1.5), bias +161 min/day
+airport-days 624; our rows / published flights median 1.000
+vs base: RMS 57.27, mean -9.55, rows changed 331,527, max |d| 17786
+shape: (20, 6)
+┌──────┬─────┬──────┬────────────┬────────────┬────────────┐
+│ apt  ┆ mo  ┆ days ┆ lam_med    ┆ lam_p10    ┆ lam_p90    │
+│ ---  ┆ --- ┆ ---  ┆ ---        ┆ ---        ┆ ---        │
+│ str  ┆ i64 ┆ u32  ┆ f64        ┆ f64        ┆ f64        │
+╞══════╪═════╪══════╪════════════╪════════════╪════════════╡
+│ EDDF ┆ 1   ┆ 31   ┆ 7.883544   ┆ -12.207703 ┆ 66.396889  │
+│ EDDF ┆ 7   ┆ 31   ┆ 2.039234   ┆ -16.850728 ┆ 18.552281  │
+│ EDDM ┆ 1   ┆ 31   ┆ 1.583673   ┆ -5.528713  ┆ 8.467014   │
+│ EDDM ┆ 7   ┆ 31   ┆ 2.621659   ┆ -7.452788  ┆ 7.715096   │
+│ EGLL ┆ 1   ┆ 31   ┆ 6.125955   ┆ -3.561561  ┆ 29.478079  │
+│ …    ┆ …   ┆ …    ┆ …          ┆ …          ┆ …          │
+│ LIRF ┆ 7   ┆ 31   ┆ 69.707616  ┆ 21.737681  ┆ 108.521246 │
+│ LSZH ┆ 1   ┆ 31   ┆ -45.186167 ┆ -67.207069 ┆ -33.004338 │
+│ LSZH ┆ 7   ┆ 31   ┆ -18.897094 ┆ -35.987062 ┆ -7.355001  │
+│ LTFM ┆ 1   ┆ 31   ┆ 71.416972  ┆ 36.921048  ┆ 123.383999 │
+│ LTFM ┆ 7   ┆ 31   ┆ 58.998348  ┆ 34.016487  ┆ 96.840725  │
+└──────┴─────┴──────┴────────────┴────────────┴────────────┘
+  EDDF RMS   19.84 mean   -5.78
+  EDDM RMS    8.26 mean   -0.52
+  EGLL RMS   13.51 mean   -6.52
+  EHAM RMS   34.58 mean   +6.30
+  LEBL RMS   27.12 mean  -16.84
+  LEMD RMS   12.64 mean   -5.10
+  LFPG RMS   23.28 mean   +4.47
+  LIRF RMS  172.60 mean  -23.00
+  LSZH RMS   29.90 mean  +25.14
+  LTFM RMS   63.29 mean  -52.52
+LIRF hedged rows 4246: posterior mean 0.095; >= 0.8: 58, <= 0.05: 2435
+wrote C:/Users/yuqiw/AppData/Local/Temp/claude/c--Users-yuqiw-prc2025/5e729efd-48bf-4599-b8de-df5ad33f25bb/scratchpad/v55_both.parquet

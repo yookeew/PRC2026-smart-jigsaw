@@ -1,0 +1,12 @@
+=== ctxc1selcp Fri Oct  9 09:30:29 RST 2026
+wrote stack_lgb_catcorr_v3_ctxc1selcp_adsbq_partial_fb.parquet  n=344,841  median=966  mean=1046.5  max=112453
+wrote smart-jigsaw_v27ctxc1selcp.parquet: RMS diff vs v23 46.4 s; median 961, mean 1042.8
+wrote chain_ctxc1selcp.parquet: RMS diff vs v27 37.1 s
+wrote chain_ctxc1selcp_win.parquet
+wrote chain_ctxc1selcp_final.parquet
+=== ctxc1sel_ro Fri Oct  9 09:32:18 RST 2026
+wrote stack_lgb_catcorr_v3_ctxc1sel_ro_adsbq_partial_fb.parquet  n=344,841  median=965  mean=1044.5  max=112325
+wrote smart-jigsaw_v27ctxc1sel_ro.parquet: RMS diff vs v23 50.1 s; median 960, mean 1041.9
+wrote chain_ctxc1sel_ro.parquet: RMS diff vs v27 36.9 s
+wrote chain_ctxc1sel_ro_win.parquet
+wrote chain_ctxc1sel_ro_final.parquet

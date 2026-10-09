@@ -1,0 +1,13 @@
+delta_v54.parquet: rows 344,466, RMS 38.13
+vs base: RMS 30.81 s, mean -0.710, rows changed 307,241, max |d| 1696; frozen rows 26969; LIRF NM-unmatched identical True
+  EDDF RMS   31.82 mean   -1.67
+  EDDM RMS   26.17 mean   +0.03
+  EGLL RMS   40.74 mean   +1.49
+  EHAM RMS   29.78 mean   +0.28
+  LEBL RMS   20.80 mean   -0.46
+  LEMD RMS   24.48 mean   -2.02
+  LFPG RMS   33.85 mean   -2.57
+  LIRF RMS    0.00 mean   +0.00
+  LSZH RMS   27.68 mean   +1.11
+  LTFM RMS   39.51 mean   -1.88
+wrote data/submissions/smart-jigsaw_v54.parquet

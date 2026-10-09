@@ -1,0 +1,10 @@
+=== LIRF only, N_MIN 650
+holdout rows 344,339; base full 296.427
+full -1.754  body -0.174  bodyJan -0.169  bodyJul -0.179  fullJan -0.289  fullJul -3.209
+  per airport: {'EDDF': np.float64(0.0), 'EDDM': np.float64(0.0), 'EGLL': np.float64(0.0), 'EHAM': np.float64(0.0), 'LEBL': np.float64(0.0), 'LEMD': np.float64(0.0), 'LFPG': np.float64(0.0), 'LIRF': np.float64(-12.4), 'LSZH': np.float64(0.0), 'LTFM': np.float64(0.0)}
+  full delta, airport-day bootstrap: 95% CI [-4.587, +0.854], P(worse) 0.135
+=== LIRF only, N_MIN 900
+holdout rows 344,339; base full 296.427
+full -1.751  body -0.164  bodyJan -0.169  bodyJul -0.162  fullJan -0.285  fullJul -3.207
+  per airport: {'EDDF': np.float64(0.0), 'EDDM': np.float64(0.0), 'EGLL': np.float64(0.0), 'EHAM': np.float64(0.0), 'LEBL': np.float64(0.0), 'LEMD': np.float64(0.0), 'LFPG': np.float64(0.0), 'LIRF': np.float64(-12.37), 'LSZH': np.float64(0.0), 'LTFM': np.float64(0.0)}
+  full delta, airport-day bootstrap: 95% CI [-4.613, +0.864], P(worse) 0.135

@@ -1,0 +1,33 @@
+  pr = lambda p, ts: np.clip((p - TAU) / (ts - TAU), 0, 1)  # noqa: E731
+LIRF calibration: 4,478 hedged holdout rows, noise sd 191 min (x1.5), bias +161 min/day
+days 627, with published D 624; our rows / published flights: median 1.000, p5 0.996, p95 1.009
+vs base: RMS 57.27, mean -9.55, rows changed 331,527, max |d| 17786
+shape: (10, 4)
+┌──────┬──────┬────────────┬─────────────┐
+│ apt  ┆ days ┆ lam_med    ┆ lam_abs_p90 │
+│ ---  ┆ ---  ┆ ---        ┆ ---         │
+│ str  ┆ u32  ┆ f64        ┆ f64         │
+╞══════╪══════╪════════════╪═════════════╡
+│ EDDF ┆ 62   ┆ 3.076486   ┆ 44.312946   │
+│ EDDM ┆ 62   ┆ 1.960488   ┆ 9.817844    │
+│ EGLL ┆ 62   ┆ 6.739322   ┆ 27.819183   │
+│ EHAM ┆ 62   ┆ -2.924182  ┆ 18.797683   │
+│ LEBL ┆ 62   ┆ 20.706058  ┆ 49.393988   │
+│ LEMD ┆ 62   ┆ 3.924682   ┆ 29.747605   │
+│ LFPG ┆ 62   ┆ -3.14544   ┆ 37.944549   │
+│ LIRF ┆ 62   ┆ 40.234908  ┆ 101.229289  │
+│ LSZH ┆ 62   ┆ -34.096717 ┆ 62.068561   │
+│ LTFM ┆ 62   ┆ 65.670885  ┆ 102.797533  │
+└──────┴──────┴────────────┴─────────────┘
+  EDDF RMS   19.84 mean   -5.78
+  EDDM RMS    8.26 mean   -0.52
+  EGLL RMS   13.51 mean   -6.52
+  EHAM RMS   34.58 mean   +6.30
+  LEBL RMS   27.12 mean  -16.84
+  LEMD RMS   12.64 mean   -5.10
+  LFPG RMS   23.28 mean   +4.47
+  LIRF RMS  172.60 mean  -23.00
+  LSZH RMS   29.90 mean  +25.14
+  LTFM RMS   63.29 mean  -52.52
+LIRF hedged rows 4246: mean prior 0.102 -> posterior 0.095; posterior >= 0.8: 58, <= 0.05: 2435
+wrote C:/Users/yuqiw/AppData/Local/Temp/claude/c--Users-yuqiw-prc2025/5e729efd-48bf-4599-b8de-df5ad33f25bb/scratchpad/v55_candidate.parquet
