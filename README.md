@@ -35,7 +35,7 @@ You need your own OSN account login and, separately, the MinIO/S3
 `access_key` + `secret_key` for the `competition-data` bucket (from the
 challenge organizers — this is the same thing as "S3 credentials", MinIO is
 just the S3-compatible server OpenSky runs). These are per-person, not
-shared — everyone on the team needs their own.
+shared — each person needs their own.
 
 ### 4. Create/edit the pyopensky config file
 
@@ -87,12 +87,11 @@ REPRODUCE.md.
 `reports/*_preregistration.md` holds the pre-registered tests behind every
 adopted change.
 
-## How this was built
+## Development decisions
 
-Development was assisted by AI coding tools (Claude Code). The team set the
+Development was assisted by Claude Code. We set the
 design, chose what to test, set the evaluation rules and reviewed the
-results; all decisions recorded in [PROGRESS.md](PROGRESS.md) are the
-team's.
+results.
 
 ## Licence
 
