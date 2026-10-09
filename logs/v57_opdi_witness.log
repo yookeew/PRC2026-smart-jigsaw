@@ -1,0 +1,33 @@
+C:\Users\zhang\smart-jigsaw\tests\v57_opdi_witness.py:35: DeprecationWarning: In Polars 2.0, the default behavior for `empty_as_null` will change to `False`. To keep the current behavior, explicitly set `empty_as_null=True`.
+  out.append(g.explode("t_rwy").filter(pl.col("t_rwy").is_not_null()))
+C:\Users\zhang\smart-jigsaw\tests\v57_opdi_witness.py:54: DeprecationWarning: In Polars 2.0, the default behavior for `empty_as_null` will change to `False`. To keep the current behavior, explicitly set `empty_as_null=True`.
+  x = (m.filter(pl.col("matched")).select("MVT_ID_mvt", "apt", "per", "T", "B", "t_rwy", "t_park").explode("t_park")
+W1 arrivals: lag = first OPDI entry-parking_position after landing - in-block [s]
+shape: (6, 9)
+┌──────┬─────┬───────┬───────┬────────┬──────────┬──────────┬──────────┬────────────┐
+│ apt  ┆ per ┆ n_arr ┆ match ┆ n_park ┆ lag_p25  ┆ lag_med  ┆ lag_p75  ┆ park_share │
+│ ---  ┆ --- ┆ ---   ┆ ---   ┆ ---    ┆ ---      ┆ ---      ┆ ---      ┆ ---        │
+│ str  ┆ str ┆ u32   ┆ f64   ┆ u32    ┆ f64      ┆ f64      ┆ f64      ┆ f64        │
+╞══════╪═════╪═══════╪═══════╪════════╪══════════╪══════════╪══════════╪════════════╡
+│ EDDF ┆ J26 ┆ 10585 ┆ 0.843 ┆ 3220   ┆ -307.000 ┆ -185.000 ┆ -88.000  ┆ 0.304      │
+│ EDDF ┆ P25 ┆ 60199 ┆ 0.905 ┆ 19826  ┆ -329.000 ┆ -215.000 ┆ -97.000  ┆ 0.329      │
+│ EDDF ┆ U26 ┆ 20636 ┆ 0.806 ┆ 7143   ┆ -322.000 ┆ -219.000 ┆ -101.000 ┆ 0.346      │
+│ LSZH ┆ J26 ┆ 6738  ┆ 0.866 ┆ 4413   ┆ -164.000 ┆ -87.000  ┆ -45.000  ┆ 0.655      │
+│ LSZH ┆ P25 ┆ 34884 ┆ 0.953 ┆ 26564  ┆ -148.000 ┆ -79.000  ┆ -44.000  ┆ 0.761      │
+│ LSZH ┆ U26 ┆ 13160 ┆ 0.982 ┆ 11215  ┆ -141.000 ┆ -77.000  ┆ -45.000  ┆ 0.852      │
+└──────┴─────┴───────┴───────┴────────┴──────────┴──────────┴──────────┴────────────┘
+
+W2 departures (seconds)
+shape: (6, 10)
+┌──────────┬─────┬───────┬───────────┬───────┬─────────────────┬────────┬───────────────────┬────────────────┬─────────────┐
+│ ADEP_mvt ┆ per ┆ n     ┆ share_g60 ┆ n_xp  ┆ a3_minus_xp_med ┆ n_adsb ┆ adsb_minus_xp_med ┆ lead_first_med ┆ lead_xp_med │
+│ ---      ┆ --- ┆ ---   ┆ ---       ┆ ---   ┆ ---             ┆ ---    ┆ ---               ┆ ---            ┆ ---         │
+│ str      ┆ str ┆ u32   ┆ f64       ┆ u32   ┆ f64             ┆ u32    ┆ f64               ┆ f64            ┆ f64         │
+╞══════════╪═════╪═══════╪═══════════╪═══════╪═════════════════╪════════╪═══════════════════╪════════════════╪═════════════╡
+│ EDDF     ┆ J26 ┆ 10571 ┆ 0.495     ┆ 2087  ┆ 525.000         ┆ 60     ┆ 98.645            ┆ 413.000        ┆ 420.000     │
+│ EDDF     ┆ P25 ┆ 60132 ┆ 0.461     ┆ 9877  ┆ 415.000         ┆ 816    ┆ 91.410            ┆ 414.000        ┆ 447.000     │
+│ EDDF     ┆ U26 ┆ 20650 ┆ 0.553     ┆ 4879  ┆ 535.000         ┆ 146    ┆ 225.195           ┆ 377.000        ┆ 357.000     │
+│ LSZH     ┆ J26 ┆ 6753  ┆ 0.833     ┆ 4081  ┆ 280.000         ┆ 1107   ┆ 165.100           ┆ 748.500        ┆ 388.000     │
+│ LSZH     ┆ P25 ┆ 34938 ┆ 0.934     ┆ 23722 ┆ 255.000         ┆ 1812   ┆ 87.375            ┆ 685.000        ┆ 400.000     │
+│ LSZH     ┆ U26 ┆ 13155 ┆ 0.964     ┆ 10177 ┆ 225.000         ┆ 1013   ┆ 10.160            ┆ 748.000        ┆ 438.000     │
+└──────────┴─────┴───────┴───────────┴───────┴─────────────────┴────────┴───────────────────┴────────────────┴─────────────┘

@@ -1,0 +1,24 @@
+
+EDDF: P rows 19,332 on 31 days, covered share 0.472
+  full            n 19,332  ctl  122.34  trt  117.39  delta  -4.96
+  trimmed         n 19,332  ctl  122.34  trt  117.39  delta  -4.96
+  body            n 19,227  ctl  119.41  trt  114.30  delta  -5.11
+  body covered    n  9,124  ctl  114.23  trt  102.64  delta -11.59
+  body uncovered  n 10,103  ctl  123.90  trt  123.89  delta  -0.01
+  body combiner   n 16,958  ctl  113.62  trt  108.40  delta  -5.22
+  body stage b    n  2,269  ctl  156.04  trt  151.30  delta  -4.74
+  body delta by month: {'2025-09': -4.92, '2025-10': -4.08, '2025-11': -6.95, '2025-12': -4.21}
+  body delta day-cluster bootstrap 95% CI [-6.51, -3.83]
+  top-20 rows share of the body SSE gain 0.40
+
+LSZH: P rows 11,921 on 33 days, covered share 0.937
+  full            n 11,921  ctl  116.48  trt   93.31  delta -23.18
+  trimmed         n 11,921  ctl  116.48  trt   93.31  delta -23.18
+  body            n 11,799  ctl  110.59  trt   86.60  delta -23.99
+  body covered    n 11,129  ctl  108.11  trt   81.63  delta -26.48
+  body uncovered  n    670  ctl  145.69  trt  146.23  delta  +0.54
+  body combiner   n 10,455  ctl   94.82  trt   76.09  delta -18.73
+  body stage b    n  1,344  ctl  193.43  trt  144.19  delta -49.24
+  body delta by month: {'2025-09': -38.88, '2025-10': -28.19, '2025-11': -16.34, '2025-12': -19.98}
+  body delta day-cluster bootstrap 95% CI [-28.94, -19.17]
+  top-20 rows share of the body SSE gain 0.21
