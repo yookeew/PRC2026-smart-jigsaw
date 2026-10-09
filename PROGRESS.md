@@ -1,6 +1,6 @@
 # PRC Data Challenge 2026 — development log
 
-## Reader's guide (added 2026-10-09)
+## Reader's guide 
 
 This is our working log, in date order. When a later section revises an
 earlier conclusion, it says so (e.g. "Correction to §46").
