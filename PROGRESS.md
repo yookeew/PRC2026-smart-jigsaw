@@ -6255,3 +6255,43 @@ reproduces the v62 file; then δ = s(x)·λ̂ at the 8 airports with s fitted on
 at all 10 airports, and its Jan/Jul changes mirror v63's (LTFM Jan 29.6 / +15.0 vs 29.4 / +14.9). Feb/Jun 2025 are in the
 gate (−2.76 / −0.30). `data/submissions/final4m/blind_v4.parquet` = Jan/Jul from v63, Feb/Jun from `f4m_g2`: 670,790 rows,
 IDs exactly `final_submitting`'s, md5 7f0ea743f80f63433b202fb241d101f9. **Use it only if v63 is kept; otherwise `blind_v3` stays.**
+
+## 134. After v63: the day-level oracle is exhausted, the within-day error is not; G3 (within-day inputs in the allocation) fails its gate (2026-10-10)
+
+**Board: v63 = 238.3173 (−0.47 vs v62 = 238.79; projected −0.33). Kept; new best; v63 is the base.** `blind_v4` is
+therefore the blind-board file (§133's rule). Leaderboard snapshot 21:08 UTC: we are 31st; 30th is 238.2524, 28th 237.12.
+Next free version: **v64**.
+
+**Where the error left after G2 sits** (scratch, 2025 frame of §130–§133, G2 leave-period-out, oracle means
+leave-one-out, trimmed y ≤ 5 h, 8 airports):
+
+| oracle removed after G2 | 12 months | holdout-chain months (Jan + Jul, full post-stages) |
+|---|---|---|
+| airport-day mean | −0.02 | −0.15 |
+| airport-day × 3 h mean | −2.76 | −1.87 |
+| airport-day × hour mean | −4.27 | −2.41 (LTFM −7.7, EDDF −2.2, LEBL −2.0, EGLL / LFPG −1.8) |
+
+- G2 already takes the whole day-level error on 2025; the daily sums cannot see what is left, which is within the day.
+- **Hour-window inputs** (`src/post/hour_feats.py`, label-free, movement data only): over the other departures within
+  ±30 min, mean (T − LOBT − p), (T − AOBT_3 − p), (T − SOBT − p), mean p, count; correct same-runway counts (not via the
+  buggy `_roll_count`, §132); LOBT / SOBT backlog over 3 h; arrivals' taxi-in excess within ±30 min.
+  - Jan ↔ Jul cross-fit residual model on the holdout chain, paired with vs without them: trimmed −0.57 (Jan −0.42,
+    Jul −0.68; LTFM −1.33, LEBL −1.18, EHAM −0.91, EDDF −0.84), but the residual model itself is +1.73 worse than the
+    chain, and an hour-only stand-alone stage is +0.47 to +0.78 worse (LTFM +2). No stand-alone stage.
+  - On top of the corrector's own OOF output (10 OOF months, leave-period-out, paired): trimmed **−2.12**, every month
+    better (−0.71 to −1.96, February −9.81), body −0.36; LTFM −6.79, LFPG −2.95, LEBL −1.31, EDDM −1.10. Again the
+    residual model itself is +2.31 worse than p, so the signal is real but needs a host model.
+
+**G3 gate** (`reports/day_alloc_g3_preregistration.md`, written before the run; `tests/day_alloc_g3.py`,
+`logs/day_alloc_g3.log`): G2's slope model with the hour-window inputs, vs G2x8.
+
+| vs G2x8 | full | body | trimmed | months better | Feb | Jun | Jan / Jul | pass |
+|---|---|---|---|---|---|---|---|---|
+| G3 (+ own-row rl, ra) | −0.013 | −0.072 | −0.016 | 9 | +0.56 | +0.02 | +0.02 / −0.16 | no |
+| G3h (hour inputs only) | −0.247 | −0.147 | −0.266 | 11 | −2.43 | +0.05 | −0.01 / −0.14 | no (June) |
+
+- **FAIL; nothing built.** G3h's gain is LTFM's February snow days; without February ≈ −0.07. The within-day error is
+  not proportional to the day's λ̂, so an allocation of λ̂ cannot take it.
+- **Next (proposed):** the hour-window block inside the context corrector (a `CTX_HOUR` member next to `CTX_RO`), through
+  the chain as v54 was built (delta against a byte copy of the production `ctxc1sel_ro`, never against a refit: refit
+  noise, §105e, would add ≈ 2σ² ≈ +0.3 s). Needs the `_ro` corrector and four-month files from the other machine.
