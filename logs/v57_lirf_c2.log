@@ -1,0 +1,12 @@
+LIRF 2025 rows 160,704: ordinary 0.878, hedged 0.120, >=12 h 0.0002, other 0.002
+solved LIRF days 365; 2025 noise sd 211.3 s; mean(lam - delta*) by period {'P01': -69.01724048662196, 'P02': -38.933263916459815, 'P04': -27.399441102315237, 'P06': -18.91130269177511, 'P09': -5.4146278984956515, 'P11': -36.322916511342946}
+  P01: a 0.99, month levels {'2025-01': np.float64(-6.8), '2025-07': np.float64(-91.1)}
+  P02: a 0.00, month levels {'2025-02': np.float64(-31.7), '2025-03': np.float64(-52.6)}
+  P04: a 0.00, month levels {'2025-04': np.float64(-32.5), '2025-05': np.float64(-42.4)}
+  P06: a 0.00, month levels {'2025-06': np.float64(-12.7), '2025-08': np.float64(6.5)}
+  P09: a 0.00, month levels {'2025-09': np.float64(17.7), '2025-10': np.float64(-21.5)}
+  P11: a 0.00, month levels {'2025-11': np.float64(-31.0), '2025-12': np.float64(-48.2)}
+C2 (LIRF ordinary rows, 2025, vs no change): {'full': 30.637, 'body': 32.183, 'months_full_better': 2}
+  full by month: {'01': 3.4, '02': 2.44, '03': 3.54, '04': 1.68, '05': 0.7, '06': 0.68, '07': 245.43, '08': -0.42, '09': -0.11, '10': 0.57, '11': 2.82, '12': 2.4}
+  LIRF all rows full: 13.634
+  C2 GATE (full<=-0.10, body<=0, >=8/12): [False, False, False] -> FAIL

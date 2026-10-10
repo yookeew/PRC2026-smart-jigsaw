@@ -1,0 +1,5 @@
+EDDF rows 36,317; covered on kept days 16,937; demeaned delta RMS 43.61, mean +0.000; kept days 51
+EDDF day lambda before / after the delta: 62 days, mean change -0.10 s, max |change| 1.41 s
+vs v55: EDDF rows changed 19,148, RMS 43.62, mean +0.05, max |d| 830; whole file RMS 14.15; non-EDDF identical True
+rows < 120 s: 76 (v55 76)
+wrote data/submissions/smart-jigsaw_v60.parquet

@@ -1,0 +1,22 @@
+holdout non-LIRF rows 317,811; tracked share 0.183; V* = trkmult, a 0.6, w 0.75
+base full 266.079, body 178.864
+shape: (7, 4)
+┌──────────┬───────────┬───────────┬─────────┐
+│ metric   ┆ R0 - base ┆ V* - base ┆ V* - R0 │
+│ ---      ┆ ---       ┆ ---       ┆ ---     │
+│ str      ┆ f64       ┆ f64       ┆ f64     │
+╞══════════╪═══════════╪═══════════╪═════════╡
+│ full     ┆ -1.272    ┆ -1.416    ┆ -0.143  │
+│ trimmed  ┆ -1.796    ┆ -1.939    ┆ -0.143  │
+│ body     ┆ -1.902    ┆ -1.826    ┆ 0.076   │
+│ body Jan ┆ -2.578    ┆ -2.262    ┆ 0.316   │
+│ body Jul ┆ -1.420    ┆ -1.516    ┆ -0.096  │
+│ full Jan ┆ -1.168    ┆ -1.111    ┆ 0.057   │
+│ full Jul ┆ -1.475    ┆ -1.880    ┆ -0.406  │
+└──────────┴───────────┴───────────┴─────────┘
+per airport body V* - R0: {'EDDF': -0.23, 'EDDM': -0.25, 'EGLL': 0.29, 'EHAM': -0.07, 'LEBL': 0.3, 'LEMD': 0.38, 'LFPG': 0.04, 'LSZH': 0.0, 'LTFM': 0.01}
+per airport full V* - R0: {'EDDF': -0.21, 'EDDM': -0.35, 'EGLL': -0.11, 'EHAM': -0.53, 'LEBL': 0.29, 'LEMD': 0.37, 'LFPG': -0.18, 'LSZH': 0.0, 'LTFM': -0.5}
+bootstrap (airport-day, 2000): full V*-R0 95% CI [-0.334, +0.006], P(worse) 0.035; body 95% CI [-0.037, +0.188]
+GATE (body<=-0.10, Jan&Jul<=0, full<=0, P(worse)<0.2): [False, False, True, True] -> FAIL
+information: LSZH mean taxi change under V* (if not skipped): {'2025-01': 4.9, '2025-07': 4.4}
+2026 projection (V* - R0, airport x month cells): board -0.141 s (dMSE -68.0 s^2 over 344,841 rows)

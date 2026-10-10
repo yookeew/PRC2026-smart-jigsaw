@@ -1,0 +1,7 @@
+LSZH 2026: 62 days solved; {'a': 0.351, 'var_u': 297.2, 's2': 192.8, 'mu': {np.int8(1): np.float64(-56.5), np.int8(7): np.float64(-26.4)}, 'beta': {}}
+  month 1: mean lam (expectation) -56.5 s (not applied), within-month sd 20.3
+  month 7: mean lam (expectation) -26.4 s (not applied), within-month sd 12.8
+  month 1: mean lam (point solve, v55 recipe) -50.1 s (not applied)
+  month 7: mean lam (point solve, v55 recipe) -20.8 s (not applied)
+vs v55: LSZH rows 23,150, changed 20,700, RMS 5.77, mean +0.00, max |d| 24; whole file RMS 1.50
+wrote data/submissions/smart-jigsaw_v58.parquet

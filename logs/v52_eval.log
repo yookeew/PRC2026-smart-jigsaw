@@ -1,0 +1,44 @@
+scope rule / input check (OPDI ground event >= 60 s before T; holdout Jan+Jul 2025 vs 2026 ranking):
+shape: (10, 10)
+┌──────┬───────┬───────┬────────┬──────────┬────────┬──────────┬──────────┬───────┬───────┐
+│ apt  ┆ day   ┆ share ┆ day_26 ┆ share_26 ┆ ratio  ┆ m        ┆ m_26     ┆ smd   ┆ keep  │
+│ ---  ┆ ---   ┆ ---   ┆ ---    ┆ ---      ┆ ---    ┆ ---      ┆ ---      ┆ ---   ┆ ---   │
+│ str  ┆ f64   ┆ f64   ┆ f64    ┆ f64      ┆ f64    ┆ f64      ┆ f64      ┆ f64   ┆ bool  │
+╞══════╪═══════╪═══════╪════════╪══════════╪════════╪══════════╪══════════╪═══════╪═══════╡
+│ EDDF ┆ 1.000 ┆ 0.025 ┆ 1.000  ┆ 0.468    ┆ 18.887 ┆ 464.779  ┆ 517.449  ┆ 0.133 ┆ false │
+│ EDDM ┆ 1.000 ┆ 0.108 ┆ 1.000  ┆ 0.037    ┆ 0.339  ┆ 522.945  ┆ 358.008  ┆ 0.404 ┆ false │
+│ EGLL ┆ 1.000 ┆ 0.000 ┆ 1.000  ┆ 0.000    ┆ 1.345  ┆ 755.333  ┆ 1423.312 ┆ 0.624 ┆ false │
+│ EHAM ┆ 1.000 ┆ 0.005 ┆ 1.000  ┆ 0.002    ┆ 0.369  ┆ 556.636  ┆ 364.324  ┆ 0.361 ┆ false │
+│ LEBL ┆ 1.000 ┆ 0.192 ┆ 1.000  ┆ 0.002    ┆ 0.010  ┆ 480.957  ┆ 1189.186 ┆ 0.675 ┆ false │
+│ LEMD ┆ 1.000 ┆ 0.000 ┆ 1.000  ┆ 0.002    ┆ 82.244 ┆ 270.000  ┆ 1182.000 ┆ null  ┆ false │
+│ LFPG ┆ 1.000 ┆ 0.006 ┆ 1.000  ┆ 0.000    ┆ 0.009  ┆ 743.625  ┆ 535.500  ┆ 0.236 ┆ false │
+│ LIRF ┆ 1.000 ┆ 0.000 ┆ 1.000  ┆ 0.000    ┆ 0.766  ┆ 601.000  ┆ 830.333  ┆ 0.813 ┆ false │
+│ LSZH ┆ 1.000 ┆ 0.907 ┆ 1.000  ┆ 0.804    ┆ 0.886  ┆ 1062.953 ┆ 1079.569 ┆ 0.016 ┆ true  │
+│ LTFM ┆ 1.000 ┆ 0.000 ┆ 1.000  ┆ 0.000    ┆ NaN    ┆ null     ┆ null     ┆ null  ┆ false │
+└──────┴───────┴───────┴────────┴──────────┴────────┴──────────┴──────────┴───────┴───────┘
+scoped airports: ['LSZH']
+=== opdi_scoped vs ctl (v50 chain)  (rows changed 21,815, RMS change 19.31)
+  full               302.395 ->   301.643  (-0.752)
+  trimmed y<=5h      243.130 ->   242.194  (-0.936)
+  body pooled        192.603 ->   191.451  (-1.151)
+  body Jan           174.805 ->   173.955  (-0.850)
+  body Jul           205.988 ->   204.622  (-1.366)
+  full Jan           328.760 ->   328.301  (-0.460)
+  full Jul           279.342 ->   278.308  (-1.034)
+  full gain +0.752 s = body(y<=1h) +0.725 + tail +0.027; top-20 rows hold 14% of body gain
+  per airport body: {'EDDF': 0.0, 'EDDM': 0.0, 'EGLL': 0.0, 'EHAM': 0.0, 'LEBL': 0.0, 'LEMD': 0.0, 'LFPG': 0.0, 'LIRF': 0.0, 'LSZH': -30.52, 'LTFM': 0.0}
+  per airport all rows: {'EDDF': 0.0, 'EDDM': 0.0, 'EGLL': 0.0, 'EHAM': 0.0, 'LEBL': 0.0, 'LEMD': 0.0, 'LFPG': 0.0, 'LIRF': 0.0, 'LSZH': -23.06, 'LTFM': 0.0}
+  body delta bootstrap: mean -1.152, 95% CI [-1.515, -0.847], P(worse) 0.000
+  GATE (body<=-0.5, Jan<0, Jul<0, CI<0, full<=0): [True, True, True, np.True_, True] -> PASS
+=== opdi vs ctl (v50 chain)  (rows changed 305,470, RMS change 23.60)
+  full               302.395 ->   301.693  (-0.701)
+  trimmed y<=5h      243.130 ->   242.225  (-0.905)
+  body pooled        192.603 ->   191.406  (-1.197)
+  body Jan           174.805 ->   174.022  (-0.783)
+  body Jul           205.988 ->   204.499  (-1.490)
+  full Jan           328.760 ->   328.397  (-0.363)
+  full Jul           279.342 ->   278.316  (-1.027)
+  full gain +0.701 s = body(y<=1h) +0.764 + tail -0.063; top-20 rows hold 14% of body gain
+  per airport body: {'EDDF': -0.19, 'EDDM': -0.71, 'EGLL': 0.03, 'EHAM': 0.14, 'LEBL': 0.07, 'LEMD': 0.08, 'LFPG': -0.2, 'LIRF': 0.04, 'LSZH': -30.52, 'LTFM': -0.0}
+  per airport all rows: {'EDDF': -0.25, 'EDDM': -0.45, 'EGLL': -0.02, 'EHAM': 0.36, 'LEBL': 0.04, 'LEMD': 0.02, 'LFPG': 0.09, 'LIRF': 0.05, 'LSZH': -23.06, 'LTFM': 0.32}
+  body delta bootstrap: mean -1.197, 95% CI [-1.557, -0.873], P(worse) 0.000

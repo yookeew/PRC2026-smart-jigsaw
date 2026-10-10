@@ -5663,6 +5663,392 @@ handling listed in the guide.*
     - new corrector vs old post-stages: +0.38 / +0.26.
   - This matches §85 (corrector member average rejected), §108 (3-seed average −0.03, rejected) and v51 (per-airport e2 members lost on the board).
   - The versions are nested improvements, not independent models, so averaging dilutes the later fixes.
+
+## 126. ADS-B surface state of other aircraft (runway queues, de-icing stops) -- oracle passes, label-free proxy fails; two fallbacks closed (2026-10-08, no submission)
+
+`reports/adsb_queue_scoping.md` (stop rules written before each number was computed). Next free version stays **v52**.
+
+- **Question.** §114 dismissed an ADS-B runway queue because §23's queue found nothing, but §23 built it from AOBT_3,
+  which is often T minus a default taxi time (§114). Takeoff counts saturate under congestion; queue occupancy
+  doesn't.
+- **Data on this machine:** raw adsb.lol positions only for Jan + Jul 2025, Jan + Jul 2026, 2025-09-15 and 11-15.
+  The other 2025 months exist only as v4 detector output (`cache/adsb_pushback_v4`). `cache/adsb_pos_v4`, `cache/v50`
+  and the v45–v50 files are not here (v50 was built on another machine).
+- **Step 1, coverage** (`tests/adsb_queue_runs.py` → `cache/adsb_rwyruns/`, `tests/adsb_queue_coverage.py`).
+  - Every adsb.lol takeoff run gets a runway, a roll start, a 1 km entry time and slow time. Runs are matched to
+    departures on the same runway (time-only matching mis-pairs simultaneous runways).
+  - Neighbour reach (≥ 1 other same-runway run with a seen 1 km entry in [T − 15, T + 10] min), non-LIRF:
+    **0.39 / 0.37 (Jan / Jul 2025) → 0.54 / 0.54 (2026)**. That's about twice the pushback share, but it moves by
+    airport: EGLL 0.18 / 0.005 → 0.71 / 0.998, LEMD 0 → 0.89 / 0.32, EDDF 0.74 / 0.86 → 0.50 / 0.44.
+    It is stable at EHAM, LSZH and EDDM January; there is none at LTFM or LFPG.
+- **Step 2, oracle** (`tests/adsb_queue_oracle.py`): 10 OOF months, 115 ADS-B days, 609k non-LIRF rows,
+  leave-one-month-out Huber residual models on the OOF stack.
+  - The control already includes the true residuals of neighbours whose pushback ADS-B observed (an oracle `nbq`).
+  - **O1** = surface occupancy and queue-ahead from other flights' true off-blocks: body **−4.09**.
+  - **O2** = O1 + true residuals of the 3 previous / 3 next same-runway departures: body **−10.31**. 10/10 months.
+  - **The oracle is mostly where ADS-B can't help:** LTFM −9.3 / −22.5 and LFPG −7.9 / −18.7 (no coverage).
+    O2's extra is neighbours' labels.
+  - Own-label invariance asserted. Stop rule passed.
+- **Step 2b, real proxy** (`tests/adsb_queue_proxy.py`): the same O1 quantities, built label-free from other matched
+  departures' v4 first sightings (exists on every day, so no missing data).
+  - **P − C′ body −0.23 (8/10 months), EGLL +0.80.** Below the pre-set −0.5 bar. **STOP.**
+  - At covered airports the O1 oracle is only −0.2 to −3.6 per airport, so a perfect occupancy measurement is worth
+    about 0.7 s of body RMSE once weighted by 2026 reach. The proxy recovers ~6% of it.
+  - Runway-entry features would need the missing raw months, and even 3× the fidelity stays under 0.4 s.
+- **Conclusion.** §114's verdict stands, for a different reason. Realised runway-queue occupancy adds little beyond
+  the chain where adsb.lol sees, and most of what remains is at LTFM / LFPG plus per-flight neighbour residuals that
+  no surface observation reproduces. Long remote stops are as common in July as in January (taxiway holds, not
+  de-icing).
+- **Fallback 1: ADS-B timing drift checked on 2026 arrivals** (`tests/adsb_arrival_drift.py`).
+  - New detector: landing run → first stationary sample within 100 m of the own stand. Arrivals keep their block
+    times in 2026.
+  - Median true − ADS-B taxi-in is stable to ≤ ±6 s at every covered airport (EDDF 34 → 32–35, EHAM −34 → −31,
+    EGLL −27 → −23/−25, LSZH 1–2 → 7–8).
+  - **No receiver-timing drift at stands.** The combiner's 2025 lags hold in 2026, and §40's suspected EGLL shift
+    is not there. Closed.
+- **Fallback 2: outgoing-boat per airport** (their repo cloned to scratch only, read not run). This is a partial read
+  on v42's chain (`cache/eval/arm_o2_chain_holdout.parquet` base); the v50 chain is not on this machine.
+  - Body (NM-matched, y ≤ 1 h), ours vs their v28: EDDF 155.0 vs 143.0, EHAM 110.5 vs 102.9, EGLL 211.4 vs 206.7,
+    LIRF 313.9 vs 307.4. We lead at LEMD, LSZH, LTFM and EDDM.
+  - **EDDF:** the error is spread (top 20 rows 11%), 81% of it on rows with a matched track but no pushback
+    (receivers don't see the aprons: first sighting a median 1.35 km from the stand) or no track.
+    - Parked-start tracks are within 100 m of our stand coordinate in only 60% of cases (86–93% elsewhere), so some
+      stand mapping or towing is off. Fixing it would reach < 0.1 s.
+    - The 12 s body gap is not explained without their per-row predictions.
+  - Their study `docs/research/2026-09-29-base-sem-adsb.md` finds the same thing we did in §104: base gains are
+    absorbed by the corrector.
+  - **To finish:** re-run the comparison on v50's holdout chain once `cache/v50/` is copied to this machine.
+
+## 127. outgoing-boat comparison on v50's chain; label-free occupancy at LFPG / LTFM -- stopped at scoping (2026-10-08, no submission)
+
+Next free version stays **v52**. Nothing trained on the holdout except the v50 chain rebuild, nothing uploaded.
+
+- **Uploads checked** (from the v50 machine): v48 / v49 / v50 have 344,841 rows and the template ID set; v50 − v49
+  RMS 34.55 s, mean +0.17, 300,797 rows changed, LIRF identical (= §123). `cache/adsb_pos_v4` has 246 days;
+  `cache/v50` held only `reocc_feats*.parquet`; `cache/eval/v41_chain_holdout.parquet` and `v42_chain_holdout.parquet`
+  were added.
+- **v50 holdout chain rebuilt** (`PRC_LGB=ctxcorr2r ARMC_BASE=ctxc1sel SCR=cache/v50 ARMS=all tests/v50_chain_gate.py`,
+  `logs/v50_chain_rebuild*.log`). It reproduces §123 exactly: all vs ctl full −1.72, trimmed −2.12, body −1.38
+  (Jan −0.52, Jul −1.98); control 5.43 s RMS from the cached v42.
+- **outgoing-boat per airport** (`tests/ob_compare_v50.py`, `logs/ob_compare_v50.log`; v50-like = chain_all with
+  LIRF rows from the control). Columns: body = NM-matched, y ≤ 1 h; their body numbers are from v28; all rows vs their
+  best run e196.
+
+| airport | body v50 | their body | all v50 | their all |
+|---|---|---|---|---|
+| EDDF | 153.1 | 143.0 | 161.3 | 146.0 |
+| EHAM | 110.0 | 102.9 | 135.3 | 130.1 |
+| EGLL | 206.6 | 206.7 | 247.1 | 246.9 |
+| LIRF | 313.9 | 307.4 | (stale) | 540.8 |
+| LEBL / LFPG | 190.4 / 223.7 | 192.0 / 225.3 | 191.8 / 564.7 | 190.0 / 564.2 |
+| LTFM / LEMD / LSZH / EDDM | 225.7 / 165.7 / 127.6 / 115.4 | 232.5 / 175.7 / 136.2 / 120.8 | -- | -- |
+
+  - **v50 closed EGLL** (all rows 255.6 → 247.1, now level). Pooled: full 302.32 vs 295.80; body 192.54 vs 189.16.
+  - **Still behind:** EDDF (closing its all-rows gap = full −0.83 s), EHAM (−0.27 s), and LIRF NM-matched body
+    (+6.5). The LIRF all-rows gap here (581.5 vs 540.8) is stale: this chain predates the v45/v47/v48 hedges
+    (holdout ≈ −5.3 s full together).
+  - EDDF body error stays on rows without a seen pushback (matched 152, no track 185 RMSE). EHAM's labels ≤ 5 min
+    (1,038 rows, RMSE 250–337) sit below the ADS-B-observed taxi: §119's tiny-label quirk. **Nothing cheap; no build.**
+- **Occupancy oracle split** (`logs/occ_oracle_split.log`, §126's O1 on 115 OOF days): pooled body −4.09, of which
+  **LTFM −1.65 and LFPG −1.18**. LTFM is steady by month; LFPG ranges −0.3 to −17.8 on its own rows.
+- **AOBT_3 at LFPG / LTFM** (`tests/occ_aobt3_check.py`, `logs/occ_aobt3_check.log`):
+  - **LTFM:** T − AOBT_3 sits on one default minute pair per runway (19/20 or 24/25) for 80–90% of rows in 2025 and
+    2026; within 2 min of the true off-block only 10–20%. No off-block information.
+  - **LFPG:** a real measurement (36–46% within 2 min). Whole-minute offsets come and go: the median T − AOBT_3 is
+    ≈ 897 s in Jan–Jun / Dec and ≈ 957 s in Aug–Nov and Jul 2026; bias −55 s vs the label in Jul–Sep 2025 (§98).
+- **Label-free occupancy proxies** (`reports/occ_proxy_scoping.md`, bar written first; `tests/occ_proxy_test.py`,
+  `logs/occ_proxy_test.log`). The O1 features are rebuilt from estimated off-blocks of other flights, raw and
+  traffic-normalised. Arms: Pa3 = AOBT_3 else T − s; Ppred = T − s (out-of-sample stack); Pboth = both.
+  - Body vs C: O1 −4.09 | Pa3 −0.30, Ppred −0.29, **Pboth −0.38** (9/10 months; Dec +3.05). LFPG + LTFM contribution
+    −0.35.
+  - **Bar (1) body ≤ −0.5 fails → STOP, no gate.**
+  - Recovery of the oracle: LFPG ≈ 0.20 (−1.5 s, 8/10 months); LTFM 0.02–0.07, December unstable (+10 to +15 s).
+  - The extra full-RMSE gain (−1.7) is tail, where holdout gains transfer poorly.
+  - An LFPG-only arm would choose scope after the result; not pursued.
+- **Conclusion.** The occupancy oracle's value is in the true off-block times themselves. AOBT_3 (real only at LFPG)
+  and predicted off-blocks recover about a fifth of it at LFPG and almost nothing at LTFM.
+
+## 128. Organiser data and OpenSky, reconciled; OPDI ground events at LSZH -- gate PASS; v52 built, board pending (2026-10-08)
+
+Next free version after this: **v53**. `reports/opdi_scoping.md` (S1/S2 stop bars written first),
+`reports/v52_opdi_gate_preregistration.md`; code `src/ingest/fetch_opdi_events.py`, `src/features/opdi_feats.py`,
+`tests/opdi_s1_coverage.py`, `tests/opdi_s2_screen.py`, `tests/v52_opdi_gate.py`, `tests/v52_eval.py`,
+`src/post/v52_comb_delta.py`, `src/post/v52_nb_delta.py`; logs `logs/opdi_*.log`, `logs/v52_*.log`.
+
+**1. What the organisers provide, and OpenSky (evidence).**
+- Bucket `prc-2026-datasets`: the 12 training files, `ranking.parquet`, `submitting.parquet` and, new on 2026-10-08
+  11:04 UTC, `final_ranking.parquet` (86 MB) and `final_submitting.parquet` (3 MB). The data page says they are "the
+  ranking and submitting dataset but covering two additional months, February and June 2026"; the ranking page asks
+  for one `<team>_final.parquet`; deadline 2026-10-14 12:00 CET. **Team decision (user, 2026-10-08): ignore the final
+  files, keep working on Jan + Jul.** Not downloaded.
+- No trajectory or surface data is in the bucket. The 2026 pages say nothing about external data beyond eligibility:
+  "openly accessible/usable and documented" and "openly available under an open source license".
+- **OpenSky Trino / state vectors stay out (§50, §111 confirmed, different reason recorded):** OpenSky's terms of use
+  grant use "solely for the purpose of non-profit research and non-profit education", which is not an open licence
+  (outgoing-boat's `docs/research/2026-10-01-regras-e-precedentes.md` reaches the same reading).
+- **And it would not help where the §126 oracle sits.** PRU's own coverage table
+  (`euctrl-pru/opensky-airport-coverage`, 2026 CSV, read first-hand): OSN taxi-out received (median) LSZH 0.996,
+  LEBL 0.797, EDDF 0.622, EHAM 0.286, LEMD 0.175, **EDDM / LFPG / EGLL / LIRF / LTFM 0.000** (tracks start
+  0.2–2.0 min *after* take-off at the last five). No OpenSky-derived product can reproduce the LTFM/LFPG oracle.
+- **OPDI** (EUROCONTROL PRC/PRU's Open Performance Data Initiative; flight events derived from OSN ADS-B) is the
+  organiser's own open data ("freely used, reused, and distributed provided that the data source is attributed");
+  §80 already treated it as organiser-approved. Public repos: kind-mango lists OPDI as "CC-BY 4.0, confirmed by
+  organiser"; outgoing-boat and likable-eagle use OPDI flight lists. Documented in DATA_SOURCES.md.
+- §80 only measured `exit-parking_position` coverage (LSZH 92%) and never measured its value.
+
+**2. Where OSN beats adsb.lol (2026 ranking, label-free).** adsb.lol pushback tier (dwell/pass): EDDF 3% / 2%
+(Jan / Jul), LSZH 30% / 11%, LEBL 18% / 25%; holdout body RMSE untiered vs tiered: EDDF 157 vs 97, LSZH 140 vs 60.
+
+**3. OPDI fetch facts** (airport events only; one GET per 10-day file, filtered locally to the 10 airports):
+- HTTP range reads of only the needed row groups got the client a Cloudflare challenge (429) after ~20 files; whole
+  file GETs are fine. `flight_events_20251002_20251012` is listed on opdi.aero but 404 upstream (2–12 Oct 2025 gap).
+- Coverage moves a lot by period: **EDDF switches on around 2025-09-12** (~2k → 24–37k ground events per 10 days,
+  same level in 2026); LEBL drops ~6× in April 2025 (2026 ≈ 0); LEMD has a training-only burst 22 Oct – 1 Dec 2025;
+  LSZH is steady; **1–9 Jan 2026 is sparse everywhere** (LSZH coverage 10% vs 80% the rest of January).
+- Departure match: callsign (CALLSIGN_flt, else FLIGHT_mvt) + ADEP + nearest exit-runway within 300 s.
+
+**4. S1 coverage (label-free): PASS.** New-information reach (no adsb.lol tier, OPDI ground event ≥ 2 min earlier than
+the adsb.lol first sighting) 6.0% / 8.5% of 2026 departures (bar 5%); LSZH 0.57–0.64 (2025) vs 0.41–0.63 (2026).
+
+**5. S2 screen (Jan ↔ Jul cross-fit residual model on v50's holdout chain, treatment − control):** body **−1.53**
+(Jan −1.18, Jul −1.79), trimmed −1.47, full −1.09; LSZH body 128.6 → 98.3. LSZH's exit-parking event fires a median
+293 s after the true off-block (IQR 99–428 s): a lagged but informative clock.
+- **Deviation, disclosed:** condition 3 (≤ 80% of the gain from one airport unless its 2026 reach ≥ 2025 reach)
+  **failed as written**: LSZH carried 86%, reach ratio 0.88. The drop comes from adsb.lol improving at LSZH in Jan 2026,
+  not from OPDI (OPDI ground-event share 0.97 in 2026 vs 0.90–0.95). Proceeded to the gate anyway, because S1's own
+  stability band is [0.5, 2]; the two bars were set inconsistently. Flagged for the team.
+- The generic control residual model is itself worse than the chain (+3.4 body, LTFM +13): only the paired
+  difference is meaningful, so OPDI went into the chain's own stages for the gate.
+
+**6. Gate (v50's holdout chain, one process; control reproduces `cache/v50/chain_all` exactly, max |diff| 0).** OPDI
+features in the combiner and neighbour stage b. Label-free scope rule (holdout share ≥ 0.2, 2026/holdout ratio in
+[0.5, 2], SMD ≤ 0.25) keeps **LSZH only** (share 0.907 → 0.804, SMD 0.016).
+
+| arm vs v50 chain | full | trimmed | body | body Jan / Jul | body 95% CI |
+|---|---|---|---|---|---|
+| **opdi, LSZH scope** | **−0.75** | −0.94 | **−1.15** | −0.85 / −1.37 | [−1.52, −0.85] |
+| opdi, unscoped | −0.70 | −0.91 | −1.20 | −0.78 / −1.49 | [−1.56, −0.87] |
+
+- **PASS (4/4).** LSZH body −30.5 s, all rows −23.1 s; top-20 rows hold 14% of the body gain (a broad gain); tail ≈ 0.
+- Unscoped elsewhere: EDDM −0.7, EDDF −0.2, EHAM / LTFM slightly worse (holdout coverage ≈ 0 there).
+
+**7. v52** = v50 + LSZH-scoped (treatment − control) of the production combiner and neighbour stage b
+(`PRC_LGB=ctxc1sel`, one process each), FREEZE_LIRF, NM-line rows frozen, LOBT window last.
+- vs v50: 22,666 LSZH rows changed, RMS 72.1 s on LSZH, mean −0.01 s, max |Δ| 839 s; every other airport identical.
+- 2026 LSZH delta RMS on covered rows 76–80 s (holdout 73–85 s): same behaviour. Uncovered rows (incl. the 1–9 Jan gap)
+  move little; on the holdout that cell is slightly worse (+600 s² per row, ≈ 0.02 s), left as registered.
+- **Projected onto 2026 LSZH cells (month × covered): −0.90 s on the board. Keep iff board < 243.4565.**
+
+**8. Open: EDDF.** Training months 12 Sep – Dec 2025 have 2026-like EDDF OPDI coverage (2026 share 0.47), but the Jan/Jul
+holdout cannot measure it (share 0.025), so EDDF is outside v52. A test needs its own pre-registration on the OOF
+ADS-B days of Sep–Dec 2025 (leave-one-month-out combiner, EDDF rows). Up to ~10 s of EDDF body is plausible if
+OSN sees EDDF departures as well as it sees LSZH; not measured.
+
+## 129. EDDF OPDI and daily reconciliation v2 -- EDDF stopped by a clock-drift witness, reconciliation v2 fails the holdout gate; no v57 (2026-10-09)
+
+Base: v56 = 240.7425 (best confirmed). v55 has not been uploaded, so v56's LIRF part is unresolved; every LIRF row of
+any later file keeps v56's value. `reports/v57_eddf_opdi_preregistration.md` (part A), `reports/v57_pru_recon2_preregistration.md`
+(part B), both written before their numbers, with dated amendments. Not committed by the session (the user commits).
+`external-data/all_pre_departure_delays_{2025,2026}.csv` re-downloaded on this machine; `src/post/pru_daily_recon.py`
+on v54 reproduces v55 byte for byte with it (`PRU_LIRF=0`).
+
+**Part A: EDDF OPDI (§128.8).**
+- **Counts.** EDDF OPDI ground events switch on **2025-09-16** (not 09-12); none 2025-10-02..11 and 2026-01-02..10.
+  Monthly share Sep–Dec 0.24 / 0.29 / 0.43 / 0.51; 2026 Jan 0.36, Jul 0.55. EDDF rows with a ground event on the OOF
+  ADS-B days the post-stages train on: ≈ 9.3k on ≈ 28 days.
+- **W1, arrivals (decisive witness): PASS.** OPDI entry-parking minus true in-block, EDDF median −215 s (late 2025) →
+  −185 (Jan 26) / −219 (Jul 26); match share 0.905 → 0.843 / 0.806 (`tests/v57_opdi_witness.py`).
+- **W2, departures (reported): flag.** EDDF median (T − AOBT_3) − OPDI exit-parking lead: 400 / 420 / 390 / 440 s in
+  Sep–Dec 2025, then 525 / 535 in 2026, in every stand group. LSZH flat.
+- **W3 (amendment, stop rule fixed first): STOP.** On exit-parking rows, daily mean of (prediction − OPDI anchor),
+  anchor = lead + 377 s: 2025 truth −14 / −25 / −25 / −1 by month; 2026 v55 +41 / +43 (v55's EDDF level is pinned by the
+  daily sums, λ 7.9 / 2.0 s). The OPDI clock moved ≈ +58 s against the 2025 reference (NM's AOBT_3 ≈ 48 s the other way).
+  The rule as written compared with 0 (41 / 43 < 45); its "≈ 0 in 2025" premise was wrong, and the stricter reading was
+  applied. LSZH control: 2025 months −19 to +24, 2026 Jan +0.7, Jul −46 (the witness carries ~±20 s month noise; EDDF's
+  2026 values sit 42–68 s outside its own 2025 range).
+- **Leave-one-month-out gate, information only** (`tests/v57_eddf_lomo.py` → `cache/v57/lomo_*.parquet`,
+  `tests/v57_eddf_lomo_eval.py`): v52's production recipe refit with each OOF month held out.
+
+| population (Sep 16–Dec 2025 OOF ADS-B days, day share ≥ 0.2) | rows | body ctl | body trt | Δ body | 95% CI |
+|---|---|---|---|---|---|
+| EDDF | 19,227 | 119.41 | 114.30 | **−5.11** (covered −11.59, uncovered −0.01) | [−6.51, −3.83] |
+| LSZH (positive control) | 11,799 | 110.59 | 86.60 | −23.99 | [−28.94, −19.17] |
+
+  - EDDF months −4.92 / −4.08 / −6.95 / −4.21; full −4.96. The 2025 value is real and would have passed G.
+  - Why it still stops: on covered rows the 2025 gain is ≈ 2,500 s² per row (114.2² − 102.6²); a fully propagated
+    58 s clock error costs ≈ 3,400 s². As built, it could change sign in 2026.
+
+**Part B: daily reconciliation v2.** Engine `src/post/pru_recon2.py` (expectation solve Σ E_η[max(0, d̂ + λw + η)] = D,
+empirical-Bayes shrink, tracked-row weights, allocation ∝ p). Developed on 2025 OOF data only (`tests/v57_recon2_dev.py`):
+D1 = 10 OOF months of corrector predictions, D2 = the LOMO control arm on 115 OOF ADS-B days.
+- **The Jensen bias is real.** The point solve's λ sits 5–35 s above the expectation solve's at every airport-month of
+  D1. On 2026 (label-free, `logs/v57_jensen_2026.log`) it is 5–30 s: LTFM 70 → 45 (Jan), 59 → 28 (Jul); LFPG −4 → −30;
+  EGLL 6 → −20. Part of v55's 2026 shift (LTFM mean −51 s) is this artefact.
+- **The empirical-Bayes shrink fails** (a ≈ 0.8–1.0; D1 body +1.31 vs R0 +0.26): the noise in λ̂ is model misfit, not
+  η sampling.
+- **Allocation ∝ predicted taxi helps on 2025 OOF data:** D1 body −0.65 vs R0 +0.26 (10/10 months); D2 body −1.33 vs
+  −0.13 (9/10). Selected by the rule: V* = expectation solve, shift ∝ p, tracked rows × 0.75, a = 0.6.
+- **Holdout gate (Jan + Jul 2025 on `cache/v50/chain_all`, touched once): FAIL.**
+
+| V* − R0 | full | body | body Jan / Jul | full Jan / Jul |
+|---|---|---|---|---|
+| holdout | −0.14 (P(worse) 0.035) | **+0.08** | **+0.32** / −0.10 | +0.06 / −0.41 |
+
+  - R0 itself on this base: full −1.27, body −1.90. Conditions 1 (body ≤ −0.10) and 2 (both months) fail.
+  - January loses: the holdout chain over-predicts January (§106), and a uniform shift fixes that better than one
+    allocated by p. July, the cleaner read in §125, favours V*, but the rule needs both months.
+  - 2026 projection −0.14 s. **Not built; v55's recipe stays.**
+
+**No v57.** Next free version stays **v57**.
+
+**What to try next (ranked):**
+1. **Upload v55** (already built; §125's rule: below 240.7425 → v56's LIRF part hurt and is dropped). One of today's two
+   submissions; it settles the base for everything after.
+2. **EDDF OPDI with a re-anchored clock.** Shift the 2026 EDDF OPDI leads by the W3 offset before the production
+   combiner / stage b, then take EDDF's treatment − control. The W3 method checks out in 2025: the OOF prediction
+   tracks truth within ≤ 10–15 s per month on the same anchor. Worth ≈ −0.2 to −0.25 s if the offset is right to
+   ±20 s. Needs its own pre-registration (offset fixed from the witness, not tuned) and two production refits (~30 min).
+3. **The Jensen correction without the p-allocation** (expectation solve, uniform, a = 0.75). It was never gated,
+   and the holdout has had its one look for this part. A test would need data the selection has not seen, or an
+   explicit team decision to take a second look.
+
+## 130. v55 = 239.40 (new best); day-sum drift model, LIRF ordinary-row shift fail; LSZH day variation (v58) and EDDF OPDI demeaned (v60) pass, built (2026-10-10)
+
+**Board: v55 = 239.40 (−2.36 vs v54). New best; v55 is the base from now on.**
+- **§125's decision rule:** v55 < 240.7425, so v56's LIRF part hurt and is dropped from every later build.
+  v56 − v55 = +1.34 board = **+2.22e8 SSE, on LIRF rows only**. That part bundled the per-row echo posteriors with a
+  0.5·λ shift on LIRF's non-hedged rows, and the board cannot separate the two. The likelier culprit is the per-row
+  bets (5 days held 85% of their change energy).
+- **The 8-airport day shift transferred at ~2× in SSE:** board −3.92e8 SSE (241.7634² → 239.40², × 344,841 rows)
+  against the holdout's −2.01e8 (§125; RMSE projection −0.99, board −2.36). Earlier level-type changes transferred
+  at ≈ 1:1 (v50, v54) or less (v53).
+- **Working reading, to be tested rather than assumed:** 2026 carries airport-day level errors that the Jan/Jul 2025
+  holdout under-represents. If so, 2026-native aggregates are worth more than holdout gates say, and the holdout
+  (January especially, §106) is a weak referee for level-type changes.
+
+`reports/v57_daysum_model_preregistration.md` (C1, C1b, C2, C3; amendments dated), `reports/v60_eddf_opdi_demeaned_preregistration.md`.
+Code: `src/post/pru_dsm.py`, `tests/v57_dsm.py`, `tests/v57_dsm_c1b.py`, `tests/v57_lirf_c2.py`, `src/post/v58_build.py`,
+`tests/v60_eddf_demeaned_eval.py`, `src/post/v60_build.py`; logs `logs/v57_dsm*.log`, `logs/v57_lirf_c2.log`, `logs/v57_feb_diag.log`,
+`logs/v58_build.log`, `logs/v60_*.log`. Evidence that decides each candidate: 2025, all 12 months in six two-month
+periods, each period running the method on its own published sums (the Jan/Jul holdout is 2 of 12 months and does not
+gate on its own); the EDDF candidate uses §129's leave-one-month-out run.
+
+**Is 2026 different? (label-free, expectation solve, same η source)** Partly. Within-month spread of the daily λ, 2026
+vs the 2025 holdout chain: EDDF 27 vs 20 s, EHAM 71 vs 15 (the January storm), LTFM 48 vs 41, LFPG 31 vs 29, but
+EDDM 11 vs 30, EGLL 20 vs 27, LEBL 26 vs 33, LEMD 15 vs 20. What is bigger in 2026 is the **airport-month level**:
+LTFM +42 s, LSZH −41, LFPG −29, EHAM −21, EGLL −13 (2025 holdout: −17 to +15). So "larger day-to-day errors" is not
+supported; "larger 2026 level errors at a few airports" is.
+
+**C1, day-sum drift model (main): FAIL.** Per airport over the 62 days of 2026: λ̂_g = month level + shared terms
+(delay band, NM-matched, observed, time of day, as sensitivity shares) + empirical-Bayes day residual.
+- 2026 leave-one-day-out prediction of the sums: delay band and NM-matched help (λ RMSE 37.5 → 34.2 s).
+- 2025 per-row vs v55's recipe: shared terms catastrophic (full +43.7 s; their β, identified from small share
+  variation, are huge per row). Level + EB day term alone: full +0.42, body +1.10, 3/12 months.
+- **Why the level-only version loses** (`logs/v57_dsm_bias_diag.log`): the MSE-optimal day shift moves only ≈ 0.71× as
+  much as λ̂ (point solve 0.70; 0.4–0.9 by airport; correlation 0.7–1.0). v55's 0.75 sits near that slope, so applying
+  the level in full overshoots. The sums see only delayed flights, and their taxi errors move more than the average row's.
+
+**C1b, learned allocation (amendment A1): FAIL** on body (11/12 months better on full).
+- The shift is s_{airport, delay band}·λ̂, slopes learned on 2025 labels, leave-period-out.
+- vs R0: full −0.38, trimmed −0.40, body +0.29 (Feb +4.74, Jan +0.85).
+- Slopes rise steeply with predicted delay: early 0.1–0.5, on-time 0.3–0.8, 15–60 min 0.5–1.3, ≥ 60 min 0.6–2.2.
+- February is LTFM's 19 / 23 Feb 2025 (≈ 200 taxis > 1 h per day, day mean residual −800 s): those days' sums demand
+  a huge shift that the slopes hand to ordinary rows as well.
+
+**C2, LIRF ordinary rows: FAIL** (+30.6 s full on ordinary LIRF rows, July 2025 +245 s). LIRF's sums are dominated by
+the hedged rows' uncertainty (noise sd 211 s) and sit 5–69 s below the ordinary rows' level in every period.
+
+**C3, LSZH day-to-day variation only: PASS** (2025: full −0.31, body −0.65, 12/12 months). **v58** = v55 with LSZH
+rows shifted by a·(λ̂_g − month mean):
+- a = 0.35 (2026 within-month spread 20 / 13 s against 2025 noise 14 s); RMS 5.8 s on 20,700 LSZH rows.
+- Expected ≈ −0.02 s, too small to read on the board. **Keep iff board < 239.40.**
+- LSZH level (information, not applied): sums say +57 s (Jan) / +26 s (Jul) more taxi with the expectation solve
+  (point solve +50 / +21). §129's OPDI witness says 0 (Jan) / ≈ +46 (Jul). They agree on July, not on January.
+
+**v60, EDDF OPDI delta demeaned within airport-day: PASS** (`reports/v60_eddf_opdi_demeaned_preregistration.md`).
+- On §129's leave-one-month-out population (19,332 EDDF rows, 31 days): body −4.99 (covered rows −11.33), full −4.84,
+  all 4 months, CI [−6.42, −3.73]. Demeaning costs ≈ 0.1 s of the raw arm's −5.11.
+- 2026 label-free level check: daily mean raw delta on covered rows +2.1 s (2025 +2.8), no level anomaly.
+- **v60** = v55 with EDDF rows = v54 + v52's production EDDF delta demeaned over each day's covered rows (51 kept days,
+  16,937 covered rows; 2–10 January excluded), then v55's day reconciliation re-solved (λ moves ≤ 1.4 s), LOBT window last.
+  vs v55: 19,148 EDDF rows, RMS 43.6 s, mean +0.05; every other row identical.
+- **Caution:** the 2026 change on covered rows is larger than in 2025 (RMS 75 s Jan / 59 s Jul vs 44–50 s in
+  Sep–Dec 2025; LSZH, whose clock did not move, showed no such inflation in §128). Part of the clock shift may land
+  on individual rows rather than as a common offset. Projection −0.25 s if 2026 behaves like 2025; ≈ 0 if the excess
+  is noise.
+- **Keep iff board < 239.40.**
+
+**Ranked upload recommendation:**
+1. **v60** (EDDF only; clean read against v55; projected −0.25 s, range ≈ 0 to −0.25).
+2. **v58** (LSZH only; ≈ −0.02 s): not worth a submission alone; fold it into a combined file once v60 is read.
+- Not built: v57 (C1 / C1b) and v59 (C2). Next free version: **v61**.
+
+## 131. Learned day-shift allocation on top of v60: S3 misses its body condition by 0.025 s, built as v61 on the team's override (2026-10-10)
+
+`reports/v61_learned_dayshift_preregistration.md` (written first; discloses that the 2025 data were already used for §130's
+C1b). `tests/v61_learned_dayshift.py` (per-row 2025 λ cached in `cache/v57/lam_row_2025.parquet`), `src/post/v61_build.py`;
+logs `logs/v61_*.log`. One submission was left for the day, so v60 became the fallback and the base.
+
+**Variants** (shift = s·λ̂, expectation solve, slopes through the origin learned on the other five 2025 periods). vs R0
+(v55's recipe), 2025, 12 months, 8 airports:
+
+| variant | full | body | trimmed | months full better | pass |
+|---|---|---|---|---|---|
+| S1 per-airport slope | −0.094 | −0.042 | −0.093 | 9 | no (full misses −0.10) |
+| S2 band slopes, normal / disrupted days (\|λ̂\| > 60 s) | −0.387 | +0.353 | −0.409 | 10 | no |
+| **S3 band slopes clipped to [0, 1]** | **−0.510** | **+0.025** | −0.540 | 11 | **no (body)** |
+| S4 band × time-of-day slopes | +0.415 | +0.387 | +0.455 | 10 | no |
+
+- S3's body loss is February (+1.70, LTFM's 19 / 23 Feb snow days) and January (+0.83, holdout chain, §106). The other
+  months are −0.05 to −0.71, with Dec +0.12. Without February: full −0.19, body −0.11. On the holdout-chain months
+  (slopes learned on OOF periods): Jan full +0.31, Jul −0.22.
+- Per airport, S3 full vs R0: LTFM −1.61, EGLL −0.54, EDDM −0.35, LEBL −0.30, LFPG −0.30, EDDF −0.13, EHAM −0.11,
+  LEMD −0.10.
+- 2026 projection: −0.39 s, or −0.13 s without February-type days.
+
+**Team decision (user, 2026-10-10): build S3 anyway, as v61 = v60 + S3 + v58's LSZH rows. This overrides the
+pre-registered body condition; disclosed here.**
+- **v61:** for the 8 airports, p = v54 (+ v60's EDDF demeaned OPDI delta); λ̂ from the 2026 sums with η from the 2025
+  holdout chain (495 airport-days); δ = s_{airport, band}·λ̂, using production slopes from all six periods; LOBT window last.
+  - Slopes for bands < 0 / 0–15 / 15–60 / ≥ 60 min: EDDF 0.33 / 0.68 / 1 / 1, EDDM 0.27 / 0.53 / 0.77 / 1,
+    EGLL 0.42 / 0.81 / 1 / 1, EHAM 0.12 / 0.31 / 0.51 / 0.63, LEBL 0.10 / 0.57 / 1 / 1, LEMD 0.47 / 0.81 / 1 / 1,
+    LFPG 0.24 / 0.56 / 0.90 / 1, LTFM 0.09 / 0.30 / 0.79 / 1.
+  - LSZH rows = v58; LIRF rows = v55.
+  - vs v60: 307,747 rows changed, RMS 19.0 s, **mean +10.5 s** (it hands back much of the downward taxi shift that
+    v55 made), max |Δ| 234.
+  - Mean shift vs v54, v61 vs v55: LTFM −15.7 vs −50.8, LEBL −7.1 vs −16.8, EGLL +8.1 vs −6.5, LFPG +18.9 vs +4.5,
+    EDDF −0.3 vs −5.8.
+  - 2026 max |λ̂| is outside its 2025 range at EHAM (533 vs 158 s, the storm) and LFPG (183 vs 145).
+- **Main risk, found after the decision: LTFM** (47,581 rows).
+  - v55 shifted every LTFM band by ≈ −51 s; v61 shifts them by −4 / −12 / −35 / −46.
+  - If v55's uniform LTFM level was right (a 2026 model drift hitting all flights), v61 costs **+0.52 s** on the board.
+    That exceeds S3's whole projected gain.
+  - Witness (`logs/v61_ltfm_anchor_witness.log`): LTFM predicted level minus T − AOBT_3 (mostly a per-runway default at
+    LTFM, so effectively 2026 predicted level against the 2025 true level in the same month). January matches v60
+    (e.g. on-time band −202 vs 2025 −203; v61 −164); July matches v61 (on-time −138 vs −126; 15–60 min −65 vs −65).
+    Split; it does not settle the bet.
+- **Expected:** v60's −0.25 (0 to −0.25) plus S3's −0.13 to −0.39, minus up to +0.52 if the LTFM level is uniform drift.
+  The read is confounded between EDDF (v60) and S3.
+- **Keep iff board < 239.40.**
+- Next free version: **v62**.
+
+**v62 (team decision, user, 2026-10-10): v61 with every LTFM row from v60.** This removes the LTFM bet (up to +0.52 s
+if v55's uniform LTFM level was right) and keeps S3 at the other seven airports, all negative vs R0 on 2025 (−0.10 to
+−0.54 s per airport). Airport-days are solved independently, so the swap is exact. Choosing the airport scope after
+seeing results is a disclosed post-hoc decision, like the override.
+- vs v60: 260,986 rows, RMS 10.7 s, mean +5.65; LTFM, LIRF identical; LSZH = v58.
+- S3 at 7 airports, 2026 projection vs R0: −0.16 s (−0.15 without February-type days), so the 2025 projection for v62 is
+  about v60's 0 to −0.25 plus −0.15, plus v58's −0.02.
+- Script: inline in `logs/v62_build.log` (v61 + v60's LTFM rows). md5 d706e820….
+- **Keep iff board < 239.40.** Next free version: **v63**.
+
+**Board: v62 = 238.79 (−0.61 vs v55 = 239.40). Kept; new best; v62 is the base from now on.**
+- ΔSSE −1.01e8 over 344,841 rows (239.40² → 238.79²).
+- The 2025-based projection was ≈ −0.15 to −0.4 s (v60's EDDF 0 to −0.25, S3 at seven airports ≈ −0.15, v58 ≈ −0.02),
+  so the result is at or above the top of that range. Level-type, sums-driven changes again transferred at ≥ 1:1, as v55 did.
+- The read is confounded: EDDF (v60), S3 at seven airports and LSZH (v58) were uploaded together, so the board cannot
+  split the −0.61 between them. v60 alone was never scored.
+- S3 at LTFM is left out (§131) and is the open, clean follow-up: v63 = v62 with S3 at LTFM would read that piece alone.
 - **Board: v55 = 239.4469 (−2.32 vs v54, −1.30 vs v56). Kept; new best.** Uploaded file = the final v55 above (md5 aba5f394dde8b0ed8075d1ac848f7b12).
   - **By the pre-set rule (v55 below 240.7425), the LIRF update is dropped. Later builds start from v55.**
   - **Exact split.** v55 differs from v54 only at the 8 shift airports, and v56 from v55 only on LIRF rows. So the board SSE (344,841 rows) splits exactly:

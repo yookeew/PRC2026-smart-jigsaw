@@ -1,0 +1,24 @@
+skip  flight_events_20241226_20250105.parquet
+skip  flight_events_20250105_20250115.parquet
+skip  flight_events_20250115_20250125.parquet
+skip  flight_events_20250125_20250204.parquet
+skip  flight_events_20250204_20250214.parquet
+skip  flight_events_20250214_20250224.parquet
+skip  flight_events_20250224_20250306.parquet
+skip  flight_events_20250306_20250316.parquet
+skip  flight_events_20250316_20250326.parquet
+skip  flight_events_20250326_20250405.parquet
+Traceback (most recent call last):
+  File "C:\Users\zhang\smart-jigsaw\src\ingest\fetch_opdi_events.py", line 181, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "C:\Users\zhang\smart-jigsaw\src\ingest\fetch_opdi_events.py", line 177, in main
+    fetch(d0)
+  File "C:\Users\zhang\smart-jigsaw\src\ingest\fetch_opdi_events.py", line 130, in fetch
+    f = HttpFile(BASE + name)
+        ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\zhang\smart-jigsaw\src\ingest\fetch_opdi_events.py", line 55, in __init__
+    r.raise_for_status()
+  File "C:\Users\zhang\smart-jigsaw\.venv\Lib\site-packages\requests\models.py", line 1167, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://www.eurocontrol.int/performance/data/download/OPDI/v002/flight_events/flight_events_20250405_20250415.parquet

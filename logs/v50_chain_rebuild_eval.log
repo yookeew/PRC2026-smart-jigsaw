@@ -1,0 +1,12 @@
+control vs cache v42: max |diff| 251.8277, RMS 5.4316
+=== all vs ctl  (rows changed 310,396, RMS change 32.58)
+  full               304.114 ->   302.395  (-1.720)
+  trimmed y<=5h      245.248 ->   243.130  (-2.118)
+  body pooled        193.981 ->   192.603  (-1.379)
+  body Jan           175.323 ->   174.805  (-0.518)
+  body Jul           207.968 ->   205.988  (-1.980)
+  full Jan           329.510 ->   328.760  (-0.749)
+  full Jul           281.990 ->   279.342  (-2.647)
+  full gain +1.720 s = body(y<=1h) +0.936 + tail +0.784; top-20 rows hold 49% of body gain
+  per airport (all rows): {'EDDF': -1.96, 'EDDM': -1.52, 'EGLL': -8.53, 'EHAM': -1.69, 'LEBL': -0.92, 'LEMD': -0.02, 'LFPG': -0.99, 'LIRF': 0.5, 'LSZH': -1.73, 'LTFM': -3.66}
+  body delta bootstrap: mean -1.379, 95% CI [-1.745, -1.065], P(worse) 0.000

@@ -1,0 +1,32 @@
+skip  flight_events_20241226_20250105.parquet
+skip  flight_events_20250105_20250115.parquet
+skip  flight_events_20250115_20250125.parquet
+skip  flight_events_20250125_20250204.parquet
+skip  flight_events_20250204_20250214.parquet
+skip  flight_events_20250214_20250224.parquet
+skip  flight_events_20250224_20250306.parquet
+skip  flight_events_20250306_20250316.parquet
+skip  flight_events_20250316_20250326.parquet
+skip  flight_events_20250326_20250405.parquet
+  retry 1 flight_events_20250405_20250415.parquet: status 429; waiting 120 s
+fetch flight_events_20250405_20250415.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 387 of 387 MB, 273,189 events, 140 s
+fetch flight_events_20250415_20250425.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 384 of 384 MB, 261,298 events, 21 s
+fetch flight_events_20250425_20250505.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8], 249 of 249 MB, 160,324 events, 14 s
+fetch flight_events_20250505_20250515.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], 477 of 477 MB, 251,585 events, 27 s
+fetch flight_events_20250515_20250525.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], 478 of 478 MB, 264,803 events, 28 s
+fetch flight_events_20250525_20250604.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 362 of 362 MB, 315,984 events, 19 s
+fetch flight_events_20250604_20250614.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 391 of 391 MB, 332,404 events, 23 s
+fetch flight_events_20250614_20250624.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 408 of 408 MB, 332,657 events, 22 s
+skip  flight_events_20250624_20250704.parquet
+skip  flight_events_20250704_20250714.parquet
+skip  flight_events_20250714_20250724.parquet
+skip  flight_events_20250724_20250803.parquet
+fetch flight_events_20250803_20250813.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 397 of 397 MB, 339,285 events, 21 s
+fetch flight_events_20250813_20250823.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 304 of 304 MB, 257,716 events, 15 s
+fetch flight_events_20250823_20250902.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 372 of 372 MB, 274,800 events, 19 s
+fetch flight_events_20250902_20250912.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 374 of 374 MB, 329,656 events, 19 s
+fetch flight_events_20250912_20250922.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 365 of 365 MB, 369,202 events, 18 s
+fetch flight_events_20250922_20251002.parquet: row groups [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 355 of 355 MB, 368,481 events, 19 s
+  retry 1 flight_events_20251002_20251012.parquet: status 404; waiting 120 s
+  retry 2 flight_events_20251002_20251012.parquet: status 404; waiting 240 s
+  retry 3 flight_events_20251002_20251012.parquet: status 404; waiting 360 s

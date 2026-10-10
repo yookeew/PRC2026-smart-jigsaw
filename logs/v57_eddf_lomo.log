@@ -1,0 +1,39 @@
+thin-day rule: 115 days kept, 7 dropped
+shape: (7, 5)
+| day        | status   | bad_members | points | med        |
+| ---        | ---      | ---         | ---    | ---        |
+| str        | str      | i64         | i64    | f64        |
+|------------|----------|-------------|--------|------------|
+| 2025-08-10 | tolerant | 1           | 211018 | 1.572131e6 |
+| 2025-10-04 | ok       | 0           | 0      | 1672691.5  |
+| 2025-10-07 | tolerant | 1           | 206056 | 1672691.5  |
+| 2025-11-19 | tolerant | 1           | 142500 | 1.549465e6 |
+| 2025-11-22 | tolerant | 1           | 247284 | 1.549465e6 |
+| 2025-12-10 | tolerant | 1           | 671427 | 1586008.5  |
+| 2025-12-28 | tolerant | 1           | 251232 | 1586008.5  |
+OOF-month ADS-B rows: 660,242 on 115 days (['2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12']); OOF stack weights [1.011 0.   ]
+loaded in 6s: holdout 344,339 rows (stack w [0.948 0.063]), OOF ADS-B days 660,242 rows on 115 days
+  2025-02 ctl: combiner best_iter 4974, stage b best_iter 1091
+month 2025-02: 61,215 rows (28,920 combiner, 32,295 stage b), 87s
+  2025-03 ctl: combiner best_iter 4998, stage b best_iter 1274
+month 2025-03: 63,168 rows (32,963 combiner, 30,205 stage b), 95s
+  2025-04 ctl: combiner best_iter 4533, stage b best_iter 1428
+month 2025-04: 70,180 rows (36,847 combiner, 33,333 stage b), 96s
+  2025-05 ctl: combiner best_iter 4527, stage b best_iter 1155
+month 2025-05: 71,403 rows (38,175 combiner, 32,521 stage b), 89s
+  2025-06 ctl: combiner best_iter 4999, stage b best_iter 1481
+month 2025-06: 73,044 rows (37,794 combiner, 31,865 stage b), 95s
+  2025-08 ctl: combiner best_iter 3680, stage b best_iter 1293
+month 2025-08: 67,930 rows (31,143 combiner, 32,796 stage b), 76s
+  2025-09 ctl: combiner best_iter 4905, stage b best_iter 1104
+  2025-09 trt: combiner best_iter 4968, stage b best_iter 875
+month 2025-09: 79,909 rows (42,284 combiner, 35,957 stage b), 177s
+  2025-10 ctl: combiner best_iter 3374, stage b best_iter 1279
+  2025-10 trt: combiner best_iter 4424, stage b best_iter 1573
+month 2025-10: 60,380 rows (34,293 combiner, 24,225 stage b), 170s
+  2025-11 ctl: combiner best_iter 4264, stage b best_iter 1591
+  2025-11 trt: combiner best_iter 4911, stage b best_iter 2059
+month 2025-11: 60,201 rows (36,803 combiner, 21,666 stage b), 199s
+  2025-12 ctl: combiner best_iter 4401, stage b best_iter 1244
+  2025-12 trt: combiner best_iter 4459, stage b best_iter 1254
+month 2025-12: 52,812 rows (32,323 combiner, 17,943 stage b), 177s
