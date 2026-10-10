@@ -183,7 +183,7 @@ for f in need:
 !md5sum cache/features/final4m/ranking.parquet   # expect 04bcbf67...
 '''
 # %%
-# CatBoost for the four-month pipeline (PROGRESS.md §126). T4 runtime, ~40 min.
+# CatBoost for the four-month pipeline (PROGRESS.md §132). T4 runtime, ~40 min.
 # The production CatBoost was never saved and its round counts were not recorded, so this
 # repeats the holdout fits (round counts -> .rounds.json) and the all-2025 refit, saves the
 # refit to models/cat_mixed_f4m/ and predicts Jan+Feb+Jun+Jul 2026. New names only: nothing

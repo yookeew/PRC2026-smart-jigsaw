@@ -14,7 +14,7 @@ from scipy.optimize import nnls
 ROOT = Path.cwd()
 sys.path.insert(0, str(ROOT / "src")); sys.path.insert(0, str(ROOT / "tests"))
 assert os.environ.get("PRC_LGB", "").startswith("ctxc1sel")   # ctxc1sel, or a variant of it (e.g. ctxc1sel_ro, v54)
-import scope  # noqa: E402  (PRC_SCOPE=final4m: final_ranking rows, final4m caches/outputs; PROGRESS.md §126)
+import scope  # noqa: E402  (PRC_SCOPE=final4m: final_ranking rows, final4m caches/outputs; PROGRESS.md §132)
 SCR = Path(os.environ.get("SCR", str(scope.out_dir(Path("cache/v50")))))
 import adsb_combiner_test as C  # noqa: E402
 import adsb_v3_test as V  # noqa: E402

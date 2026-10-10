@@ -1,4 +1,4 @@
-"""Second gate for the day-level reconciliation on Feb/Jun-type months (PROGRESS.md §126).
+"""Second gate for the day-level reconciliation on Feb/Jun-type months (PROGRESS.md §132).
 
 The production stage (src/post/pru_daily_recon.py, non-LIRF day shift, LIRF untouched as in v55, LSZH skipped) was
 gated on the Jan+Jul 2025 holdout only. Here the same code runs on the context corrector's out-of-fold predictions

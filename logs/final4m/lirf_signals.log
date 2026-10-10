@@ -1,6 +1,6 @@
 12-month fit on 1,375 rows (echo 0.491); coef [ 1.393 -0.952 -0.492 -0.475 -1.399  1.246  0.674  0.806], intercept 0.958
 2026 LIRF NM-unmatched >= 1 h: 560; in scope 526 (1-3 h 450, 3-6 h 76)
   q - p on scope: mean -0.051, p10 -0.225, p90 +0.131; mean p 0.445 -> mean q 0.393
-  change on scope: mean -228 s, RMS 1215 s, max |5163| s; RMS over all 670,790 rows 34.0 s
+  change on scope: mean -229 s, RMS 1213 s, max |5163| s; RMS over all 670,790 rows 34.0 s
   rows differing from f4m_a.parquet: 526 (all in scope)
 wrote f4m_b.parquet

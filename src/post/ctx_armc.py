@@ -21,7 +21,7 @@ Commands:
 
 Run:  ARMC_ARM=c1 CTX_ENS=2 CTX_RWY=1 [CTX_ADSB=1] .venv/Scripts/python.exe src/post/ctx_armc.py inputs|prod
       ARMC_ARM=c1 .venv/Scripts/python.exe src/post/ctx_armc.py sel
-PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §126): prod and sel on the four-month ranking rows (base LightGBM and
+PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §132): prod and sel on the four-month ranking rows (base LightGBM and
 CatBoost from data/submissions/final4m/, the CatBoost file being Colab's cat_mixed_f4m); outputs in the final4m/
 subfolders. inputs is scope-independent and refuses to run there; sel only builds the ranking file there.
 """

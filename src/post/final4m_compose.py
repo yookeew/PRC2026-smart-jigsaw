@@ -1,4 +1,4 @@
-"""Blind-board file: Jan/Jul rows from the live board's best file, Feb/Jun rows from the four-month build (PROGRESS.md §126).
+"""Blind-board file: Jan/Jul rows from the live board's best file, Feb/Jun rows from the four-month build (PROGRESS.md §132).
 
 Until the rebuilt chain's Jan/Jul rows have been checked against the live board's best file, the blind-board file keeps
 that file's Jan/Jul predictions (the IDs of submitting.parquet) and takes every other row of final_submitting.parquet

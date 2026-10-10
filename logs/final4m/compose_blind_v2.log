@@ -1,0 +1,30 @@
+rows by month: {1: 152719, 2: 144158, 6: 181791, 7: 192122} | from smart-jigsaw_v57.parquet: 344,841, from f4m_full.parquet: 325,949
+Jan/Jul months of kept rows: [1, 7] | months of build rows: [2, 6]
+Jan/Jul rebuilt vs kept: RMS 48.4 s, mean -6.29, median |d| 12, rows |d| > 300 s 812
+shape: (20, 5)
+| apt  | mo  | n     | rms   | mean  |
+| ---  | --- | ---   | ---   | ---   |
+| str  | i8  | u32   | f64   | f64   |
+|------|-----|-------|-------|-------|
+| EDDF | 1   | 15667 | 53.1  | -4.4  |
+| EDDF | 7   | 20650 | 47.6  | -6.2  |
+| EDDM | 1   | 10953 | 29.2  | -3.1  |
+| EDDM | 7   | 15013 | 21.1  | -2.7  |
+| EGLL | 1   | 19283 | 35.3  | -18.5 |
+| EGLL | 7   | 20557 | 25.7  | -11.1 |
+| EHAM | 1   | 16232 | 44.7  | 1.6   |
+| EHAM | 7   | 21950 | 20.3  | -1.2  |
+| LEBL | 1   | 12201 | 21.9  | -10.3 |
+| LEBL | 7   | 17879 | 30.9  | -9.4  |
+| LEMD | 1   | 16802 | 27.2  | -7.0  |
+| LEMD | 7   | 20152 | 20.7  | -6.1  |
+| LFPG | 1   | 18129 | 38.8  | -15.7 |
+| LFPG | 7   | 21743 | 26.7  | -13.9 |
+| LIRF | 1   | 11061 | 100.6 | -5.7  |
+| LIRF | 7   | 15838 | 122.4 | -7.4  |
+| LSZH | 1   | 9995  | 66.5  | 4.9   |
+| LSZH | 7   | 13155 | 81.0  | -5.1  |
+| LTFM | 1   | 22396 | 41.6  | 0.1   |
+| LTFM | 7   | 25185 | 26.2  | 0.1   |
+output: 670,790 rows, range [0, 111648], median 938, mean 1009.9; Jan/Jul rows identical to smart-jigsaw_v57.parquet: True
+wrote data\submissions\final4m\blind_v2.parquet  md5 8ee9801db4efdd77dad7f49deab595ab

@@ -11,7 +11,7 @@ Only the echo weight moves: P' = P + (q - p) (offc - P_ne), P_ne = (P - p offc) 
 correction inside the non-echo branch is kept. Rows with off >= 6 h (nm_lines) or p >= 0.99 are untouched.
 
 Run:  .venv/Scripts/python.exe -u src/post/lirf_signals.py IN.parquet OUT.parquet
-PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §126): final_ranking rows (every 2026 month is complete, so the
+PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §132): final_ranking rows (every 2026 month is complete, so the
 same-month signals keep their meaning); 2026 echo probabilities from the four-month refits (LightGBM
 lgb_mixed_nb via predict_saved, CatBoost cat_mixed_f4m from Colab) in cache/eval/final4m/.
 """

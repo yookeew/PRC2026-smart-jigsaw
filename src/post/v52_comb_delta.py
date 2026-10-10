@@ -13,9 +13,10 @@ import polars as pl
 from scipy.optimize import nnls
 ROOT = Path.cwd()
 sys.path.insert(0, str(ROOT / "src")); sys.path.insert(0, str(ROOT / "tests"))
-assert os.environ.get("PRC_LGB") == "ctxc1sel"
-SCR = Path(os.environ.get("SCR", "cache/v52"))
-V50 = ROOT / "cache" / "v50"
+assert os.environ.get("PRC_LGB", "").startswith("ctxc1sel")   # ctxc1sel (v52), or ctxc1sel_ro (four-month chain, §132)
+import scope  # noqa: E402  (PRC_SCOPE=final4m: final_ranking rows, final4m caches/outputs; PROGRESS.md §132)
+SCR = Path(os.environ.get("SCR", str(scope.out_dir(Path("cache/v52")))))
+V50 = scope.out_dir(ROOT / "cache" / "v50")
 import adsb_combiner_test as C  # noqa: E402
 import adsb_v3_test as V  # noqa: E402
 import ltfm_egll_anatomy as A  # noqa: E402
@@ -32,7 +33,7 @@ CTL_EXTRA = POS + RO                                  # v50's combiner inputs
 ARM = "opdi"
 EXTRA = POS + RO + O + list(REL)
 ENS_ARMS = set()
-OPDI_FEATS = ROOT / "cache" / "opdi_feats" / "opdi_feats.parquet"
+OPDI_FEATS = scope.out_dir(ROOT / "cache" / "opdi_feats") / "opdi_feats.parquet"
 _fit0 = C.fit_combiner
 
 
@@ -61,14 +62,14 @@ DET0, FEATS0 = list(V.DET_COLS), list(C.FEATS)
 POSDIR = ROOT / "cache" / "adsb_pos_v4"
 C.V4 = POSDIR
 V.DET_COLS = DET0 + POS
-SUB = ROOT / "data" / "submissions"
-RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
+SUB = scope.out_dir(ROOT / "data" / "submissions")
+RANKING = scope.RANKING
 ENG = ["lgb", "catcorr"]
 CEIL, LIRF_CEIL = 10800, 140000
 
 
 def read_det(d, pat="day=2025-0[17]*.parquet"):
-    det = pl.concat([pl.read_parquet(p) for p in sorted(d.glob(pat))], how="diagonal")
+    det = pl.concat([pl.read_parquet(p) for p in scope.day_files(d, pat)], how="diagonal")
     for c in V.DET_COLS:
         if c not in det.columns:
             det = det.with_columns(pl.lit(None, pl.Float64).alias(c))

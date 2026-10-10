@@ -1,0 +1,16 @@
+=== 1. LightGBM ranking echo probabilities from the saved model (LIRF hedges)  2026-10-10 13:29
+    (exists: cache/eval/final4m/lgb_mixed_nb_rank.parquet)
+=== 2. OOF corrector on CatBoost (12-month corrector)  2026-10-10 13:29
+    (exists: data/submissions/final4m/catcorr_mixed.parquet)
+=== 3. Stand re-occupation and identity features  2026-10-10 13:29
+    (exists: cache/v50/final4m/reocc_feats6.parquet)
+=== 4. Context corrector, stand-aware members r_ro / rb_ro, then sel  2026-10-10 13:29
+    (exists: data/submissions/final4m/ctxc1r_ro.parquet)
+=== 5. Chain: stack + ADS-B stages -> combiner -> neighbour stage -> LOBT window -> NM lines  2026-10-10 13:35
+=== 6. Identity-arm deltas (combiner all_id, neighbour stage ro_id)  2026-10-10 13:37
+=== 7. Assemble chain + deltas (LIRF and NM-line rows frozen, LOBT window last)  2026-10-10 13:50
+=== 8. LIRF NM-unmatched hedges: signals (v45), twin bounds (v47), round 2 (v48)  2026-10-10 13:51
+=== 9. v49 fixes (LSZH level per month, EHAM storm days, dominated LIRF rows)  2026-10-10 13:51
+=== 10. Day-level reconciliation (v55 settings: LIRF untouched, LSZH skipped)  2026-10-10 13:51
+=== done  2026-10-10 13:51
+a0f261a5f80cd79ffb79bb95fca69b14 *data/submissions/final4m/f4m_full.parquet

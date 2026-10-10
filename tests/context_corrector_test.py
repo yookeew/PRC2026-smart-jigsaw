@@ -22,7 +22,7 @@ import polars as pl
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from post import nm_lines as NL  # noqa: E402
-import scope  # noqa: E402  (PRC_SCOPE=final4m: final_ranking rows, final4m caches; PROGRESS.md §126)
+import scope  # noqa: E402  (PRC_SCOPE=final4m: final_ranking rows, final4m caches; PROGRESS.md §132)
 
 RAW = ROOT / "data" / "raw"
 RANKING = scope.RANKING

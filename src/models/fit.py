@@ -17,7 +17,7 @@ Inputs (see features/export_model_inputs.py):
     <feat_dir>/ranking.parquet         base features, ranking departures
     <feat_dir>/labels2025.parquet      MVT_ID_mvt, ADEP/RUNWAY/STAND, taxi, d, ym
 
-Saved models (PROGRESS.md §126): run(..., model_out=DIR) also writes the all-2025 refit to DIR
+Saved models (PROGRESS.md §132): run(..., model_out=DIR) also writes the all-2025 refit to DIR
 (each booster in its library's own format + state.pkl with the encoders), and
 predict_saved(DIR, feat_dir, name) predicts any ranking feature frame from it without refitting.
 PRC_SCOPE=final4m sends submissions/reports to final4m/ subfolders (src/scope.py).

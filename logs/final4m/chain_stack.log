@@ -5,24 +5,24 @@ fallback blend: {'w': {'fb_dwell': 0.31709491578483845, 'fb_appear': 0.709432505
 partial: b 246 s/km | w {'near': 0.106, 'far': 0.008} | a {'EDDF': 278, 'EDDM': 173, 'EGLL': 561, 'EHAM': 159, 'LEBL': 261, 'LEMD': 355, 'LSZH': 236} | a_pooled 355
 ADS-B blend: tier w {'appear': 0.415, 'dwell': 0.19} | lags {'EDDF': -35, 'EDDM': -49, 'EGLL': -170, 'EHAM': -22, 'LEBL': -36, 'LEMD': -136, 'LFPG': -39, 'LSZH': -30} | cells {'EDDF/appear': 0.26, 'EDDF/dwell': 0.0, 'EDDM/appear': 0.85, 'EDDM/dwell': 0.51, 'EGLL/appear': 0.79, 'EGLL/dwell': 0.26, 'EHAM/appear': 0.11, 'EHAM/dwell': 0.06, 'LEBL/appear': 0.31, 'LEBL/dwell': 0.04, 'LSZH/appear': 0.24, 'LSZH/dwell': 0.12}
 wrote stack_lgb_catcorr_v3_ctxc1sel_ro.parquet  n=670,790  median=952  mean=1022.1  max=112315
-ADS-B blended ranking rows: 179,935 of 670,790 (26.8%); mean shift -15.5s
+ADS-B blended ranking rows: 186,982 of 670,790 (27.9%); mean shift -15.5s
 shape: (8, 4)
 | ADEP_mvt | n     | mean_shift_s | mean_abs_shift_s |
 | ---      | ---   | ---          | ---              |
 | str      | u32   | f64          | f64              |
 |----------|-------|--------------|------------------|
-| EDDF     | 3118  | -5.3         | 10.9             |
-| EDDM     | 36226 | -30.6        | 90.3             |
-| EGLL     | 36029 | -27.7        | 88.5             |
-| EHAM     | 52826 | -4.6         | 9.3              |
-| LEBL     | 23238 | -6.4         | 8.8              |
-| LEMD     | 13540 | -7.6         | 44.4             |
-| LFPG     | 64    | -17.2        | 44.0             |
-| LSZH     | 14894 | -11.5        | 13.9             |
-wrote stack_lgb_catcorr_v3_ctxc1sel_ro_adsb.parquet  n=670,790  median=950  mean=1018.0  max=112315
-partial-track rows: 88,985 (13.3%); mean shift +2.4s; per airport {'EDDF': 6876, 'EDDM': 9631, 'EGLL': 16119, 'EHAM': 9110, 'LEBL': 15101, 'LEMD': 16545, 'LFPG': 502, 'LSZH': 15101}
-wrote stack_lgb_catcorr_v3_ctxc1sel_ro_adsb_partial.parquet  n=670,790  median=950  mean=1018.3  max=112315
-quality-modulated blend: rows 179,935; mean |change vs unmodulated| 13.9s; quality mix {'poor': 77376, 'good': 102559}
-wrote stack_lgb_catcorr_v3_ctxc1sel_ro_adsbq_partial.parquet  n=670,790  median=951  mean=1019.5  max=112315
-fallback rows: 10,862 (1.6%); mean |shift| 53.0s; per airport {'EDDF': 1540, 'EDDM': 186, 'EGLL': 3488, 'EHAM': 40, 'LEBL': 1059, 'LEMD': 2714, 'LFPG': 124, 'LSZH': 1711}
-wrote stack_lgb_catcorr_v3_ctxc1sel_ro_adsbq_partial_fb.parquet  n=670,790  median=951  mean=1019.3  max=112315
+| EDDF     | 3171  | -5.3         | 10.8             |
+| EDDM     | 37776 | -30.4        | 90.3             |
+| EGLL     | 36832 | -27.9        | 88.5             |
+| EHAM     | 54954 | -4.6         | 9.3              |
+| LEBL     | 24251 | -6.3         | 8.8              |
+| LEMD     | 14327 | -7.5         | 44.2             |
+| LFPG     | 68    | -16.3        | 42.3             |
+| LSZH     | 15603 | -11.5        | 13.9             |
+wrote stack_lgb_catcorr_v3_ctxc1sel_ro_adsb.parquet  n=670,790  median=950  mean=1017.8  max=112315
+partial-track rows: 92,908 (13.9%); mean shift +2.3s; per airport {'EDDF': 7025, 'EDDM': 9972, 'EGLL': 16552, 'EHAM': 9660, 'LEBL': 15820, 'LEMD': 17674, 'LFPG': 523, 'LSZH': 15682}
+wrote stack_lgb_catcorr_v3_ctxc1sel_ro_adsb_partial.parquet  n=670,790  median=950  mean=1018.1  max=112315
+quality-modulated blend: rows 186,982; mean |change vs unmodulated| 13.9s; quality mix {'good': 106511, 'poor': 80471}
+wrote stack_lgb_catcorr_v3_ctxc1sel_ro_adsbq_partial.parquet  n=670,790  median=951  mean=1019.3  max=112315
+fallback rows: 11,502 (1.7%); mean |shift| 53.2s; per airport {'EDDF': 1659, 'EDDM': 191, 'EGLL': 3855, 'EHAM': 45, 'LEBL': 1108, 'LEMD': 2735, 'LFPG': 131, 'LSZH': 1778}
+wrote stack_lgb_catcorr_v3_ctxc1sel_ro_adsbq_partial_fb.parquet  n=670,790  median=951  mean=1019.2  max=112315

@@ -5,7 +5,7 @@ LIRF departures >= 1 h late (history only), and the non-echo branch bounded by t
   P' = q2 offc + (1 - q2) min(P_ne, max(off - 3606, 0)),  P_ne recovered from the input with v45's q.
 
 Run:  .venv/Scripts/python.exe -u src/post/lirf_hedge2.py IN.parquet OUT.parquet   (files in data/submissions)
-PRC_SCOPE=final4m: final_ranking rows, files in data/submissions/final4m (src/scope.py, PROGRESS.md §126).
+PRC_SCOPE=final4m: final_ranking rows, files in data/submissions/final4m (src/scope.py, PROGRESS.md §132).
 """
 
 from __future__ import annotations

@@ -6,7 +6,7 @@
 
 Run:  .venv/Scripts/python.exe -u src/post/v49_bundle.py IN.parquet OUT.parquet   (files in data/submissions)
 
-PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §126): final_ranking rows, files in data/submissions/final4m; fix 1 runs
+PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §132): final_ranking rows, files in data/submissions/final4m; fix 1 runs
 for every month present; fix 2 reads the v4 detections (2026 days from cache/adsb_pushback_v4/final4m; v6 equals v4 on
 adsb_tier / adsb_pushback_ts on all 245 days both hold) and uses the scope's corrector (ctxc1sel_ro) as its reference,
 and is skipped when no storm day is found.

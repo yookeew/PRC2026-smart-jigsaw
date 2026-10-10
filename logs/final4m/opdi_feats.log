@@ -1,0 +1,7 @@
+
+To avoid this warning, register the extension type or set environment variable 'POLARS_UNKNOWN_EXTENSION_TYPE_BEHAVIOR' to 'load_as_storage' or 'load_as_extension'.
+
+In Polars 2.0, the default behavior will change to 'load_as_extension'.
+  d = pl.concat([pl.read_parquet(f, columns=cols) for f in fs], how="vertical_relaxed").filter(pl.col("PHASE_mvt") == "DEP")
+  .explode("ev_t", "ev_type")
+49 OPDI files; 2,755,837 departures; OPDI day coverage 0.978; matched 0.481; ground event >= 60 s 0.097

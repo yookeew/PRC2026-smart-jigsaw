@@ -1,4 +1,4 @@
-2026 scope rows (non-twin) 474; moved 458; mean change +65 s; RMS on scope 870 s; sum (Q-P)^2 3.59e+08
+2026 scope rows (non-twin) 474; moved 458; mean change +66 s; RMS on scope 868 s; sum (Q-P)^2 3.57e+08
 drift (airlines with >= 30 late 2025 / >= 10 late 2026 departures, n 64): corr(r25, r26) 0.752; mean r25 0.918 vs r26 0.910
 rows differing from f4m_c.parquet: 458
 wrote f4m_d.parquet

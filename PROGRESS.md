@@ -5663,6 +5663,26 @@ handling listed in the guide.*
     - new corrector vs old post-stages: +0.38 / +0.26.
   - This matches §85 (corrector member average rejected), §108 (3-seed average −0.03, rejected) and v51 (per-airport e2 members lost on the board).
   - The versions are nested improvements, not independent models, so averaging dilutes the later fixes.
+- **Board: v55 = 239.4469 (−2.32 vs v54, −1.30 vs v56). Kept; new best.** Uploaded file = the final v55 above (md5 aba5f394dde8b0ed8075d1ac848f7b12).
+  - **By the pre-set rule (v55 below 240.7425), the LIRF update is dropped. Later builds start from v55.**
+  - **Exact split.** v55 differs from v54 only at the 8 shift airports, and v56 from v55 only on LIRF rows. So the board SSE (344,841 rows) splits exactly:
+
+| component | board ΔSSE | holdout ΔSSE | board / holdout |
+|---|---|---|---|
+| (a) day shift, 8 airports (v54 → v55) | −3.84e8 | −2.02e8 | ≈ 1.9 |
+| (b) LIRF update (v55 → v56) | +2.15e8 | −3.57e8 | sign flipped |
+| both (v54 → v56) | −1.70e8 | −5.59e8 | ≈ 0.3 |
+
+  - **(a) transferred about twice its holdout size.** The pre-upload projection at 1:1 was ≈ 240.56; the result is 1.1 s better.
+    - One reading, not tested: the shift corrects day-level errors, and those are larger in 2026 because the model is a year away from its training data.
+  - **(b) lost on the board.** This was always a possibility:
+    - its holdout CI included harm (P(worse) 0.135);
+    - its 2026 changes were a handful of single-row bets (5 days held 85% of the change energy; each of the top two rows was worth about ±0.3 s).
+  - The earlier estimate P(v55 < v56) ≈ 50–60% landed on the "LIRF hurt" side.
+  - **Not done, on purpose:**
+    - no reading of which individual LIRF rows were wrong;
+    - no refit of the LIRF prior, the shrink 0.75 or the LSZH skip from these two scores.
+    - Any later change to the day-level stage goes through the holdout first (§82).
 
 ## 126. ADS-B surface state of other aircraft (runway queues, de-icing stops) -- oracle passes, label-free proxy fails; two fallbacks closed (2026-10-08, no submission)
 
@@ -6049,28 +6069,7 @@ seeing results is a disclosed post-hoc decision, like the override.
 - The read is confounded: EDDF (v60), S3 at seven airports and LSZH (v58) were uploaded together, so the board cannot
   split the −0.61 between them. v60 alone was never scored.
 - S3 at LTFM is left out (§131) and is the open, clean follow-up: v63 = v62 with S3 at LTFM would read that piece alone.
-- **Board: v55 = 239.4469 (−2.32 vs v54, −1.30 vs v56). Kept; new best.** Uploaded file = the final v55 above (md5 aba5f394dde8b0ed8075d1ac848f7b12).
-  - **By the pre-set rule (v55 below 240.7425), the LIRF update is dropped. Later builds start from v55.**
-  - **Exact split.** v55 differs from v54 only at the 8 shift airports, and v56 from v55 only on LIRF rows. So the board SSE (344,841 rows) splits exactly:
-
-| component | board ΔSSE | holdout ΔSSE | board / holdout |
-|---|---|---|---|
-| (a) day shift, 8 airports (v54 → v55) | −3.84e8 | −2.02e8 | ≈ 1.9 |
-| (b) LIRF update (v55 → v56) | +2.15e8 | −3.57e8 | sign flipped |
-| both (v54 → v56) | −1.70e8 | −5.59e8 | ≈ 0.3 |
-
-  - **(a) transferred about twice its holdout size.** The pre-upload projection at 1:1 was ≈ 240.56; the result is 1.1 s better.
-    - One reading, not tested: the shift corrects day-level errors, and those are larger in 2026 because the model is a year away from its training data.
-  - **(b) lost on the board.** This was always a possibility:
-    - its holdout CI included harm (P(worse) 0.135);
-    - its 2026 changes were a handful of single-row bets (5 days held 85% of the change energy; each of the top two rows was worth about ±0.3 s).
-  - The earlier estimate P(v55 < v56) ≈ 50–60% landed on the "LIRF hurt" side.
-  - **Not done, on purpose:**
-    - no reading of which individual LIRF rows were wrong;
-    - no refit of the LIRF prior, the shrink 0.75 or the LSZH skip from these two scores.
-    - Any later change to the day-level stage goes through the holdout first (§82).
-
-## 126. Four-month pipeline for the blind board (Jan + Feb + Jun + Jul 2026) -- in progress (2026-10-09)
+## 132. Four-month pipeline for the blind board (Jan + Feb + Jun + Jul 2026) -- in progress (2026-10-09)
 
 *Note: the organisers released `final_ranking.parquet` / `final_submitting.parquet` (Jan, Feb, Jun, Jul 2026) for a blind board, due 2026-10-14. The live Jan/Jul board (due 10-11) continues. We get no feedback on Feb/Jun rows.*
 
@@ -6186,3 +6185,73 @@ seeing results is a disclosed post-hoc decision, like the override.
   - Missing from it: ADS-B for the six re-fetch days (02-17, 02-20, 02-22, 02-28, 06-11, 06-23); those rows take the non-ADS-B path.
   - Left out for Feb/Jun: the teammate's v52 LSZH change (code not in this branch).
 - **Re-fetched ADS-B days (2026-10-10).** The Colab re-fetch read five of the six short days in full: 02-17 1.45M points, 02-20 1.75M, 02-22 1.50M, 02-28 1.44M, 06-23 1.83M (21.5–27 MB, like their neighbours). They were normalised (`--only … --skip-existing`, `logs/final4m/normalise_adsb_refetch.log`) and detected with v1/v3/v4/positions into `final4m/`. Appear+dwell is 24.2–27.0% in February and 33.6% on 06-23, in line with neighbouring days. 2026-06-11 stays thin at the source (305k points, 8 airports) and stays out, so 119 of the 120 2026 days have detections. Every output from step 4 onward (`ctxc1rb_ro` and later) needs rebuilding to include them.
+
+**After the merge with `main` (2026-10-10).** The team's best is now teammate v62 = 238.79, uploaded as our `smart-jigsaw_v57.parquet` (md5 d706e820…): v55 + v52 (LSZH OPDI) + v60 (EDDF OPDI demeaned) + v61's S3 learned day shift at 7 airports (LTFM keeps v55's uniform shift) + v58 (LSZH day variation); §128–131. This section was renumbered §126 → §132 (main already had a §126); §125's v55 board block, which main carried at the end of §131, was moved back to §125.
+- **Rebuild with the five re-fetched ADS-B days** (`logs/final4m/run_final4m_v2.log`, 22 min; v1 outputs archived in `data/submissions/final4m/_v1/`). `f4m_full.parquet` md5 a0f261a5f80cd79ffb79bb95fca69b14. vs v1: the five days' 26,763 rows RMS 80.9 (mean −0.24); all other rows RMS 5.8, mean +0.03 (pooled day-level and v49 estimates).
+- **`data/submissions/final4m/blind_v2.parquet`**: Jan/Jul = `smart-jigsaw_v57.parquet` (teammate v62); Feb/Jun from the rebuild. 670,790 rows (Jan 152,719 / Feb 144,158 / Jun 181,791 / Jul 192,122), IDs exactly `final_submitting`'s, no nulls, [0, 111,648], median 938. md5 8ee9801db4efdd77dad7f49deab595ab.
+- **Rebuild (v55 recipe) vs v62 on Jan/Jul:** RMS 48.4, mean −6.3. The rebuild sits 3–18 s lower at the seven S3 airports (EGLL −18.5 / −11.1, LFPG −15.7 / −13.9, LEBL −10), because v61's S3 hands back part of v55's downward shift (§131). It differs by 48–53 s RMS at EDDF (v60's OPDI delta) and is level at LTFM (v62 keeps v55's shift there). So `blind_v2`'s Feb/Jun rows carry v55's day-level recipe, which the board scored 0.61 worse than v62's on Jan/Jul. Porting v52/v60/S3/v58 to Feb/Jun is the next step; it needs the teammate's caches (`cache/opdi_events/`, `cache/opdi_feats/`, `cache/v57/`, `cache/v50/chain_all.parquet`). Feb/Jun 2026 OPDI events are already fetched (7 files, `logs/final4m/opdi_fetch_febjun.log`).
+
+**v62's recipe on Feb/Jun → `blind_v3` (2026-10-10).** The teammate's caches arrived (`cache/opdi_events/` 49 files, `cache/opdi_feats/`, `cache/v57/`, `cache/v50/chain_all.parquet`; `cache/v57/v61_slopes.json` and `cache/v52/` were not included, and neither is needed: `v61_build.s3_slopes()` re-learns the slopes and the v52 deltas are refit on this chain).
+- **OPDI for Feb/Jun 2026:** 7 ten-day files fetched (`src/ingest/fetch_opdi_events.py --months 2026-02 2026-06`, `logs/final4m/opdi_fetch_febjun.log`). `src/features/opdi_feats.py` made scope-aware → `cache/opdi_feats/final4m/` (2025 rows identical to the teammate's file). Share of departures with an OPDI ground event ≥ 60 s before T: LSZH Jan 0.59 (1–9 Jan gap) / Feb 0.89 / Jun 0.95 / Jul 0.96; EDDF 0.36 / **0.06** / 0.52 / 0.55. EDDF February barely has OPDI ground events, so v60's covered-day rule leaves most of it alone (795 rows moved).
+- **Second gate for v62's day-level recipe** (`tests/final4m_s3_7apt_check.py`, `logs/final4m/s3_7apt_check.log`; same leave-period-out run as §131, S3 at the seven airports + R0 at LTFM, vs R0 at all eight): Feb full −0.33 / body −0.36; Jun −0.12 / −0.05; year −0.22 / −0.17, 11/12 months better (Jan +0.05). S3 at all eight would have given Feb body +1.70 (LTFM's snow days); the seven-airport version v62 uses has no February problem.
+- **v52 deltas on this chain** (`src/post/v52_comb_delta.py` / `v52_nb_delta.py` made scope-aware, `PRC_LGB=ctxc1sel_ro`, `cache/v52/final4m/`): combiner RMS 22.5 (teammate 22.8), neighbour stage 14.9 (15.6); LSZH combiner 64 s.
+- **`src/post/final4m_v62.py`** applies v62's recipe to the chain before its day stage (`f4m_e`): LSZH = + v52's OPDI delta then v58; EDDF = + v60's demeaned OPDI delta then S3; EDDM/EGLL/EHAM/LEBL/LEMD/LFPG = S3; LTFM = R0; LIRF unchanged; LOBT window last (`logs/final4m/f4m_v62_build.log`).
+  - Engine check: the teammate's R0 engine on `f4m_e` reproduces `f4m_full` at the 8 airports exactly (0 rows differ).
+  - vs `f4m_full`, per month: S3 raises EGLL +11 to +24 s, LFPG +14 to +16, LEBL +8 to +11, LEMD +6 to +7, EDDM +3; LSZH RMS 63–81 (v52 + v58); EDDF 44 s RMS (Feb 19). Steady across months.
+  - `data/submissions/final4m/f4m_v62.parquet`.
+- **Jan/Jul check, rebuild vs v62:** RMS 41.6, mean −0.59. Every airport except LIRF now has mean within ±1.4 s (v55-recipe rebuild: −3 to −18 at the S3 airports). EDDF 33 / 22 (was 53 / 48), LSZH 33 / 25 (was 67 / 81); LIRF 101 / 122 unchanged (`ctxc1sel` vs `ctxc1sel_ro` corrector). The remaining 18–43 s RMS is refit noise, so the port reproduces v62's recipe.
+- **`data/submissions/final4m/blind_v3.parquet`**: Jan/Jul = v62 (`smart-jigsaw_v57`), Feb/Jun = `f4m_v62`. 670,790 rows, IDs exactly `final_submitting`'s, no nulls, [0, 111,648], median 941. md5 aa28c3c01bfbf09188db6a2e8ec1fba6. (`logs/final4m/compose_blind_v3.log`)
+- **Second gate for v52's LSZH OPDI delta: PASS.** The teammate's leave-one-month-out run (`tests/v57_eddf_lomo.py`, `PRC_LGB=ctxc1sel SCR=cache/v57/final4m_gate MONTHS=TRT_MONTHS=2025-02,2025-06`, `logs/final4m/opdi_lomo_febjun.log`): v52's production post-stage recipe refit without the held-out month, control vs + OPDI inputs, on the OOF ADS-B days.
+  - LSZH Feb 2025 (3,855 rows, 92% covered): full 106.28 → 83.09, body 104.68 → 80.52 (−24.15, day-bootstrap CI [−29.7, −18.7]).
+  - LSZH Jun 2025 (4,801 rows, 96% covered): full 152.52 → 123.51, body 144.31 → 112.26 (−32.05, CI [−41.5, −22.0]).
+  - The same size as §129's Sep–Dec positive control (−24.0). EDDF −0.2 in both months (no EDDF OPDI coverage before Sep 2025); EDDF's evidence stays §129's Sep–Dec run (−5.0 body) and v62's board result.
+- **Recommendation: `blind_v3` is the blind-board upload.** Every stage on its Feb/Jun rows has passed a Feb/Jun 2025 out-of-sample check (corrector, day-level recipe, LSZH OPDI) or, where none is possible, a 2025-vs-2026 coverage check (ADS-B, EDDF OPDI). `blind_v2` (Feb/Jun on v55's recipe) is the fallback.
+
+## 133. Learned day-shift allocation with a boosted slope model (G2) -- gate PASS; v63 built, board pending; blind_v4 ready (2026-10-10)
+
+`reports/day_alloc_gbm_preregistration.md` (written first; discloses that the 2025 data were used for §130's C1b and §131's S1–S4).
+Code: `tests/day_alloc_gbm.py` (gate + production model), `src/post/day_alloc_build.py` (scope-aware build). Logs: `logs/day_alloc_gbm.log`,
+`logs/day_alloc_build.log`, `logs/final4m/day_alloc_build.log`, `logs/final4m/compose_blind_v4.log`.
+
+**Idea:** S3's slope is one number per (airport, delay band). Here the slope s(x) comes from a small LightGBM fitted with label
+(p − y)/λ̂ and weight λ̂² (exactly the loss Σ(p − y − s·λ̂)²), clipped to [0, 1]. Inputs: airport, d̂, hour, NM-unmatched,
+ADS-B tracked, OPDI covered, p; G2 adds |λ̂| and sign(λ̂) (regime-dependent allocation). Fixed hyper-parameters (15 leaves,
+2,000 rows per leaf, 300 rounds, lr 0.05). Same λ̂, periods, masks and leave-period-out rule as §131.
+
+**Gate (2025, 12 months, the 8 airports' rows, vs v62's recipe = S3 at 7 + R0 at LTFM):**
+
+| candidate | full | body | trimmed | months better | Feb | Jun | vs R0 full | pass |
+|---|---|---|---|---|---|---|---|---|
+| S3x8 (information) | −0.291 | +0.191 | −0.313 | 7 | −3.87 | −0.01 | −0.510 | no |
+| G1x8 | +0.007 | +0.258 | +0.012 | 7 | +0.55 | −0.12 | −0.212 | no |
+| G1x7 | −0.078 | −0.083 | −0.080 | 11 | −0.04 | −0.10 | −0.297 | no |
+| **G2x8** | **−0.433** | **−0.288** | **−0.461** | **12** | **−2.76** | **−0.30** | −0.652 | **yes** |
+| G2x7 | −0.108 | −0.123 | −0.112 | 12 | −0.09 | −0.14 | −0.327 | yes |
+
+- Pre-registered pick: **G2x8** (lowest full). Holdout-chain months (the closest to production): Jan −0.15, Jul −0.22.
+- Per airport, full vs v62's recipe: LTFM −1.79 (body −0.89), EDDM −0.31, EHAM −0.19, LEMD −0.15, LFPG −0.14, EDDF −0.12, EGLL −0.08, LEBL −0.05.
+  Without LTFM (G2x7) the gain is −0.11, so most of it is LTFM's: G2 gives LTFM's 2025 snow days their large shift while
+  keeping ordinary days' allocation near uniform, which S3's per-band slopes could not do (§131's body failure).
+- 2026 projection vs v62: **−0.33 s** (G2x7 −0.08).
+- Mean slopes: tracked rows 0.51 vs untracked 0.58; by band 0.37 / 0.57 / 0.75 / 0.72.
+
+**Build (`src/post/day_alloc_build.py`):** p as v62 (v54 + v52/v60 OPDI deltas); check that v62's recipe on the same inputs
+reproduces the v62 file; then δ = s(x)·λ̂ at the 8 airports with s fitted on all six 2025 periods; LSZH and LIRF rows = v62; LOBT window last.
+- The live-board v52 deltas (`cache/v52/`) were rebuilt locally (`PRC_LGB=ctxc1sel`, `logs/v52_*_localjj.log`). Check vs v62:
+  0 rows differ at all 8 shifted airports and LIRF; LSZH differs (22,686 rows, local rebuild of the LSZH delta not identical),
+  so LSZH is taken from the v62 file, not rebuilt.
+- 2026 slopes in use by band (< 0 / 0–15 / 15–60 / ≥ 60 min): LTFM 0.59 / 0.81 / 0.86 / 0.74 (S3: 0.09 / 0.30 / 0.79 / 1,
+  R0 uniform 0.75); the other airports 0.18–0.36 / 0.29–0.64 / 0.43–0.86 / 0.60–0.88. 2026 max |λ̂| is outside its 2025 range at
+  EHAM (533 vs 158, the storm) and LFPG (183 vs 145); the tree inputs saturate there.
+- **v63** (uploaded as our `smart-jigsaw_v58.parquet`, md5 04268b9aaf6e6a4e781b67e429b30f8c; built as `smart-jigsaw_v63`, renamed by the user) vs v62: 246,262 rows changed,
+  RMS 13.9 s, mean +0.46, max |Δ| 337. LTFM moves most (RMS 29 / 24 s, mean +15 / +22 in Jan / Jul): its day shift is
+  −32 s on average instead of v62's −51. Every other airport moves by RMS 2.5–28 s with mean −1 to −8.
+- **Risk:** the LTFM bet of §131 in a smaller form. If 2026's LTFM level error is a uniform drift (v55's reading), moving
+  LTFM off R0 costs part of what v61's S3 at LTFM would have (+0.52 at S3's slopes; G2's are closer to uniform). 2025
+  says G2 at LTFM is clearly better than R0 (−1.79 full, −0.89 body); the pre-registered rule picks it.
+- **Expected −0.33 s. Keep iff board < 238.79.** The read is clean: v63 differs from v62 only through G2.
+
+**Blind board:** the same build on the four-month chain (`PRC_SCOPE=final4m`, input `f4m_e`) reproduces `f4m_v62` exactly
+at all 10 airports, and its Jan/Jul changes mirror v63's (LTFM Jan 29.6 / +15.0 vs 29.4 / +14.9). Feb/Jun 2025 are in the
+gate (−2.76 / −0.30). `data/submissions/final4m/blind_v4.parquet` = Jan/Jul from v63, Feb/Jun from `f4m_g2`: 670,790 rows,
+IDs exactly `final_submitting`'s, md5 7f0ea743f80f63433b202fb241d101f9. **Use it only if v63 is kept; otherwise `blind_v3` stays.**

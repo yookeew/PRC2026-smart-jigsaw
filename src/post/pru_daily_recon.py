@@ -17,7 +17,7 @@ Modes:
   .venv/Scripts/python.exe src/post/pru_daily_recon.py BASE.parquet OUT.parquet HOLDOUT_LIRF_CHAIN.parquet
   .venv/Scripts/python.exe src/post/pru_daily_recon.py --holdout HOLDOUT_NONLIRF_CHAIN.parquet HOLDOUT_LIRF_CHAIN.parquet
       (replay on Jan+Jul 2025 with the 2025 file; LIRF calibration cross-month; prints the gate metrics)
-PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §126): production mode on final_ranking / final_submitting (the 2026 file
+PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §132): production mode on final_ranking / final_submitting (the 2026 file
 covers every Feb and Jun day); the holdout replay is scope-independent.
 """
 import os, sys, glob, itertools

@@ -3,7 +3,7 @@ Label-free cues (2025 check: type differs & operator matches & origin differs ->
 match -> 0.1%): appended to reocc_feats.parquet (v50's 9 columns) -> reocc_feats6.parquet.
 Columns: fa_tmatch, fa_omatch, fa_origin (arrival ADEP == our ADES), fa_flnear (same 2-letter prefix, numbers +-1),
 fa_tin_x (its taxi-in minus the 2025 median for its stand/runway); null when there is no such arrival.
-PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §126): 2026 rows from final_ranking.parquet; reads and writes
+PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §132): 2026 rows from final_ranking.parquet; reads and writes
 cache/v50/final4m/ (run src/features/reocc_feats.py in that scope first)."""
 import os, glob, sys
 from pathlib import Path

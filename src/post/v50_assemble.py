@@ -4,7 +4,7 @@ Usage: assemble.py BASE.parquet OUT.parquet DELTA1.parquet [DELTA2.parquet ...]
 Each delta file has MVT_ID_mvt + delta (seconds). Deltas are zeroed on rows the NM-unmatched lines
 override (NM-unmatched, d > 6 h; src/post/nm_lines.py) and on LIRF NM-unmatched rows (team rule).
 The LOBT window |BLOCK - LOBT| <= 3606 s is applied last (it held on 100% of 2025 NM-matched departures).
-PRC_SCOPE=final4m: final_ranking / final_submitting (src/scope.py, PROGRESS.md §126).
+PRC_SCOPE=final4m: final_ranking / final_submitting (src/scope.py, PROGRESS.md §132).
 """
 import os, sys
 from pathlib import Path

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Four-month blind-board chain (Jan + Feb + Jun + Jul 2026), v55's recipe on final_ranking.parquet. PROGRESS.md §126.
+# Four-month blind-board chain (Jan + Feb + Jun + Jul 2026), v55's recipe on final_ranking.parquet. PROGRESS.md §132.
 # Every step writes under final4m/ subfolders (src/scope.py); finished steps are skipped, so the script can be re-run.
 #
 # Prerequisites (each also PRC_SCOPE=final4m):

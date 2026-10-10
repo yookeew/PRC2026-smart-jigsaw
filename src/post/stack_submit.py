@@ -28,7 +28,7 @@ fallback match) and adds the gated fallback blend after the partial stage
 only (a leaderboard probe of the year-over-year drift, tests/adsb_drift_test.py);
 the files then get a "_lagshift" suffix and the unshifted files are not written.
 
-PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §126): ranking inputs/outputs, template and 2026
+PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §132): ranking inputs/outputs, template and 2026
 detections come from the final4m/ subfolders; holdout fits are unchanged.
 """
 

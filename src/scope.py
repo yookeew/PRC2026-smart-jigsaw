@@ -1,4 +1,4 @@
-"""Which ranking set a run targets (PROGRESS.md §126).
+"""Which ranking set a run targets (PROGRESS.md §132).
 
   PRC_SCOPE=jj       (default) the live leaderboard: Jan + Jul 2026, data/ranking/ranking.parquet
                      and submitting.parquet, outputs at the original paths. Every script that is not
@@ -10,7 +10,7 @@
 RANKING is the movement file a scope reads. For final4m it is final_ranking.parquet, for every row
 including Jan/Jul: the organisers ruled that the final phase uses final_ranking.parquet /
 final_submitting.parquet (challenge Discord, 2026-10-08). Each export carries its own random
-+-~6 s dither of the actual times (§126), so the final release's Jan/Jul rows differ slightly
++-~6 s dither of the actual times (§132), so the final release's Jan/Jul rows differ slightly
 from ranking.parquet's; the live board keeps using ranking.parquet.
 
 Training inputs (2025 features, labels, holdout frames, OOF folds) do not depend on the scope.

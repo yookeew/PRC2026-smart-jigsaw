@@ -9,7 +9,7 @@ that failed it, whose flight matched as an arrival at another of the 10 airports
 P_ne is the non-echo branch implied by P (P = p offc + (1 - p) P_ne).
 
 Run:  .venv/Scripts/python.exe -u src/post/lirf_twin_bounds.py IN.parquet OUT.parquet   (files in data/submissions)
-PRC_SCOPE=final4m: final_ranking rows, files in data/submissions/final4m (src/scope.py, PROGRESS.md §126).
+PRC_SCOPE=final4m: final_ranking rows, files in data/submissions/final4m (src/scope.py, PROGRESS.md §132).
 """
 
 from __future__ import annotations

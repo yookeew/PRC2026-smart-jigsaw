@@ -65,7 +65,7 @@ from src.ingest.normalise_adsb import available_days, load_day  # noqa: E402
 from src.ingest.stands import attach_stand_coords, load_stands, stand_positions  # noqa: E402
 
 RAW = ROOT / "data" / "raw"
-from src.scope import RANKING, day_path, day_files  # noqa: E402  (PRC_SCOPE=final4m: final_ranking, 2026 days under <out>/final4m/, §126)
+from src.scope import RANKING, day_path, day_files  # noqa: E402  (PRC_SCOPE=final4m: final_ranking, 2026 days under <out>/final4m/, §132)
 OUT = ROOT / "cache" / "adsb_pushback"
 OUT_V3 = ROOT / "cache" / "adsb_pushback_v3"   # --v3: inferred stands + fallback (§56)
 OUT_V4 = ROOT / "cache" / "adsb_pushback_v4"   # --v4: v3 + fallback for matched, untiered rows (§57)

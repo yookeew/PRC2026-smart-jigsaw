@@ -1,4 +1,4 @@
-"""Jan/Jul rows of a four-month feature frame vs the two-month one (PROGRESS.md §126).
+"""Jan/Jul rows of a four-month feature frame vs the two-month one (PROGRESS.md §132).
 
 Adding Feb and Jun 2026 to the ranking frame may only change Jan/Jul features near the month
 edges (31 Jan evening sees 1 Feb, 1 Jul morning sees 30 Jun). For every column this reports how

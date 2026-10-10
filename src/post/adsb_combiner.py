@@ -22,7 +22,7 @@ Run:  .venv/Scripts/python.exe src/post/adsb_combiner.py [--restricted]
   -> data/submissions/smart-jigsaw_m12.parquet (rename to the next free version on upload)
   --full (reports/adsb_combiner_fullyear_preregistration.md): as --m12 with Feb-Jun, Aug added
   -> data/submissions/smart-jigsaw_v27.parquet
-PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §126): ranking inputs/outputs, template and 2026
+PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §132): ranking inputs/outputs, template and 2026
 detections from the final4m/ subfolders; the fit (holdout + 2025 OOF days) is unchanged.
 """
 

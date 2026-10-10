@@ -12,7 +12,7 @@ Uses only arrival in-block times, departure takeoff times, stands, aircraft type
   ro_n_since_s  arrivals at the stand with in-block in (SOBT + 5 min, T)
   ro_first_since_s  T - earliest such arrival (s)
 
-PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §126): 2026 rows from final_ranking.parquet, output in
+PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §132): 2026 rows from final_ranking.parquet, output in
 cache/v50/final4m/, plus reocc_feats.parquet there (the first nine columns, which is what the jj
 cache/v50/reocc_feats.parquet holds; checked equal 2026-10-09) for src/features/id_feats.py.
 """

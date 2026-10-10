@@ -23,7 +23,7 @@ Run:  .venv/Scripts/python.exe src/post/corrector_v2.py
       PRC_SCOPE=final4m ... applies the cached 12-month corrector to the four-month CatBoost
       ranking rows (cache/eval/final4m/cat_mixed_f4m_rank.parquet, Colab) and writes
       data/submissions/final4m/catcorr_mixed.parquet; the holdout file is scope-independent and
-      is not rewritten (PROGRESS.md §126).
+      is not rewritten (PROGRESS.md §132).
 """
 
 from __future__ import annotations

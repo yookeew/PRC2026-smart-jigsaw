@@ -14,9 +14,10 @@ import polars as pl
 from scipy.optimize import nnls
 ROOT = Path.cwd()
 sys.path.insert(0, str(ROOT / "src")); sys.path.insert(0, str(ROOT / "tests"))
-assert os.environ.get("PRC_LGB") == "ctxc1sel"
-SCR = Path(os.environ.get("SCR", "cache/v52"))
-V50 = ROOT / "cache" / "v50"
+assert os.environ.get("PRC_LGB", "").startswith("ctxc1sel")   # ctxc1sel (v52), or ctxc1sel_ro (four-month chain, §132)
+import scope  # noqa: E402  (PRC_SCOPE=final4m: final_ranking rows, final4m caches/outputs; PROGRESS.md §132)
+SCR = Path(os.environ.get("SCR", str(scope.out_dir(Path("cache/v52")))))
+V50 = scope.out_dir(ROOT / "cache" / "v50")
 sys.argv = [sys.argv[0]]                       # post.adsb_combiner reads flags at import: none -> v4 detections
 import adsb_combiner_test as C  # noqa: E402
 import adsb_combiner_v2_test as C2  # noqa: E402
@@ -31,8 +32,8 @@ RO = ["ro_gap_last", "ro_tm_last", "ro_om_last", "ro_two_dep", "ro_tm_next", "ro
 O = ["o_matched", "o_lead_first", "o_lead_exitpark", "o_lead_entrypark", "o_lead_taxi", "o_lead_apron",
      "o_lead_rwy", "o_deice", "o_n_ground"]
 REL = {"o_rel_first": "o_lead_first", "o_rel_exitpark": "o_lead_exitpark", "o_rel_taxi": "o_lead_taxi"}
-OPDI_FEATS = ROOT / "cache" / "opdi_feats" / "opdi_feats.parquet"
-RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
+OPDI_FEATS = scope.out_dir(ROOT / "cache" / "opdi_feats") / "opdi_feats.parquet"
+RANKING = scope.RANKING
 ENG = ["lgb", "catcorr"]
 
 
