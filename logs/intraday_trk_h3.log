@@ -1,0 +1,24 @@
+G2 leave-period-out done
+tracked rows at the 8 airports: 188,892 (10.6%); ADS-B taxi vs label on them: RMS 165.6 s, median |d| 42
+untracked rows with >= 1 tracked neighbour in +-90 min: 325,226 of 1,600,521
+H3a chain betas fit on Jul (for Jan): {'EDDF': 0.042, 'EDDM': 0.539, 'EGLL': 0.165, 'EHAM': 0.517, 'LEBL': 0.055, 'LEMD': 0.731, 'LFPG': 16.442, 'LTFM': 0.0}
+H3a chain betas fit on Jan (for Jul): {'EDDF': 0.426, 'EDDM': 0.372, 'EGLL': 0.138, 'EHAM': 0.254, 'LEBL': 0.185, 'LEMD': 0.0, 'LFPG': 0.0, 'LTFM': 0.0}
+H3a chain months per airport full: {'EDDF': 0.03, 'EDDM': -0.02, 'EGLL': -0.01, 'EHAM': -0.02, 'LEBL': 0.0, 'LEMD': 0.0, 'LFPG': 0.0, 'LTFM': 0.0}
+H3a OOF per airport full: {'EDDF': -0.03, 'EDDM': -0.11, 'EGLL': -0.02, 'EHAM': -0.0, 'LEBL': -0.01, 'LEMD': -0.19, 'LFPG': -0.0, 'LTFM': 0.0}
+H3b chain betas fit on Jul (for Jan): {'EDDF': 0.03, 'EDDM': -0.16, 'EGLL': 0.324, 'EHAM': 0.12, 'LEBL': -0.202, 'LEMD': -0.13, 'LFPG': -1.805, 'LTFM': 0.0}
+H3b chain betas fit on Jan (for Jul): {'EDDF': 0.263, 'EDDM': 0.514, 'EGLL': 0.319, 'EHAM': -0.005, 'LEBL': 0.346, 'LEMD': 0.0, 'LFPG': 0.0, 'LTFM': 0.0}
+H3b chain months per airport full: {'EDDF': 0.06, 'EDDM': 0.43, 'EGLL': -0.04, 'EHAM': 0.0, 'LEBL': 0.61, 'LEMD': 0.0, 'LFPG': 0.0, 'LTFM': 0.0}
+H3b OOF per airport full: {'EDDF': -0.0, 'EDDM': -0.01, 'EGLL': -0.01, 'EHAM': 0.01, 'LEBL': -0.0, 'LEMD': -0.08, 'LFPG': 0.01, 'LTFM': 0.0}
+vs G2 (v63's recipe), 8 airports' rows
+shape: (2, 10)
+┌─────┬────────────┬────────────┬────────┬───────┬──────────┬──────────┬────────┬────────┬───────┐
+│ var ┆ chain_full ┆ chain_body ┆ Jan    ┆ Jul   ┆ oof_full ┆ oof_body ┆ Feb    ┆ Jun    ┆ pass  │
+│ --- ┆ ---        ┆ ---        ┆ ---    ┆ ---   ┆ ---      ┆ ---      ┆ ---    ┆ ---    ┆ ---   │
+│ str ┆ f64        ┆ f64        ┆ f64    ┆ f64   ┆ f64      ┆ f64      ┆ f64    ┆ f64    ┆ bool  │
+╞═════╪════════════╪════════════╪════════╪═══════╪══════════╪══════════╪════════╪════════╪═══════╡
+│ H3a ┆ -0.001     ┆ 0.004      ┆ -0.002 ┆ 0.002 ┆ -0.036   ┆ -0.038   ┆ -0.013 ┆ -0.042 ┆ false │
+│ H3b ┆ 0.059      ┆ 0.082      ┆ 0.016  ┆ 0.118 ┆ -0.009   ┆ -0.011   ┆ -0.004 ┆ -0.018 ┆ false │
+└─────┴────────────┴────────────┴────────┴───────┴──────────┴──────────┴────────┴────────┴───────┘
+H3a 2026 projection from the chain months: -0.001 s
+H3b 2026 projection from the chain months: +0.058 s
+production betas (both chain months): {'H3a': {'EDDF': 0.22, 'EDDM': 0.452, 'EGLL': 0.141, 'EHAM': 0.343, 'LEBL': 0.095, 'LEMD': 0.731, 'LFPG': 16.442, 'LTFM': 0.0}, 'H3b': {'EDDF': 0.102, 'EDDM': 0.099, 'EGLL': 0.32, 'EHAM': 0.056, 'LEBL': -0.038, 'LEMD': -0.13, 'LFPG': -1.805, 'LTFM': 0.0}}

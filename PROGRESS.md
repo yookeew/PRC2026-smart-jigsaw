@@ -6255,3 +6255,40 @@ reproduces the v62 file; then δ = s(x)·λ̂ at the 8 airports with s fitted on
 at all 10 airports, and its Jan/Jul changes mirror v63's (LTFM Jan 29.6 / +15.0 vs 29.4 / +14.9). Feb/Jun 2025 are in the
 gate (−2.76 / −0.30). `data/submissions/final4m/blind_v4.parquet` = Jan/Jul from v63, Feb/Jun from `f4m_g2`: 670,790 rows,
 IDs exactly `final_submitting`'s, md5 7f0ea743f80f63433b202fb241d101f9. **Use it only if v63 is kept; otherwise `blind_v3` stays.**
+
+**Board: v63 (our `smart-jigsaw_v58`) = 238.3173 (−0.47 vs v62 = 238.79). Kept; new best; v63 is the base from now on.**
+- ΔSSE ≈ −7.8e7 over 344,841 rows (238.79² → 238.3173²). The 2025 projection was −0.33 s, so it transferred at ≈ 1.4×,
+  in line with the earlier day-level changes (v55 ≈ 1.9×, v62 at or above its projected range).
+- The read is clean (v63 differs from v62 only through G2 at the 8 airports), but the board cannot split LTFM from the
+  other seven. No LTFM-only follow-up is chosen from this score (§82).
+- **Blind board: `blind_v4` (md5 7f0ea743f80f63433b202fb241d101f9) replaces `blind_v3` as the blind-board candidate**;
+  its Jan/Jul rows are exactly this file.
+
+## 134. After G2: headroom check, two slope-model extensions (G3, G4) -- both FAIL; nothing built (2026-10-10)
+
+`reports/day_alloc_g3_preregistration.md`, `reports/day_alloc_g4_preregistration.md` (each written before its run);
+`tests/day_alloc_g3.py`, `tests/day_alloc_g4.py`; logs `logs/day_alloc_g3.log`, `logs/day_alloc_g4.log`.
+
+- **Headroom (2025, 8 airports, scratch):** p without day stage 208.60; R0 206.52; G2 (leave-period-out) 205.86; oracle
+  day mean on p 206.08; oracle day × delay band 203.81; oracle day × 3 h block 201.18 (Feb 257 → 222).
+  G2 already beats a perfect uniform day shift. What is left is intra-day and needs a second, sub-day signal.
+- **Block-averaged AOBT_3 gap as that signal: dead.** Per (airport, day, 3 h block) mean of clip(T − AOBT_3 − q) minus the
+  day mean vs the same deviation of the residual: corr −0.15 to +0.04 per airport (pooled −0.14).
+- **G3 = G2 + 11 per-flight inputs** (wake, market segment, recent departures, departure pressure, inbound delay, EOBT delay,
+  scheduled ground time, AOBT_3 taxi, de-icing, snow, freezing): vs G2x8 full −0.21, **body +0.03 (LTFM +0.31)**,
+  12/12 months, Feb −2.20, without Feb ≈ −0.04. **FAIL.** The extra inputs re-fit LTFM's February 2025 snow days.
+- **G4 = G2 + day type** (ATC share of pre-departure delay, ATFM-regulated departure share): full +0.18, Feb +2.12,
+  5/12 months. **FAIL.**
+- **Reading:** with one published number per airport-day, G2's allocation is about as far as the day sums go. Further
+  day-level gains need a sub-day 2026 signal.
+- **H: intra-day level from ADS-B-located neighbours** (`reports/intraday_trk_preregistration.md` + amendment A1,
+  `tests/intraday_trk.py [--h3]`, `logs/intraday_trk*.log`). Scratch check with labels: on the Jan/Jul 2025 chain the
+  3 h-block deviation of tracked rows' residual correlates +0.3 to +0.5 with untracked rows' (EDDF, EGLL, EHAM, LEBL, LEMD).
+  - H1/H2 (signal = the day stage's tracked tiers): **FAIL**, betas ≈ 0. The `fb_dwell` / `fb_appear` tiers' ADS-B taxi is
+    off by +230 to +1,200 s at the median (< 3% within ±60 s); `appear` is the cleanest tier (70–92% within ±60 s of its
+    per-airport offset). Worth knowing for any later use of the raw pushback times.
+  - H3a/H3b (A1: `appear` + `dwell`, offset-corrected, clip ±300; RMS vs label 166 s): **FAIL** on the chain months
+    (H3a −0.001, H3b +0.059) though H3a helps the OOF corrector-level months (−0.036). The neighbour stage already
+    extracts the intra-day level from tracked neighbours.
+- **State after §133–§134:** the day-level line is done (G2 is as far as one number per airport-day goes) and the obvious
+  sub-day signal is already used by the chain.
