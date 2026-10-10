@@ -1,0 +1,6 @@
+corrector rounds (from the gate's 10-month refit): 5500
+rerun vs gate holdout predictions: n=344,339 of 344,339, RMS diff 22.965 s, max |diff| 1021.2 s
+-> using the RERUN holdout predictions
+ranking corrector training rows 2,084,303 (1,740,054 OOF + 344,249 holdout)
+ranking: corrected 99.98% of rows; mean shift -2.2 s, mean |shift| 33.9 s
+wrote C:\Users\yuqiw\prc2025\data\submissions\final4m\catcorr_mixed.parquet

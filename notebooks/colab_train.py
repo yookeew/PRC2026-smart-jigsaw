@@ -143,20 +143,33 @@ print('all done'); print(open(f'{OUT}/manifest.csv').read())
 # Checks out the "febjune" branch into the Drive project folder (tracked files only: the
 # git-ignored data under cache/, data/, models/ is left alone and must be uploaded separately).
 # Does not import anything from src/, so the CatBoost cell below still sees a fresh scope.
-from google.colab import drive
+'''from google.colab import drive
 drive.mount('/content/drive')
 
 PROJ = '/content/drive/MyDrive/smart-jigsaw'
 %cd {PROJ}
 
-import os, sys
+import os, sys, subprocess
+from google.colab import userdata
+# private repo: the token comes from Colab secrets (key icon in the left bar, notebook access on) and is passed to
+# this one fetch only, never written to .git/config on Drive and never printed
+TOKEN = None
+for k in ('GITHUB_TOKEN', 'GH_TOKEN', 'github_token', 'GITHUB_PAT'):
+    try:
+        TOKEN = userdata.get(k); print('using Colab secret', k); break
+    except Exception:
+        pass
+assert TOKEN, 'no GitHub token in Colab secrets (tried GITHUB_TOKEN, GH_TOKEN, github_token, GITHUB_PAT)'
+def git(*a):
+    r = subprocess.run(['git', *a], capture_output=True, text=True)
+    out = (r.stdout + r.stderr).replace(TOKEN, '***').strip()
+    if out: print(out)
+    assert r.returncode == 0, f'git {a[0]} failed'
 if not os.path.exists(f'{PROJ}/.git'):
-    !git init -q
-    !git remote add origin https://github.com/yookeew/dumb-puzzle.git
-!git remote set-url origin https://github.com/yookeew/dumb-puzzle.git
-!git fetch -q --depth 1 origin febjune
-!git checkout -q -f -B febjune FETCH_HEAD
-!git log -1 --format='%h %ad %s' --date=format:'%Y-%m-%d %H:%M'
+    git('init', '-q')
+git('fetch', '-q', '--depth', '1', f'https://x-access-token:{TOKEN}@github.com/yookeew/dumb-puzzle.git', 'febjune')
+git('checkout', '-q', '-f', '-B', 'febjune', 'FETCH_HEAD')
+git('log', '-1', '--format=%h %ad %s', '--date=format:%Y-%m-%d %H:%M')
 
 !pip -q install polars==1.44.1 lightgbm==4.7.0 xgboost catboost
 sys.path.insert(0, f'{PROJ}/src')
@@ -168,7 +181,7 @@ for f in need:
     p = f'{PROJ}/{f}'
     print(f'{"ok     " if os.path.exists(p) else "MISSING"} {f}' + (f'  {os.path.getsize(p) / 1e6:.1f} MB' if os.path.exists(p) else ''))
 !md5sum cache/features/final4m/ranking.parquet   # expect 04bcbf67...
-
+'''
 # %%
 # CatBoost for the four-month pipeline (PROGRESS.md §126). T4 runtime, ~40 min.
 # The production CatBoost was never saved and its round counts were not recorded, so this

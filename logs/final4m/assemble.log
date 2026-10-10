@@ -1,0 +1,14 @@
+comb_delta_all_id.parquet: rows 374,262, RMS 20.99
+nb_delta_ro_id.parquet: rows 283,738, RMS 20.59
+vs base: RMS 25.05 s, mean +0.192, rows changed 579,883, max |d| 1507; frozen rows 52242; LIRF NM-unmatched identical True
+  EDDF RMS   23.74 mean   +0.61
+  EDDM RMS   22.90 mean   -0.14
+  EGLL RMS   31.00 mean   -0.46
+  EHAM RMS   34.38 mean   +1.22
+  LEBL RMS   21.78 mean   -0.07
+  LEMD RMS   24.72 mean   +0.61
+  LFPG RMS   23.36 mean   -0.67
+  LIRF RMS    0.00 mean   +0.00
+  LSZH RMS   20.58 mean   +1.11
+  LTFM RMS   25.13 mean   -0.02
+wrote data/submissions/final4m/f4m_a.parquet

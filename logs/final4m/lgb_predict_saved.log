@@ -1,0 +1,2 @@
+wrote ranking predictions -> cache/eval/final4m/lgb_mixed_nb_rank.parquet
+wrote lgb_mixed_nb_saved.parquet  n=670,790  median=945.0

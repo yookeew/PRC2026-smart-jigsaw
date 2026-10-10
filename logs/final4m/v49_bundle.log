@@ -1,0 +1,8 @@
+fix 1 LSZH month 1: o26 +71.8, o25 +33.5 -> shift -38.3 s on 9695 rows
+fix 1 LSZH month 2: o26 +46.0, o25 +32.7 -> shift -13.3 s on 9248 rows
+fix 1 LSZH month 6: o26 +53.1, o25 +35.7 -> shift -17.5 s on 12122 rows
+fix 1 LSZH month 7: o26 +65.1, o25 +35.0 -> shift -30.1 s on 12796 rows
+fix 2 EHAM storm days ['2026-01-02', '2026-01-03', '2026-01-04', '2026-01-05', '2026-01-06', '2026-01-09', '2026-01-29', '2026-06-19']; lag 177; tracked rows 305, corrector bias dC +322; untracked rows 120, median(P-C) +60 -> delta +262 s
+fix 3 dominated: 2 rows in scope, 2 moved, changes [-4104. -1630.]
+total: rows changed 43983; sum dP^2 5.89e+07; RMS over board 9.37 s
+wrote f4m_e.parquet
