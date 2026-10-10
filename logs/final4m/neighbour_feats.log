@@ -1,0 +1,4 @@
+C:\Users\yuqiw\prc2025\src\features\neighbour_feats.py:117: DeprecationWarning: the default behavior of `how='horizontal'` for `concat` is deprecated and will require equal heights in the next breaking release. Use `how='horizontal_extend'` to keep the current behavior.
+(Deprecated in version 1.42.1)
+  f = pl.concat([f, nb], how="horizontal")
+ranking: 670,790 rows; null share {'nbnm_apt_900': 0.007, 'nbnm_apt_1800': 0.003, 'nbnm_rwy_900': 0.026, 'arrx_900': 0.012}

@@ -5,6 +5,7 @@ LIRF departures >= 1 h late (history only), and the non-echo branch bounded by t
   P' = q2 offc + (1 - q2) min(P_ne, max(off - 3606, 0)),  P_ne recovered from the input with v45's q.
 
 Run:  .venv/Scripts/python.exe -u src/post/lirf_hedge2.py IN.parquet OUT.parquet   (files in data/submissions)
+PRC_SCOPE=final4m: final_ranking rows, files in data/submissions/final4m (src/scope.py, PROGRESS.md §132).
 """
 
 from __future__ import annotations
@@ -23,8 +24,9 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 import post.lirf_signals as L  # noqa: E402
 from post.lirf_twin_bounds import twin_frame  # noqa: E402
+import scope  # noqa: E402
 
-SUB = ROOT / "data" / "submissions"
+SUB = scope.out_dir(ROOT / "data" / "submissions")
 WIN = 3606
 MIN_HIST = 5
 RATE_FEW = 0.75
@@ -120,7 +122,7 @@ def main() -> None:
            .with_columns(TAXITIME_SEC_mvt=pl.when(pl.col("k")).then(pl.col("new").round()).otherwise(pl.col("TAXITIME_SEC_mvt").cast(pl.Float64)).cast(dtype))
            .select(sub.columns))
     tpl = pl.read_parquet(L.TEMPLATE)
-    assert out.height == tpl.height == 344_841 and out["TAXITIME_SEC_mvt"].null_count() == 0
+    assert out.height == tpl.height and out["TAXITIME_SEC_mvt"].null_count() == 0
     assert set(out["MVT_ID_mvt"].to_list()) == set(tpl["MVT_ID_mvt"].to_list()) and float(out["TAXITIME_SEC_mvt"].min()) >= 0
     n_diff = int((out["TAXITIME_SEC_mvt"].cast(pl.Float64) != sub["TAXITIME_SEC_mvt"].cast(pl.Float64)).sum())
     print(f"rows differing from {src.name}: {n_diff}")

@@ -14,7 +14,8 @@ from scipy.optimize import nnls
 ROOT = Path.cwd()
 sys.path.insert(0, str(ROOT / "src")); sys.path.insert(0, str(ROOT / "tests"))
 assert os.environ.get("PRC_LGB", "").startswith("ctxc1sel")   # ctxc1sel, or a variant of it (e.g. ctxc1sel_ro, v54)
-SCR = Path(os.environ.get("SCR", "cache/v50"))
+import scope  # noqa: E402  (PRC_SCOPE=final4m: final_ranking rows, final4m caches/outputs; PROGRESS.md §132)
+SCR = Path(os.environ.get("SCR", str(scope.out_dir(Path("cache/v50")))))
 import adsb_combiner_test as C  # noqa: E402
 import adsb_v3_test as V  # noqa: E402
 import ltfm_egll_anatomy as A  # noqa: E402
@@ -58,14 +59,14 @@ DET0, FEATS0 = list(V.DET_COLS), list(C.FEATS)
 POSDIR = ROOT / "cache" / "adsb_pos_v4"
 C.V4 = POSDIR
 V.DET_COLS = DET0 + POS
-SUB = ROOT / "data" / "submissions"
-RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
+SUB = scope.out_dir(ROOT / "data" / "submissions")
+RANKING = scope.RANKING
 ENG = ["lgb", "catcorr"]
 CEIL, LIRF_CEIL = 10800, 140000
 
 
 def read_det(d, pat="day=2025-0[17]*.parquet"):
-    det = pl.concat([pl.read_parquet(p) for p in sorted(d.glob(pat))], how="diagonal")
+    det = pl.concat([pl.read_parquet(p) for p in scope.day_files(d, pat)], how="diagonal")
     for c in V.DET_COLS:
         if c not in det.columns:
             det = det.with_columns(pl.lit(None, pl.Float64).alias(c))

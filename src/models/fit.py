@@ -16,6 +16,11 @@ Inputs (see features/export_model_inputs.py):
                                         instead of a continuous 12-month frame
     <feat_dir>/ranking.parquet         base features, ranking departures
     <feat_dir>/labels2025.parquet      MVT_ID_mvt, ADEP/RUNWAY/STAND, taxi, d, ym
+
+Saved models (PROGRESS.md §132): run(..., model_out=DIR) also writes the all-2025 refit to DIR
+(each booster in its library's own format + state.pkl with the encoders), and
+predict_saved(DIR, feat_dir, name) predicts any ranking feature frame from it without refitting.
+PRC_SCOPE=final4m sends submissions/reports to final4m/ subfolders (src/scope.py).
 """
 
 from __future__ import annotations
@@ -32,6 +37,7 @@ import numpy as np
 import polars as pl
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import scope  # noqa: E402
 from features.encode import (  # noqa: E402
     _ECHO_ABS_D,
     add_group_encodings_oof,
@@ -44,9 +50,10 @@ from features.encode import (  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 FEAT_DIR = ROOT / "cache" / "features"
-SUB_DIR = ROOT / "data" / "submissions"
-REPORT_DIR = ROOT / "reports" / "eval"
-TEMPLATE = ROOT / "data" / "ranking" / "submitting.parquet"
+SUB_DIR = scope.out_dir(ROOT / "data" / "submissions")
+REPORT_DIR = scope.out_dir(ROOT / "reports" / "eval")
+TEMPLATE = scope.TEMPLATE
+MODEL_DIR = ROOT / "models"   # saved all-2025 refits; they do not depend on the ranking scope
 
 HOLDOUT_MONTHS = ("2025-01", "2025-07")
 # CEIL=10800 (3h). TRIED raising this to 140000 on the theory that echo rows
@@ -729,7 +736,8 @@ def run(engine: str = "lgb", feat_dir: Path = FEAT_DIR, name: str | None = None,
         valid_month: str = VALID_MONTH, refit_scale: float = 1.1,
         loss: str = "huber", huber_alpha: float = HUBER_ALPHA, submit: bool = True,
         target: str = "flip", seed: int = 42, ev_out: str | Path | None = None,
-        rank_out: str | Path | None = None, resume: bool = False):
+        rank_out: str | Path | None = None, resume: bool = False,
+        model_out: str | Path | None = None):
     """target="flip" fits the regressor on pushback delay `d` and reconstructs
     taxi = offset - d_hat. target="direct" fits the regressor on `taxi`
     itself, skipping the reconstruction subtraction. target="mixed" fits BOTH
@@ -778,7 +786,7 @@ def run(engine: str = "lgb", feat_dir: Path = FEAT_DIR, name: str | None = None,
         print(f"resume: holdout phase loaded from {ev_out} (best {r['best']}, clf {clf_best})", flush=True)
         return _refit_and_submit(engine, feat_dir, name, feats, lab, fits, clf_best, ev, targets_to_fit,
                                  fitter, objective, alpha, eta, rounds, valid_month, loss, huber_alpha,
-                                 target, seed, refit_scale, rank_out, t0)
+                                 target, seed, refit_scale, rank_out, t0, model_out)
     fp = fit_predict_months(
         engine, feats, lab, TRAIN_MONTHS,
         feats_ho.join(ho_lab.select("MVT_ID_mvt"), on="MVT_ID_mvt"),
@@ -842,12 +850,12 @@ def run(engine: str = "lgb", feat_dir: Path = FEAT_DIR, name: str | None = None,
 
     return _refit_and_submit(engine, feat_dir, name, feats, lab, fits, clf_best, ev, targets_to_fit,
                              fitter, objective, alpha, eta, rounds, valid_month, loss, huber_alpha,
-                             target, seed, refit_scale, rank_out, t0)
+                             target, seed, refit_scale, rank_out, t0, model_out)
 
 
 def _refit_and_submit(engine, feat_dir, name, feats, lab, fits, clf_best, ev, targets_to_fit,
                       fitter, objective, alpha, eta, rounds, valid_month, loss, huber_alpha,
-                      target, seed, refit_scale, rank_out, t0):
+                      target, seed, refit_scale, rank_out, t0, model_out=None):
     """Second half of run(): refit on all 2025 with the holdout's round counts, predict the
     ranking set, write the submission. Only `fits[t][2]` (best iteration) is read from fits."""
     best_iter_report = "/".join(f"{t}={fits[t][2]}" for t in targets_to_fit)
@@ -886,34 +894,17 @@ def _refit_and_submit(engine, feat_dir, name, feats, lab, fits, clf_best, ev, ta
         eta=CLF_ETA, rounds=clf_full_rounds, es=0, valid=None,
         objective=CLF_OBJECTIVE[engine], metric=CLF_METRIC[engine])
 
-    f_r = apply_priors(pl.read_parquet(feat_dir / "ranking.parquet"), priors_a)
-    f_r = apply_group_encodings(f_r, genc_a)
-    Xr, _, _, _ = _matrix(f_r, cats_map)
-    r_off = f_r["sched_takeoff_offset"].to_numpy()
-    echo_prob_r = clf_pred_a(clf_model_a, Xr[names_a])
-    nm_unmatched_r = f_r["aobt3_taxi"].is_null().to_numpy()
-    not_lirf_r = (f_r["ADEP_mvt"] != "LIRF").to_numpy()
-    prior_taxi_r = np.nan_to_num(f_r["median_taxi_prior"].to_numpy())
-    use_prior_r = nm_unmatched_r & not_lirf_r & ~np.isnan(prior_taxi_r)
-    ceil_r = np.where(not_lirf_r, CEIL, LIRF_RAW_CEIL)
-
-    def _recon_r(t):
-        m_a, p_a = fits_a[t]
-        raw = p_a(m_a, Xr[names_a])
-        if t in ("anchored", "anchored_nolirf"):
-            raw_taxi = _anchor(f_r["aobt3_taxi"].cast(pl.Float64).to_numpy()) + raw
-        else:
-            raw_taxi = (r_off - raw) if t == "flip" else raw
-        return (_reconstruct_taxi(r_off, raw_taxi, echo_prob_r, use_prior_r, prior_taxi_r, ceil_r),
-                raw_taxi)
-
-    if target == "mixed":
-        is_lirf_r = (f_r["ADEP_mvt"] == "LIRF").to_numpy()
-        (rf, raw_f), (rd, raw_d) = _recon_r("flip"), _recon_r("direct")
-        taxi_r = np.where(is_lirf_r, rf, rd)
-        raw_r = np.where(is_lirf_r, raw_f, raw_d)
-    else:
-        taxi_r, raw_r = _recon_r(target)
+    state = dict(engine=engine, target=target, targets=list(targets_to_fit), names=names_a,
+                 cats=cats_a, cats_map=cats_map, priors=priors_a, genc=genc_a)
+    if model_out is not None:
+        save_models(model_out, state, {t: fits_a[t][0] for t in targets_to_fit}, clf_model_a, meta=dict(
+            name=name, eta=eta, full_rounds={t: max(200, int(round(fits[t][2] * refit_scale)))
+                                             for t in targets_to_fit},
+            clf_rounds=clf_full_rounds, loss=loss, huber_alpha=huber_alpha, seed=seed))
+    pred = {t: (lambda A, m=fits_a[t][0], p=fits_a[t][1]: p(m, A)) for t in targets_to_fit}
+    pred["clf"] = lambda A: clf_pred_a(clf_model_a, A)
+    f_r, taxi_r, echo_prob_r, raw_r, use_prior_r = _predict_frame(
+        state, pred, pl.read_parquet(feat_dir / "ranking.parquet"))
 
     if rank_out is not None:  # per-row ranking outputs (the OOF corrector needs echo_prob)
         Path(rank_out).parent.mkdir(parents=True, exist_ok=True)
@@ -931,6 +922,107 @@ def _refit_and_submit(engine, feat_dir, name, feats, lab, fits, clf_best, ev, ta
         valid_month=valid_month, loss=loss, huber_alpha=huber_alpha, target=target))
     print(f"total {time.time() - t0:.0f}s")
     return fits_a, ev
+
+
+def _predict_frame(state, pred, f_r):
+    """Reconstructed taxi for a ranking feature frame. `pred[t](X)` is the raw model output for
+    target t, `pred["clf"](X)` the echo probability. Shared by the refit and predict_saved()."""
+    target = state["target"]
+    f_r = apply_priors(f_r, state["priors"])
+    f_r = apply_group_encodings(f_r, state["genc"])
+    Xr, _, _, _ = _matrix(f_r, state["cats_map"])
+    Xr = Xr[state["names"]]
+    r_off = f_r["sched_takeoff_offset"].to_numpy()
+    echo_prob_r = pred["clf"](Xr)
+    nm_unmatched_r = f_r["aobt3_taxi"].is_null().to_numpy()
+    not_lirf_r = (f_r["ADEP_mvt"] != "LIRF").to_numpy()
+    prior_taxi_r = np.nan_to_num(f_r["median_taxi_prior"].to_numpy())
+    use_prior_r = nm_unmatched_r & not_lirf_r & ~np.isnan(prior_taxi_r)
+    ceil_r = np.where(not_lirf_r, CEIL, LIRF_RAW_CEIL)
+
+    def _recon_r(t):
+        raw = pred[t](Xr)
+        if t in ("anchored", "anchored_nolirf"):
+            raw_taxi = _anchor(f_r["aobt3_taxi"].cast(pl.Float64).to_numpy()) + raw
+        else:
+            raw_taxi = (r_off - raw) if t == "flip" else raw
+        return (_reconstruct_taxi(r_off, raw_taxi, echo_prob_r, use_prior_r, prior_taxi_r, ceil_r),
+                raw_taxi)
+
+    if target == "mixed":
+        is_lirf_r = (f_r["ADEP_mvt"] == "LIRF").to_numpy()
+        (rf, raw_f), (rd, raw_d) = _recon_r("flip"), _recon_r("direct")
+        taxi_r = np.where(is_lirf_r, rf, rd)
+        raw_r = np.where(is_lirf_r, raw_f, raw_d)
+    else:
+        taxi_r, raw_r = _recon_r(target)
+    return f_r, taxi_r, echo_prob_r, raw_r, use_prior_r
+
+
+_EXT = {"lgb": "txt", "xgb": "json", "cat": "cbm", "cat_ctr2": "cbm"}
+
+
+def save_models(out, state, models, clf_model, meta=None):
+    """Write the refit to `out`: <target>.<ext> per regressor, clf.<ext>, state.pkl, meta.json."""
+    import json
+    import pickle
+    out = Path(out)
+    out.mkdir(parents=True, exist_ok=True)
+    ext = _EXT[state["engine"]]
+    for t, m in {**models, "clf": clf_model}.items():
+        m.save_model(str(out / f"{t}.{ext}"))
+    with open(out / "state.pkl", "wb") as fh:
+        pickle.dump(state, fh)
+    (out / "meta.json").write_text(json.dumps(meta or {}, indent=1, default=str))
+    print(f"saved models -> {out}", flush=True)
+
+
+def load_models(model_dir):
+    """(state, pred) for _predict_frame from a save_models() directory."""
+    import pickle
+    model_dir = Path(model_dir)
+    with open(model_dir / "state.pkl", "rb") as fh:
+        state = pickle.load(fh)
+    engine, ext, cats = state["engine"], _EXT[state["engine"]], state["cats"]
+    pred = {}
+    for t in [*state["targets"], "clf"]:
+        f = str(model_dir / f"{t}.{ext}")
+        if engine == "lgb":
+            import lightgbm as lgb
+            pred[t] = (lambda A, m=lgb.Booster(model_file=f): m.predict(A))
+        elif engine == "xgb":
+            import xgboost as xgb
+            m = xgb.Booster()
+            m.load_model(f)
+            pred[t] = (lambda A, m=m: m.predict(xgb.DMatrix(A, enable_categorical=True)))
+        else:
+            from catboost import CatBoostClassifier, CatBoostRegressor, Pool
+            m = (CatBoostClassifier if t == "clf" else CatBoostRegressor)().load_model(f)
+
+            def _p(A, m=m, clf=(t == "clf")):
+                A = A.copy()
+                for c in cats:
+                    A[c] = A[c].astype("int32")
+                P = Pool(A, cat_features=cats)
+                return m.predict_proba(P)[:, 1] if clf else m.predict(P)
+            pred[t] = _p
+    return state, pred
+
+
+def predict_saved(model_dir, feat_dir: Path = FEAT_DIR, name: str | None = None,
+                  rank_out: str | Path | None = None):
+    """Predict <feat_dir>/ranking.parquet from saved models; writes <SUB_DIR>/<name>.parquet
+    (template = scope.TEMPLATE) and optionally the per-row rank_out file. No refit."""
+    state, pred = load_models(model_dir)
+    f_r, taxi_r, echo_prob_r, raw_r, use_prior_r = _predict_frame(
+        state, pred, pl.read_parquet(Path(feat_dir) / "ranking.parquet"))
+    if rank_out is not None:
+        Path(rank_out).parent.mkdir(parents=True, exist_ok=True)
+        f_r.select("MVT_ID_mvt").with_columns(
+            pred=pl.Series(taxi_r), echo_prob=pl.Series(echo_prob_r),
+            taxi_model_raw=pl.Series(raw_r), use_prior=pl.Series(use_prior_r)).write_parquet(rank_out)
+        print(f"wrote ranking predictions -> {rank_out}", flush=True)
+    return _write_submission(f_r["MVT_ID_mvt"].to_list(), taxi_r, name or Path(model_dir).name)
 
 
 if __name__ == "__main__":

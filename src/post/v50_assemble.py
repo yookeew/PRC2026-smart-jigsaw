@@ -4,14 +4,18 @@ Usage: assemble.py BASE.parquet OUT.parquet DELTA1.parquet [DELTA2.parquet ...]
 Each delta file has MVT_ID_mvt + delta (seconds). Deltas are zeroed on rows the NM-unmatched lines
 override (NM-unmatched, d > 6 h; src/post/nm_lines.py) and on LIRF NM-unmatched rows (team rule).
 The LOBT window |BLOCK - LOBT| <= 3606 s is applied last (it held on 100% of 2025 NM-matched departures).
+PRC_SCOPE=final4m: final_ranking / final_submitting (src/scope.py, PROGRESS.md §132).
 """
 import os, sys
+from pathlib import Path
 os.environ.setdefault("POLARS_UNKNOWN_EXTENSION_TYPE_BEHAVIOR", "load_as_storage")
 import numpy as np
 import polars as pl
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import scope  # noqa: E402
 base_f, out_f, deltas = sys.argv[1], sys.argv[2], sys.argv[3:]
-tpl = pl.read_parquet("data/ranking/submitting.parquet")
-rk = (pl.read_parquet("data/ranking/ranking.parquet").filter(pl.col("PHASE_mvt") == "DEP")
+tpl = pl.read_parquet(scope.TEMPLATE)
+rk = (pl.read_parquet(scope.RANKING).filter(pl.col("PHASE_mvt") == "DEP")
       .select("MVT_ID_mvt", apt="ADEP_mvt", nm=pl.col("FLIGHT_ID_mvt").is_null(),
               d=(pl.col("MVT_TIME_UTC_mvt") - pl.col("SCHED_TIME_UTC_mvt")).dt.total_seconds().cast(pl.Float64),
               lt=(pl.col("MVT_TIME_UTC_mvt") - pl.col("LOBT_flt")).dt.total_seconds().cast(pl.Float64)))
@@ -35,7 +39,7 @@ win = ~np.isnan(lt)
 p[win] = np.clip(p[win], np.clip(lt[win] - 3606, 0, None), lt[win] + 3606)
 p = np.clip(np.round(p), 0, None).astype(np.int32)
 out = pl.DataFrame({"MVT_ID_mvt": x["MVT_ID_mvt"], "TAXITIME_SEC_mvt": p})
-assert out.height == tpl.height == 344841
+assert out.height == tpl.height
 assert set(out["MVT_ID_mvt"].to_list()) == set(tpl["MVT_ID_mvt"].to_list())
 assert out["TAXITIME_SEC_mvt"].null_count() == 0 and (out["TAXITIME_SEC_mvt"] >= 0).all()
 dd = p - x["base"].to_numpy()

@@ -1,0 +1,42 @@
+C:\Users\yuqiw\prc2025\src\features\reocc_feats.py:47: UserWarning: Sortedness of columns cannot be checked when 'by' groups provided
+  j = dep.sort("T").join_asof(arr.select("apt", "stand", "a_in", "atype", "aop", "a_land", "a_tin_x"),
+C:\Users\yuqiw\prc2025\src\features\reocc_feats.py:52: UserWarning: Sortedness of columns cannot be checked when 'by' groups provided
+  j = j.join_asof(pdp, left_on="Tb", right_on="Tp", by=["apt", "stand"], strategy="backward").sort("Tq")
+C:\Users\yuqiw\prc2025\src\features\reocc_feats.py:53: UserWarning: Sortedness of columns cannot be checked when 'by' groups provided
+  j = j.join_asof(nd, left_on="Tq", right_on="Tn", by=["apt", "stand"], strategy="forward")
+C:\Users\yuqiw\prc2025\src\features\reocc_feats.py:55: UserWarning: Sortedness of columns cannot be checked when 'by' groups provided
+  j = j.sort("T").join_asof(na, left_on="T", right_on="a_after", by=["apt", "stand"], strategy="forward")
+C:\Users\yuqiw\prc2025\src\features\reocc_feats.py:59: UserWarning: Sortedness of columns cannot be checked when 'by' groups provided
+  j.filter(pl.col("aq").is_not_null()).sort("aq").join_asof(pa, left_on="aq", right_on="p_in",
+C:\Users\yuqiw\prc2025\src\features\reocc_feats.py:67: UserWarning: Sortedness of columns cannot be checked when 'by' groups provided
+  q = q.sort("t_hi").join_asof(rk.select("apt", "stand", r_hi="rank", a_hi="a_in"), left_on="t_hi", right_on="a_hi",
+C:\Users\yuqiw\prc2025\src\features\reocc_feats.py:69: UserWarning: Sortedness of columns cannot be checked when 'by' groups provided
+  q = q.sort("t_lo").join_asof(rk.select("apt", "stand", r_lo="rank", a_lo="a_in"), left_on="t_lo", right_on="a_lo",
+C:\Users\yuqiw\prc2025\src\features\reocc_feats.py:71: UserWarning: Sortedness of columns cannot be checked when 'by' groups provided
+  q = q.with_columns(t_lo1=pl.col("t_lo") + pl.duration(microseconds=1)).sort("t_lo1").join_asof(
+rows 2085019 670781
+shape: (1, 15)
+┌───────────┬───────────┬───────────┬───────────┬───┬───────────┬───────────┬───────────┬──────────┐
+│ ro_gap_la ┆ ro_tm_las ┆ ro_om_las ┆ ro_two_de ┆ … ┆ ro_prevde ┆ ro_prevde ┆ ro_tm_pre ┆ ro_tm_pr │
+│ st        ┆ t         ┆ t         ┆ p         ┆   ┆ p_gap     ┆ p_after_l ┆ vdep_last ┆ evdep_se │
+│ ---       ┆ ---       ┆ ---       ┆ ---       ┆   ┆ ---       ┆ ast       ┆ ---       ┆ lf       │
+│ f64       ┆ f64       ┆ f64       ┆ f64       ┆   ┆ f64       ┆ ---       ┆ f64       ┆ ---      │
+│           ┆           ┆           ┆           ┆   ┆           ┆ f64       ┆           ┆ f64      │
+╞═══════════╪═══════════╪═══════════╪═══════════╪═══╪═══════════╪═══════════╪═══════════╪══════════╡
+│ 0.979766  ┆ 0.978987  ┆ 0.963621  ┆ 1.0       ┆ … ┆ 0.939729  ┆ 1.0       ┆ 0.934168  ┆ 0.938351 │
+└───────────┴───────────┴───────────┴───────────┴───┴───────────┴───────────┴───────────┴──────────┘
+ro_gap_last        2025 mean   11508.01 med    5961.00 | 2026 mean   11886.38 med    6181.00
+ro_tm_last         2025 mean       0.88 med       1.00 | 2026 mean       0.88 med       1.00
+ro_om_last         2025 mean       0.91 med       1.00 | 2026 mean       0.90 med       1.00
+ro_two_dep         2025 mean       0.13 med       0.00 | 2026 mean       0.13 med       0.00
+ro_tm_next         2025 mean       0.35 med       0.00 | 2026 mean       0.35 med       0.00
+ro_gap_prev        2025 mean   19018.70 med   11199.00 | 2026 mean   19549.34 med   11641.00
+ro_tm_prev         2025 mean       0.35 med       0.00 | 2026 mean       0.35 med       0.00
+ro_n_since_s       2025 mean       0.12 med       0.00 | 2026 mean       0.12 med       0.00
+ro_first_since_s   2025 mean    1604.11 med     541.00 | 2026 mean    1773.55 med     572.00
+ro_last_tin_x      2025 mean      45.15 med       2.00 | 2026 mean      45.36 med       1.00
+ro_last_land_gap   2025 mean   12053.19 med    6538.00 | 2026 mean   12432.43 med    6738.00
+ro_prevdep_gap     2025 mean   20340.79 med   11760.00 | 2026 mean   20856.28 med   12186.00
+ro_prevdep_after_last 2025 mean       0.12 med       0.00 | 2026 mean       0.12 med       0.00
+ro_tm_prevdep_last 2025 mean       0.31 med       0.00 | 2026 mean       0.31 med       0.00
+ro_tm_prevdep_self 2025 mean       0.27 med       0.00 | 2026 mean       0.27 med       0.00

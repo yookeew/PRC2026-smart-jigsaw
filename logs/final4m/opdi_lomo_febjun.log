@@ -1,0 +1,21 @@
+thin-day rule: 115 days kept, 7 dropped
+shape: (7, 5)
+| day        | status   | bad_members | points | med        |
+| ---        | ---      | ---         | ---    | ---        |
+| str        | str      | i64         | i64    | f64        |
+|------------|----------|-------------|--------|------------|
+| 2025-08-10 | tolerant | 1           | 211018 | 1.572131e6 |
+| 2025-10-04 | ok       | 0           | 0      | 1672691.5  |
+| 2025-10-07 | tolerant | 1           | 206056 | 1672691.5  |
+| 2025-11-19 | tolerant | 1           | 142500 | 1.549465e6 |
+| 2025-11-22 | tolerant | 1           | 247284 | 1.549465e6 |
+| 2025-12-10 | tolerant | 1           | 671427 | 1586008.5  |
+| 2025-12-28 | tolerant | 1           | 251232 | 1586008.5  |
+OOF-month ADS-B rows: 660,242 on 115 days (['2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12']); OOF stack weights [1.011 0.   ]
+loaded in 8s: holdout 344,339 rows (stack w [0.948 0.063]), OOF ADS-B days 660,242 rows on 115 days
+  2025-02 ctl: combiner best_iter 4974, stage b best_iter 1091
+  2025-02 trt: combiner best_iter 4761, stage b best_iter 1866
+month 2025-02: 61,215 rows (28,920 combiner, 32,295 stage b), 456s
+  2025-06 ctl: combiner best_iter 4999, stage b best_iter 1481
+  2025-06 trt: combiner best_iter 4875, stage b best_iter 1395
+month 2025-06: 73,044 rows (37,794 combiner, 31,865 stage b), 315s

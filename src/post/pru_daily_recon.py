@@ -17,6 +17,8 @@ Modes:
   .venv/Scripts/python.exe src/post/pru_daily_recon.py BASE.parquet OUT.parquet HOLDOUT_LIRF_CHAIN.parquet
   .venv/Scripts/python.exe src/post/pru_daily_recon.py --holdout HOLDOUT_NONLIRF_CHAIN.parquet HOLDOUT_LIRF_CHAIN.parquet
       (replay on Jan+Jul 2025 with the 2025 file; LIRF calibration cross-month; prints the gate metrics)
+PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §132): production mode on final_ranking / final_submitting (the 2026 file
+covers every Feb and Jun day); the holdout replay is scope-independent.
 """
 import os, sys, glob, itertools
 os.environ.setdefault("POLARS_UNKNOWN_EXTENSION_TYPE_BEHAVIOR", "load_as_storage")
@@ -27,6 +29,8 @@ from scipy.optimize import brentq
 from sklearn.isotonic import IsotonicRegression
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "src"))
+import scope  # noqa: E402
 EXT = ROOT / "external-data"
 TAU = 1100.0
 N_MIN = float(os.environ.get("PRU_N_MIN", "650"))
@@ -196,9 +200,9 @@ def main_prod(base_f, out_f, ho_lirf_f, nonlirf_f):
     h = holdout_frame(nonlirf_f, ho_lirf_f)
     cal = calibrate(h.filter(pl.col("apt") == "LIRF"))
     print(f"LIRF calibration (Jan+Jul 2025 holdout): noise sd {cal[1]:.0f} min (x{NOISE_X}), bias {cal[2]:+.0f} min/day")
-    tpl = pl.read_parquet(ROOT / "data" / "ranking" / "submitting.parquet")
+    tpl = pl.read_parquet(scope.TEMPLATE)
     b = pl.read_parquet(base_f).select(pl.col("MVT_ID_mvt").cast(pl.Float64), p=pl.col("TAXITIME_SEC_mvt").cast(pl.Float64))
-    rk = pl.read_parquet(ROOT / "data" / "ranking" / "ranking.parquet").filter(pl.col("PHASE_mvt") == "DEP").with_columns(
+    rk = pl.read_parquet(scope.RANKING).filter(pl.col("PHASE_mvt") == "DEP").with_columns(
         pl.col("MVT_ID_mvt").cast(pl.Float64))
     x = tpl.select(pl.col("MVT_ID_mvt").cast(pl.Float64)).join(rk, on="MVT_ID_mvt", how="left").join(b, on="MVT_ID_mvt", how="left")
     assert x["p"].null_count() == 0 and x["ADEP_mvt"].null_count() == 0
@@ -212,7 +216,7 @@ def main_prod(base_f, out_f, ho_lirf_f, nonlirf_f):
     q[win] = np.clip(q[win], np.clip(lt[win] - 3606, 0, None), lt[win] + 3606)
     q = np.clip(np.round(q), 0, None).astype(np.int32)
     out = pl.DataFrame({"MVT_ID_mvt": tpl["MVT_ID_mvt"], "TAXITIME_SEC_mvt": q})
-    assert out.height == 344841 and out["TAXITIME_SEC_mvt"].null_count() == 0
+    assert out.height == tpl.height and out["TAXITIME_SEC_mvt"].null_count() == 0
     assert set(out["MVT_ID_mvt"].to_list()) == set(tpl["MVT_ID_mvt"].to_list())
     dd = q - p
     apt = x["apt"].to_numpy()

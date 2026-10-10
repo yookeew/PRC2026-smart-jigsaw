@@ -20,6 +20,8 @@ are never read. Arrival block times are never blanked, in training or ranking da
 
 Run:  .venv/Scripts/python.exe src/features/neighbour_feats.py
   -> cache/features_nb/{train2025,holdout_gap2025,ranking,labels2025}.parquet
+      PRC_SCOPE=final4m: only ranking.parquet (from cache/features/final4m/, arrivals from
+      scope.ranking_frame) -> cache/features_nb/final4m/; the 2025 files are copied (src/scope.py).
 """
 
 from __future__ import annotations
@@ -28,14 +30,19 @@ import os
 os.environ.setdefault("POLARS_UNKNOWN_EXTENSION_TYPE_BEHAVIOR", "load_as_storage")
 
 import shutil
+import sys
 from pathlib import Path
 
 import numpy as np
 import polars as pl
 
 ROOT = Path(__file__).resolve().parents[2]
-SRC, OUT = ROOT / "cache" / "features", ROOT / "cache" / "features_nb"
-RAW, RANKING = ROOT / "data" / "raw", ROOT / "data" / "ranking" / "ranking.parquet"
+sys.path.insert(0, str(ROOT / "src"))
+import scope  # noqa: E402
+
+SRC0, OUT0 = ROOT / "cache" / "features", ROOT / "cache" / "features_nb"
+SRC, OUT = scope.out_dir(SRC0), scope.out_dir(OUT0)
+RAW = ROOT / "data" / "raw"
 WINDOWS = (900, 1800)
 NB_COLS = ([f"{k}_{sc}_{w}" for k in ("nbnm", "nboff") for sc in ("apt", "rwy") for w in WINDOWS]
            + ["nbnm_anom_900", "nboff_anom_900"] + [f"arrx_{w}" for w in WINDOWS] + ["arrx_prev"])
@@ -52,9 +59,12 @@ def _win_mean(t: np.ndarray, v: np.ndarray, tq: np.ndarray, lo: float, hi: float
     return np.where(n >= 2, s / np.maximum(n, 1), np.nan)
 
 
-def arrivals(paths: list[Path]) -> pl.DataFrame:
-    cols = ["PHASE_mvt", "ADES_mvt", "STAND_mvt", "RUNWAY_mvt", "MVT_TIME_UTC_mvt", "BLOCK_TIME_UTC_mvt"]
-    a = pl.concat([pl.read_parquet(p, columns=cols) for p in paths]).filter(
+ARR_COLS = ["PHASE_mvt", "ADES_mvt", "STAND_mvt", "RUNWAY_mvt", "MVT_TIME_UTC_mvt", "BLOCK_TIME_UTC_mvt"]
+
+
+def arrivals(paths: list[Path] | pl.DataFrame) -> pl.DataFrame:
+    a = paths if isinstance(paths, pl.DataFrame) else pl.concat([pl.read_parquet(p, columns=ARR_COLS) for p in paths])
+    a = a.filter(
         (pl.col("PHASE_mvt") == "ARR") & pl.col("BLOCK_TIME_UTC_mvt").is_not_null())
     return a.with_columns(tin=(pl.col("BLOCK_TIME_UTC_mvt") - pl.col("MVT_TIME_UTC_mvt")).dt.total_seconds()
                           .cast(pl.Float64), t=pl.col("MVT_TIME_UTC_mvt").dt.epoch("ms") / 1000.0
@@ -95,8 +105,13 @@ def main() -> None:
     med = a25.group_by("ADES_mvt", "STAND_mvt", "RUNWAY_mvt").agg(med=pl.col("tin").median())
     xin = lambda a: a.join(med, on=["ADES_mvt", "STAND_mvt", "RUNWAY_mvt"], how="left").select(  # noqa: E731
         "ADES_mvt", "t", xin=pl.col("tin") - pl.col("med")).drop_nulls()
-    arr = {"2025": xin(a25), "2026": xin(arrivals([RANKING]))}
-    for name, year in (("train2025", "2025"), ("holdout_gap2025", "2025"), ("ranking", "2026")):
+    arr = {"2025": xin(a25), "2026": xin(arrivals(scope.ranking_frame(ARR_COLS)))}
+    frames = (("train2025", "2025"), ("holdout_gap2025", "2025"), ("ranking", "2026"))
+    if scope.FINAL:
+        for name, _ in frames[:2]:
+            shutil.copy2(OUT0 / f"{name}.parquet", OUT / f"{name}.parquet")
+        frames = frames[2:]
+    for name, year in frames:
         f = pl.read_parquet(SRC / f"{name}.parquet")
         nb = neighbour_columns(f, arr[year])
         f = pl.concat([f, nb], how="horizontal")

@@ -27,6 +27,9 @@ fallback match) and adds the gated fallback blend after the partial stage
 --lag-shift adds SECONDS to that airport's ADS-B lag for the 2026 ranking rows
 only (a leaderboard probe of the year-over-year drift, tests/adsb_drift_test.py);
 the files then get a "_lagshift" suffix and the unshifted files are not written.
+
+PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §132): ranking inputs/outputs, template and 2026
+detections come from the final4m/ subfolders; holdout fits are unchanged.
 """
 
 from __future__ import annotations
@@ -44,11 +47,12 @@ from scipy.optimize import nnls
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 from post import adsb_blend, adsb_fallback, adsb_partial  # noqa: E402
+import scope  # noqa: E402
 
 EVAL = ROOT / "cache" / "eval"
-SUB = ROOT / "data" / "submissions"
-TEMPLATE = ROOT / "data" / "ranking" / "submitting.parquet"
-RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
+SUB = scope.out_dir(ROOT / "data" / "submissions")
+TEMPLATE = scope.TEMPLATE
+RANKING = scope.RANKING
 RAW = ROOT / "data" / "raw"
 ADSB_V3 = "--adsb-v3" in sys.argv
 DET = ROOT / "cache" / ("adsb_pushback_v3" if ADSB_V3 else "adsb_pushback")
@@ -74,7 +78,7 @@ def _ev(engine: str) -> pl.DataFrame:
 
 
 def _det(prefix: str) -> pl.DataFrame:
-    return pl.concat([pl.read_parquet(p) for p in sorted(DET.glob(f"day={prefix}*.parquet"))]).select(
+    return pl.concat([pl.read_parquet(p) for p in scope.day_files(DET, f"day={prefix}*.parquet")]).select(
         "MVT_ID_mvt", "adsb_tier", "adsb_pushback_ts", "adsb_matched", "adsb_first_ts",
         "adsb_first_own_m", "adsb_pb_gap_s", "adsb_pb_dist_m", "adsb_pb_gs")
 

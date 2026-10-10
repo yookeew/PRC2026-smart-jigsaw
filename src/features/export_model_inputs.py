@@ -11,11 +11,15 @@ sched_takeoff_offset (the T − SOBT term used to recover taxi) already lives in
 the two base-feature files.
 
 Run:  .venv/Scripts/python.exe src/features/export_model_inputs.py
+      PRC_SCOPE=final4m ... -> cache/features/final4m/: ranking.parquet for Jan+Feb+Jun+Jul
+      2026 from final_ranking.parquet; the three 2025 files are copied unchanged from
+      cache/features/ (they do not depend on the ranking set). See src/scope.py.
 """
 
 from __future__ import annotations
 
 import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -25,11 +29,13 @@ import polars as pl
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from features.build_features import build_features  # noqa: E402
+import scope  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 TRAIN_GLOB = str(ROOT / "data" / "raw" / "training_2025-*.parquet")
-RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
-OUT = ROOT / "cache" / "features"
+RANKING = scope.RANKING
+BASE_OUT = ROOT / "cache" / "features"
+OUT = scope.out_dir(BASE_OUT)
 
 HOLDOUT_MONTHS = ("2025-01", "2025-07")
 
@@ -56,6 +62,13 @@ def main() -> None:
     # airport regression beyond noise. Requires external-data/metar/ (fetch
     # via src/ingest/fetch_metar_data.py). atfm/queue stay off (S20/S23).
     OUT.mkdir(parents=True, exist_ok=True)
+    if scope.FINAL:
+        for f in ("train2025.parquet", "labels2025.parquet", "holdout_gap2025.parquet"):
+            shutil.copy2(BASE_OUT / f, OUT / f)
+        rank = scope.ranking_frame(FRAME_COLS)
+        build_features(blind(rank), priors=None, weather=True).write_parquet(OUT / "ranking.parquet")
+        print(f"  ranking.parquet (final4m, {rank.height:,} movements) {(OUT / 'ranking.parquet').stat().st_size / 1e6:6.1f} MB")
+        return
 
     frame = pl.read_parquet(TRAIN_GLOB, columns=FRAME_COLS)
     build_features(blind(frame), priors=None, weather=True).write_parquet(OUT / "train2025.parquet")

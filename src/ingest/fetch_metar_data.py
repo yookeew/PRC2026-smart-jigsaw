@@ -9,7 +9,8 @@ free to use, no account or API key required -- see external-data/LICENSE for
 the note on this specific endpoint.
 
 Fetches report_type=3 (routine/hourly METAR only, not SPECI) for full-year
-2025 plus January and July 2026, matching the training and ranking windows.
+2025 plus January and July 2026, matching the training and ranking windows,
+and February and June 2026 for the blind four-month board (final_ranking.parquet).
 Columns: temperature/dewpoint/humidity (de-icing signal), wind, visibility,
 up to 3 sky-cover/ceiling layers, present-weather codes (snow/thunderstorm),
 and 1h precipitation.
@@ -43,6 +44,8 @@ DATA_FIELDS = [
 WINDOWS = [
     ("2025_2026-01", 2025, 1, 1, 2026, 2, 1),   # full 2025 + Jan 2026
     ("2026-07", 2026, 7, 1, 2026, 8, 1),        # Jul 2026
+    ("2026-02", 2026, 2, 1, 2026, 3, 1),        # Feb 2026 (blind board)
+    ("2026-06", 2026, 6, 1, 2026, 7, 1),        # Jun 2026 (blind board)
 ]
 
 

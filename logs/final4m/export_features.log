@@ -1,0 +1,7 @@
+C:\Users\yuqiw\prc2025\src\link\stand_link.py:100: UserWarning: Sortedness of columns cannot be checked when 'by' groups provided
+  dep = dep.join_asof(
+C:\Users\yuqiw\prc2025\src\link\stand_link.py:112: UserWarning: Sortedness of columns cannot be checked when 'by' groups provided
+  dep = dep.sort("est_offblock").join_asof(
+C:\Users\yuqiw\prc2025\src\link\stand_link.py:124: UserWarning: Sortedness of columns cannot be checked when 'by' groups provided
+  dep = dep.sort("est_offblock").join_asof(
+  ranking.parquet (final4m, 1,341,197 movements)   29.1 MB

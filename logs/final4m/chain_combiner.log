@@ -1,0 +1,33 @@
+stack weights: {'lgb': np.float64(0.8614), 'catcorr': np.float64(0.1487)}
+thin-day rule: 115 days kept, 7 dropped
+shape: (7, 5)
+| day        | status   | bad_members | points | med        |
+| ---        | ---      | ---         | ---    | ---        |
+| str        | str      | i64         | i64    | f64        |
+|------------|----------|-------------|--------|------------|
+| 2025-08-10 | tolerant | 1           | 211018 | 1.572131e6 |
+| 2025-10-04 | ok       | 0           | 0      | 1672691.5  |
+| 2025-10-07 | tolerant | 1           | 206056 | 1672691.5  |
+| 2025-11-19 | tolerant | 1           | 142500 | 1.549465e6 |
+| 2025-11-22 | tolerant | 1           | 247284 | 1.549465e6 |
+| 2025-12-10 | tolerant | 1           | 671427 | 1586008.5  |
+| 2025-12-28 | tolerant | 1           | 251232 | 1586008.5  |
+OOF-month ADS-B rows: 660,242 on 115 days (['2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12']); OOF stack weights [1.01 0.  ]
+combiner fit on 927,045 holdout rows; best_iter 2486
+rows keeping v23: 281492
+shape: (10, 4)
+| ADEP_mvt | len   | mean_diff | rms_diff |
+| ---      | ---   | ---       | ---      |
+| str      | u32   | f64       | f64      |
+|----------|-------|-----------|----------|
+| EDDF     | 70671 | -4.4      | 23.5     |
+| EDDM     | 50872 | 12.9      | 86.9     |
+| EGLL     | 77221 | -8.8      | 85.6     |
+| EHAM     | 75865 | -4.2      | 44.1     |
+| LEBL     | 59314 | -5.4      | 28.6     |
+| LEMD     | 72480 | -8.9      | 68.3     |
+| LFPG     | 77520 | -1.2      | 12.2     |
+| LIRF     | 52146 | 0.0       | 0.0      |
+| LSZH     | 44908 | -1.7      | 32.0     |
+| LTFM     | 89793 | 0.0       | 1.0      |
+wrote smart-jigsaw_v27ctxc1sel_ro.parquet: RMS diff vs v23 48.5 s; median 946, mean 1016.5

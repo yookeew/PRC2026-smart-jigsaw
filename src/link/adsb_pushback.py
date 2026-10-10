@@ -65,7 +65,7 @@ from src.ingest.normalise_adsb import available_days, load_day  # noqa: E402
 from src.ingest.stands import attach_stand_coords, load_stands, stand_positions  # noqa: E402
 
 RAW = ROOT / "data" / "raw"
-RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
+from src.scope import RANKING, day_path, day_files  # noqa: E402  (PRC_SCOPE=final4m: final_ranking, 2026 days under <out>/final4m/, §132)
 OUT = ROOT / "cache" / "adsb_pushback"
 OUT_V3 = ROOT / "cache" / "adsb_pushback_v3"   # --v3: inferred stands + fallback (§56)
 OUT_V4 = ROOT / "cache" / "adsb_pushback_v4"   # --v4: v3 + fallback for matched, untiered rows (§57)
@@ -457,14 +457,14 @@ def main(days: list[dt.date] | None = None, v3: bool = False, v4: bool = False,
     out_dir.mkdir(parents=True, exist_ok=True)
     for day in days or available_days():
         df = detect_day(day, pos, fallback=v3, fb_matched=v4, rwy=rwy, v6=v6)
-        df.write_parquet(out_dir / f"day={day.isoformat()}.parquet")
+        df.write_parquet(day_path(out_dir, day))
         n_tier = df.filter(pl.col("adsb_tier").is_in(["appear", "dwell"])).height
         print(f"{day}: {df.height:,} DEP, matched {df['adsb_matched'].sum():,}, "
               f"appear+dwell {n_tier:,} ({n_tier / df.height * 100:.1f}%)")
 
 
 def load_all() -> pl.DataFrame:
-    return pl.concat([pl.read_parquet(p) for p in sorted(OUT.glob("day=*.parquet"))])
+    return pl.concat([pl.read_parquet(p) for p in day_files(OUT)])
 
 
 if __name__ == "__main__":

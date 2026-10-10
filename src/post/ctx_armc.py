@@ -21,6 +21,9 @@ Commands:
 
 Run:  ARMC_ARM=c1 CTX_ENS=2 CTX_RWY=1 [CTX_ADSB=1] .venv/Scripts/python.exe src/post/ctx_armc.py inputs|prod
       ARMC_ARM=c1 .venv/Scripts/python.exe src/post/ctx_armc.py sel
+PRC_SCOPE=final4m (src/scope.py, PROGRESS.md §132): prod and sel on the four-month ranking rows (base LightGBM and
+CatBoost from data/submissions/final4m/, the CatBoost file being Colab's cat_mixed_f4m); outputs in the final4m/
+subfolders. inputs is scope-independent and refuses to run there; sel only builds the ranking file there.
 """
 
 from __future__ import annotations
@@ -38,6 +41,7 @@ from scipy.optimize import nnls
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "tests"))
+import scope  # noqa: E402
 
 ARM = os.environ.get("ARMC_ARM", "")
 assert ARM in ("c0", "c1", "c2"), "ARMC_ARM must be c0 (the BASE recipe, same machine), c1 or c2"
@@ -72,9 +76,12 @@ def fit_ens(*a):
     return np.mean(cs, axis=0), bs[0]
 NAME = f"ctx{ARM}{MEMBER}{SUFFIX}"
 SEL = f"ctx{ARM}sel{SUFFIX}"
-EVAL, OOF, SUB = ROOT / "cache" / "eval", ROOT / "cache" / "oof", ROOT / "data" / "submissions"
-RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
-TEMPLATE = ROOT / "data" / "ranking" / "submitting.parquet"
+EVAL, OOF = ROOT / "cache" / "eval", ROOT / "cache" / "oof"
+SUB = scope.out_dir(ROOT / "data" / "submissions")
+EVAL_RK = scope.out_dir(EVAL)                       # ranking-row diagnostics
+RANKING = scope.RANKING
+TEMPLATE = scope.TEMPLATE
+CAT_SUB = "cat_mixed_f4m" if scope.FINAL else "cat_mixed"
 NMU_PRED_MAX = 7200.0      # NM-unmatched training rows: stack prediction <= 2 h
 ECHO_LATE, ECHO_TOL = 1800.0, 30.0
 HOLDOUT_MONTHS = [1, 7]
@@ -130,6 +137,7 @@ def null_patterns(X: np.ndarray) -> np.ndarray:
 # ---------------------------------------------------------------- commands
 
 def inputs() -> None:
+    assert not scope.FINAL, "inputs (holdout + OOF) is scope-independent: run it with PRC_SCOPE=jj"
     import context_corrector_test as CC
     import oof_context_corrector_test as O
     P = O.prepare()
@@ -216,7 +224,7 @@ def prod() -> None:
 
     # ranking rows
     rk_l = pl.read_parquet(SUB / f"{BASE}.parquet").select(pl.col("MVT_ID_mvt").cast(pl.Int64), lgb=pl.col("TAXITIME_SEC_mvt").cast(pl.Float64))
-    rk_c = pl.read_parquet(SUB / "cat_mixed.parquet").select(pl.col("MVT_ID_mvt").cast(pl.Int64), cat=pl.col("TAXITIME_SEC_mvt").cast(pl.Float64))
+    rk_c = pl.read_parquet(SUB / f"{CAT_SUB}.parquet").select(pl.col("MVT_ID_mvt").cast(pl.Int64), cat=pl.col("TAXITIME_SEC_mvt").cast(pl.Float64))
     dep_r, arr_r = CC.movements(str(RANKING))
     rk = dep_r.select("MVT_ID_mvt").join(rk_l, on="MVT_ID_mvt", how="left").join(rk_c, on="MVT_ID_mvt", how="left")
     assert rk["lgb"].null_count() == 0 and rk["cat"].null_count() == 0
@@ -261,7 +269,7 @@ def prod() -> None:
     assert sub.height == tpl.height and sub["TAXITIME_SEC_mvt"].null_count() == 0
     sub.write_parquet(SUB / f"{NAME}.parquet")
     pl.DataFrame({"MVT_ID_mvt": dep_r["MVT_ID_mvt"], "apt": dep_r["apt"], "nm": nm_r, "app": app, "s": s_r, "out": out,
-                  "unseen_base": unseen_b, "unseen_arm": unseen_a}).write_parquet(EVAL / f"armc_rank_{NAME}.parquet")
+                  "unseen_base": unseen_b, "unseen_arm": unseen_a}).write_parquet(EVAL_RK / f"armc_rank_{NAME}.parquet")
     print(f"wrote {NAME}.parquet and armc_rank_{NAME}.parquet")
 
 
@@ -270,6 +278,16 @@ def sel() -> None:
     import ctx_adsb_stable_test as ST
     r, rb = f"ctx{ARM}r{SUFFIX}", f"ctx{ARM}rb{SUFFIX}"
     apt = ST._airports()
+    if not scope.FINAL:
+        sel_holdout_oof(r, rb, apt)
+    if (SUB / f"{r}.parquet").exists() and (SUB / f"{rb}.parquet").exists():
+        rk, n = ST._select(pl.read_parquet(SUB / f"{r}.parquet"), pl.read_parquet(SUB / f"{rb}.parquet"), "TAXITIME_SEC_mvt", apt)
+        rk.write_parquet(SUB / f"{SEL}.parquet")
+        print(f"ranking: {n:,} of {rk.height:,} rows from {rb} -> {SEL}.parquet")
+
+
+def sel_holdout_oof(r: str, rb: str, apt: pl.DataFrame) -> None:
+    import ctx_adsb_stable_test as ST
     ev, n = ST._select(pl.read_parquet(EVAL / f"{r}_holdout_ev.parquet"), pl.read_parquet(EVAL / f"{rb}_holdout_ev.parquet"), "pred", apt)
     ev.write_parquet(EVAL / f"{SEL}_holdout_ev.parquet")
     print(f"holdout: {n:,} of {ev.height:,} rows from {rb}")
@@ -279,10 +297,6 @@ def sel() -> None:
     for f in folds:
         o, n = ST._select(pl.read_parquet(OOF / r / f), pl.read_parquet(OOF / rb / f), "pred", apt)
         o.write_parquet(OOF / SEL / f)
-    if (SUB / f"{r}.parquet").exists() and (SUB / f"{rb}.parquet").exists():
-        rk, n = ST._select(pl.read_parquet(SUB / f"{r}.parquet"), pl.read_parquet(SUB / f"{rb}.parquet"), "TAXITIME_SEC_mvt", apt)
-        rk.write_parquet(SUB / f"{SEL}.parquet")
-        print(f"ranking: {n:,} of {rk.height:,} rows from {rb} -> {SEL}.parquet")
 
 
 if __name__ == "__main__":

@@ -9,6 +9,7 @@ that failed it, whose flight matched as an arrival at another of the 10 airports
 P_ne is the non-echo branch implied by P (P = p offc + (1 - p) P_ne).
 
 Run:  .venv/Scripts/python.exe -u src/post/lirf_twin_bounds.py IN.parquet OUT.parquet   (files in data/submissions)
+PRC_SCOPE=final4m: final_ranking rows, files in data/submissions/final4m (src/scope.py, PROGRESS.md §132).
 """
 
 from __future__ import annotations
@@ -25,10 +26,11 @@ import polars as pl
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 from post.lirf_signals import I64, WIDE, p_2026  # noqa: E402
+import scope  # noqa: E402
 
-RANKING = ROOT / "data" / "ranking" / "ranking.parquet"
-TEMPLATE = ROOT / "data" / "ranking" / "submitting.parquet"
-SUB = ROOT / "data" / "submissions"
+RANKING = scope.RANKING
+TEMPLATE = scope.TEMPLATE
+SUB = scope.out_dir(ROOT / "data" / "submissions")
 APT = ["EDDF", "EDDM", "EGLL", "EHAM", "LEBL", "LEMD", "LFPG", "LIRF", "LSZH", "LTFM"]
 WIN = 3606
 FORCED = WIN + 120
@@ -78,7 +80,7 @@ def main() -> None:
            .with_columns(TAXITIME_SEC_mvt=pl.coalesce(pl.col("new").round(), pl.col("TAXITIME_SEC_mvt").cast(pl.Float64)).cast(dtype))
            .select(sub.columns))
     tpl = pl.read_parquet(TEMPLATE)
-    assert out.height == tpl.height == 344_841 and out["TAXITIME_SEC_mvt"].null_count() == 0
+    assert out.height == tpl.height and out["TAXITIME_SEC_mvt"].null_count() == 0
     assert set(out["MVT_ID_mvt"].to_list()) == set(tpl["MVT_ID_mvt"].to_list()) and float(out["TAXITIME_SEC_mvt"].min()) >= 0
     n_diff = int((out["TAXITIME_SEC_mvt"].cast(pl.Float64) != sub["TAXITIME_SEC_mvt"].cast(pl.Float64)).sum())
     print(f"rows differing from {src.name}: {n_diff}")

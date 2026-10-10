@@ -1,0 +1,3 @@
+2026 LIRF NM-unmatched rows with a twin: 53; moved 41; mean change -345 s; sum (Q-P)^2 2.37e+08
+rows differing from f4m_b.parquet: 41
+wrote f4m_c.parquet

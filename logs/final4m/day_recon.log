@@ -1,0 +1,35 @@
+LIRF calibration (Jan+Jul 2025 holdout): noise sd 191 min (x1.5), bias +161 min/day
+airport-days 1204; our rows / published flights median 1.000
+vs base: RMS 26.82, mean -8.70, rows changed 548,846, max |d| 418
+shape: (32, 6)
+┌──────┬─────┬──────┬───────────┬────────────┬────────────┐
+│ apt  ┆ mo  ┆ days ┆ lam_med   ┆ lam_p10    ┆ lam_p90    │
+│ ---  ┆ --- ┆ ---  ┆ ---       ┆ ---        ┆ ---        │
+│ str  ┆ i64 ┆ u32  ┆ f64       ┆ f64        ┆ f64        │
+╞══════╪═════╪══════╪═══════════╪════════════╪════════════╡
+│ EDDF ┆ 1   ┆ 31   ┆ 9.232668  ┆ -9.678339  ┆ 69.593764  │
+│ EDDF ┆ 2   ┆ 28   ┆ 7.372567  ┆ -5.627111  ┆ 41.174625  │
+│ EDDF ┆ 6   ┆ 30   ┆ -2.691786 ┆ -21.062168 ┆ 14.529813  │
+│ EDDF ┆ 7   ┆ 31   ┆ 2.175281  ┆ -17.850155 ┆ 17.687252  │
+│ EDDM ┆ 1   ┆ 31   ┆ 2.075519  ┆ -6.834572  ┆ 8.907747   │
+│ …    ┆ …   ┆ …    ┆ …         ┆ …          ┆ …          │
+│ LFPG ┆ 7   ┆ 32   ┆ -2.528874 ┆ -24.494642 ┆ 14.715527  │
+│ LTFM ┆ 1   ┆ 30   ┆ 68.504084 ┆ 46.079648  ┆ 106.675496 │
+│ LTFM ┆ 2   ┆ 27   ┆ 62.363639 ┆ 33.306208  ┆ 112.016251 │
+│ LTFM ┆ 6   ┆ 29   ┆ 49.194231 ┆ 21.932231  ┆ 70.000092  │
+│ LTFM ┆ 7   ┆ 31   ┆ 60.04325  ┆ 33.049494  ┆ 97.141558  │
+└──────┴─────┴──────┴───────────┴────────────┴────────────┘
+  EDDF RMS   18.11 mean   -4.49
+  EDDM RMS   13.01 mean   +0.91
+  EGLL RMS   14.19 mean   -8.46
+  EHAM RMS   32.09 mean   +4.03
+  LEBL RMS   25.05 mean  -15.13
+  LEMD RMS   11.66 mean   -3.94
+  LFPG RMS   20.09 mean   +2.19
+  LIRF RMS    0.00 mean   +0.00
+  LSZH RMS    0.20 mean   +0.00
+  LTFM RMS   55.70 mean  -46.78
+C:\Users\yuqiw\prc2025\src\post\pru_daily_recon.py:230: RuntimeWarning: Mean of empty slice
+  print(f"LIRF hedged rows {H.sum()}: posterior mean {np.nanmean(post[H]):.3f}; >= 0.8: {(post[H] >= 0.8).sum()}, <= 0.05: {(post[H] <= 0.05).sum()}")
+LIRF hedged rows 6916: posterior mean nan; >= 0.8: 0, <= 0.05: 0
+wrote data/submissions/final4m/f4m_full.parquet

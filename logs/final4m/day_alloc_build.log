@@ -1,0 +1,33 @@
+check, v62 recipe vs f4m_v62.parquet: per airport rows differing / max |diff|
+  EDDF:      0 / 0
+  EDDM:      0 / 0
+  EGLL:      0 / 0
+  EHAM:      0 / 0
+  LEBL:      0 / 0
+  LEMD:      0 / 0
+  LFPG:      0 / 0
+  LIRF:      0 / 0
+  LSZH:      0 / 0
+  LTFM:      0 / 0
+G2 slopes in use, mean by band (< 0 / 0-15 / 15-60 / >= 60 min):
+  EDDF: 0.27 / 0.52 / 0.80 / 0.84 | 2026 max |lam| 99 (2025 107)
+  EDDM: 0.26 / 0.43 / 0.69 / 0.89 | 2026 max |lam| 173 (2025 408)
+  EGLL: 0.30 / 0.55 / 0.71 / 0.70 | 2026 max |lam| 118 (2025 210)
+  EHAM: 0.19 / 0.30 / 0.40 / 0.54 | 2026 max |lam| 559 (2025 158)
+  LEBL: 0.37 / 0.66 / 0.87 / 0.82 | 2026 max |lam| 117 (2025 127)
+  LEMD: 0.36 / 0.56 / 0.76 / 0.76 | 2026 max |lam| 37 (2025 95)
+  LFPG: 0.20 / 0.46 / 0.68 / 0.71 | 2026 max |lam| 184 (2025 145)
+  LTFM: 0.56 / 0.78 / 0.83 / 0.71 | 2026 max |lam| 339 (2025 1294)
+vs v62: per airport x month RMS / mean; mean shift vs p (new / v62)
+  EDDF: m1    8.6   -1.6  m2    6.1   -2.1  m6    5.3   -2.6  m7    5.2   -2.4 | shift   -0.63 /   +1.57
+  EDDM: m1    2.5   -1.3  m2   12.4   -3.1  m6    3.3   -1.6  m7    3.2   -1.4 | shift   +1.83 /   +3.64
+  EGLL: m1   13.8   -6.2  m2    5.5   -3.4  m6    4.7   -2.9  m7    4.2   -2.9 | shift   +3.56 /   +7.39
+  EHAM: m1   29.7   -1.0  m2    5.1   -1.1  m6   12.9   +0.3  m7    2.9   -1.5 | shift   +3.48 /   +4.27
+  LEBL: m1    4.7   -2.1  m2    8.1   -2.2  m6    6.4   -3.0  m7   10.1   -2.8 | shift   -8.05 /   -5.43
+  LEMD: m1    4.7   -2.7  m2    4.9   -2.2  m6    4.4   -2.1  m7    4.5   -1.8 | shift   +0.59 /   +2.78
+  LFPG: m1   24.2   -8.1  m2    9.3   -4.6  m6    7.8   -3.4  m7    7.8   -3.9 | shift  +11.95 /  +16.83
+  LIRF: m1    0.0   +0.0  m2    0.0   +0.0  m6    0.0   +0.0  m7    0.0   +0.0 | shift   +0.00 /   +0.00
+  LSZH: m1    0.0   +0.0  m2    0.0   +0.0  m6    0.0   +0.0  m7    0.0   +0.0 | shift   +0.00 /   +0.00
+  LTFM: m1   29.6  +15.0  m2   25.3  +21.5  m6   24.9  +23.6  m7   23.8  +21.7 | shift  -26.32 /  -46.78
+all: rows changed 478,133, RMS 12.71, mean +0.81, max |d| 353
+wrote data/submissions/final4m/f4m_g2.parquet

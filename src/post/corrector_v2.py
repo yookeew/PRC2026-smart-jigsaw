@@ -20,6 +20,10 @@ Per the pre-registration: if the rerun's holdout predictions differ from the
 gate baseline by more than 1 s RMS, the rerun's holdout file is used throughout.
 
 Run:  .venv/Scripts/python.exe src/post/corrector_v2.py
+      PRC_SCOPE=final4m ... applies the cached 12-month corrector to the four-month CatBoost
+      ranking rows (cache/eval/final4m/cat_mixed_f4m_rank.parquet, Colab) and writes
+      data/submissions/final4m/catcorr_mixed.parquet; the holdout file is scope-independent and
+      is not rewritten (PROGRESS.md §132).
 """
 
 from __future__ import annotations
@@ -48,12 +52,14 @@ from features.encode import (  # noqa: E402
     fit_priors,
 )
 from models.fit import _matrix  # noqa: E402
+import scope  # noqa: E402
 
 EVAL = ROOT / "cache" / "eval"
-SUB = ROOT / "data" / "submissions"
-TEMPLATE = ROOT / "data" / "ranking" / "submitting.parquet"
+SUB = scope.out_dir(ROOT / "data" / "submissions")
+TEMPLATE = scope.TEMPLATE
 RERUN_EV = EVAL / "cat_mixed_rerun_holdout_ev.parquet"
-RANK_IN = EVAL / "cat_mixed_rank.parquet"
+RANK_IN = scope.out_dir(EVAL) / ("cat_mixed_f4m_rank.parquet" if scope.FINAL else "cat_mixed_rank.parquet")
+RANK_FEAT = scope.out_dir(v1.FEAT) / "ranking.parquet"
 RERUN_TOL_RMS = 1.0
 # fitted correctors are cached so a missing ranking file doesn't cost the ~20 min of fits
 M10_PATH = ROOT / "cache" / "oof" / "corrector_v2_m10.txt"
@@ -121,6 +127,14 @@ def main() -> None:
           .join(ev.select("MVT_ID_mvt", "pred", "echo_prob", "taxi", "ym"), on="MVT_ID_mvt"))
 
     # ---- holdout: the gate's corrector (10 training months), applied to the holdout
+    if not scope.FINAL:
+        holdout_file(tr, ho, nmu_tr, nmu_ho, Xtr_all, Xho_all, ev, rounds)
+
+    # ---- ranking corrector: refit on all 12 months (training OOF rows + holdout rows).
+    ranking_file(tr, ho, f_tr, f_ho, lab, Xtr_all, Xho_all, categories, train_cols, rounds)
+
+
+def holdout_file(tr, ho, nmu_tr, nmu_ho, Xtr_all, Xho_all, ev, rounds) -> None:
     tr10 = tr.join(nmu_tr, on="MVT_ID_mvt", how="left").filter(
         (pl.col("taxi") >= 0) & (pl.col("pred") <= v2.PRED_MAX))
     X10 = Xtr_all.iloc[tr10["_i"].to_numpy()].reset_index(drop=True)
@@ -141,7 +155,8 @@ def main() -> None:
      .write_parquet(EVAL / "catcorr_mixed_holdout_ev.parquet"))
     print(f"wrote {EVAL / 'catcorr_mixed_holdout_ev.parquet'}")
 
-    # ---- ranking corrector: refit on all 12 months (training OOF rows + holdout rows).
+
+def ranking_file(tr, ho, f_tr, f_ho, lab, Xtr_all, Xho_all, categories, train_cols, rounds) -> None:
     # NMU for every labelled row: leave-one-month-out across all 12 months.
     flag = pl.concat([f.select("MVT_ID_mvt", nm_unmatched=pl.col("aobt3_taxi").is_null())
                       for f in (f_tr, f_ho)])
@@ -175,7 +190,7 @@ def main() -> None:
     priors_a = fit_priors(lab_all)
     lab_a = apply_priors(feats, priors_a).select("MVT_ID_mvt").join(lab_all, on="MVT_ID_mvt")
     genc_a = fit_group_encodings(lab_a)
-    f_r = apply_group_encodings(apply_priors(pl.read_parquet(v1.FEAT / "ranking.parquet"), priors_a), genc_a)
+    f_r = apply_group_encodings(apply_priors(pl.read_parquet(RANK_FEAT), priors_a), genc_a)
     f_r = apply_nmu_echo_rate(f_r, fit_nmu_echo_rate(lab_n))
     rk = f_r.select("MVT_ID_mvt", *NMU_COLS).with_row_index("_i").join(
         pl.read_parquet(RANK_IN).select("MVT_ID_mvt", "pred", "echo_prob"), on="MVT_ID_mvt")

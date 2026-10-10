@@ -13,6 +13,8 @@ Events of that flight at ADEP in [T - 3 h, T + 60 s] give the features (seconds 
 
 Output: cache/opdi_feats/opdi_feats.parquet (MVT_ID_mvt + the columns above).
 Run:  python src/features/opdi_feats.py
+      PRC_SCOPE=final4m: 2026 rows from final_ranking.parquet -> cache/opdi_feats/final4m/opdi_feats.parquet
+      (2025 rows unchanged; PROGRESS.md §132).
 """
 
 from __future__ import annotations
@@ -20,12 +22,16 @@ from __future__ import annotations
 import datetime as dt
 import glob
 import os
+import sys
 from pathlib import Path
 
 import polars as pl
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import scope  # noqa: E402
+
 EVENTS = Path("cache/opdi_events")
-OUT = Path("cache/opdi_feats/opdi_feats.parquet")
+OUT = scope.out_dir(Path("cache/opdi_feats")) / "opdi_feats.parquet"
 GROUND = ["exit-parking_position", "entry-apron", "exit-apron", "entry-taxiway", "exit-taxiway", "entry-hangar",
           "exit-hangar", "entry-threshold", "exit-threshold", "entry-deicing_pad", "exit-deicing_pad"]
 O_COLS = ["o_matched", "o_lead_first", "o_lead_exitpark", "o_lead_entrypark", "o_lead_taxi", "o_lead_apron",
@@ -50,7 +56,7 @@ def opdi_flights(files: list[str]) -> pl.DataFrame:
 def departures() -> pl.DataFrame:
     """Departure keys from the 2025 training files and the 2026 ranking file (no label columns read)."""
     cols = ["MVT_ID_mvt", "ADEP_mvt", "MVT_TIME_UTC_mvt", "CALLSIGN_flt", "FLIGHT_mvt", "PHASE_mvt"]
-    fs = sorted(glob.glob("data/raw/training_*.parquet")) + ["data/ranking/ranking.parquet"]
+    fs = sorted(glob.glob("data/raw/training_*.parquet")) + [str(scope.RANKING)]
     d = pl.concat([pl.read_parquet(f, columns=cols) for f in fs], how="vertical_relaxed").filter(pl.col("PHASE_mvt") == "DEP")
     return d.select(pl.col("MVT_ID_mvt").cast(pl.Int64), apt="ADEP_mvt",
                     T=pl.col("MVT_TIME_UTC_mvt").dt.epoch("ms").cast(pl.Float64) / 1000.0,

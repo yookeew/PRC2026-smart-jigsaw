@@ -9,6 +9,8 @@ data/raw/
 data/ranking/
 data/submissions/
 cache/
+# Saved model refits (src/models/fit.py save_models; hundreds of MB, rebuildable)
+/models/
 
 # Raw EUROCONTROL downloads (rebuildable via src/ingest/fetch_atfm_data.py) —
 # LICENSE and the fetch script itself ARE committed, the CSVs are not.

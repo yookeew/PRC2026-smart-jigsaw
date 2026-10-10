@@ -17,12 +17,18 @@ run as a single file on Colab. For each UTC day:
      (+-0.10 deg lat, +-0.15 deg lon around the aerodrome reference point).
   4. Write <out>/adsb_YYYYMMDD.parquet atomically, and append the replica used
      to <out>/manifest.csv. Days already written are skipped, so a
-     disconnected Colab session resumes where it stopped.
+     disconnected Colab session resumes where it stopped. --force re-fetches
+     them, replacing a file only when the new read has more points.
+
+Dropped connections: a reset mid-download is resumed from the last byte with
+an HTTP Range request (up to RESUMES times per part).
 
 Corrupt replicas: a structural tar error or a member that fails to
 gunzip/parse aborts that replica and the next one is tried from scratch. If
 every replica fails, the first is re-read in tolerant mode, skipping bad
-members, and the skip count is recorded in the manifest.
+members, and the skip count is recorded in the manifest. A network failure
+is never skipped as a bad member: before 2026-10-09 it was, and tolerant
+mode then kept truncated days (2026-02-17/20/22, 2026-06-23).
 
 Output schema (the "new" schema read by src/ingest/normalise_adsb.py):
   hex str | reg str | ts f64 epoch s | lat f64 | lon f64 | alt_raw f64 (ft,
@@ -131,24 +137,41 @@ def candidates(day: dt.date) -> list[list[str]]:
 
 
 # ---------------------------------------------------------------- streaming
+RESUMES = 8  # per part: reconnects after a dropped connection, continuing at the byte offset
+
+
 class ChainedHTTP(io.RawIOBase):
-    """Read the split-tar parts back to back as one stream."""
+    """Read the split-tar parts back to back as one stream. A connection dropped mid-part
+    (GitHub's "Connection reset by peer") is resumed with an HTTP Range request from the
+    last byte received, so a reset no longer truncates the day."""
 
     def __init__(self, urls: list[str]):
         self.urls = list(urls)
+        self.url = None
         self.resp = None
         self.it = None
         self.buf = b""
         self.bytes = 0
+        self.part_bytes = 0
+        self.resumes = 0
 
-    def _next(self) -> bool:
+    def _open(self) -> None:
         if self.resp is not None:
             self.resp.close()
-        if not self.urls:
-            return False
-        self.resp = requests.get(self.urls.pop(0), stream=True, timeout=120)
+        headers = {"Range": f"bytes={self.part_bytes}-"} if self.part_bytes else {}
+        self.resp = requests.get(self.url, stream=True, timeout=120, headers=headers)
         self.resp.raise_for_status()
+        if self.part_bytes and self.resp.status_code != 206:
+            raise requests.ConnectionError(f"server ignored Range (status {self.resp.status_code})")
         self.it = self.resp.iter_content(CHUNK)
+
+    def _next(self) -> bool:
+        if not self.urls:
+            if self.resp is not None:
+                self.resp.close()
+            return False
+        self.url, self.part_bytes, self.resumes = self.urls.pop(0), 0, 0
+        self._open()
         return True
 
     def readable(self) -> bool:
@@ -160,10 +183,19 @@ class ChainedHTTP(io.RawIOBase):
                 return 0
             try:
                 self.buf = next(self.it)
+                self.part_bytes += len(self.buf)
             except StopIteration:
                 self.it = None
                 if not self._next():
                     return 0
+            except (requests.ConnectionError, requests.exceptions.ChunkedEncodingError) as e:
+                if self.resumes >= RESUMES:
+                    raise
+                self.resumes += 1
+                print(f"    connection dropped at {self.part_bytes / 1e9:.2f} GB of this part "
+                      f"({type(e).__name__}); resume {self.resumes}/{RESUMES}", flush=True)
+                time.sleep(5 * self.resumes)
+                self._open()
         n = min(len(b), len(self.buf))
         b[:n] = self.buf[:n]
         self.buf = self.buf[n:]
@@ -206,6 +238,10 @@ def parse_day(urls: list[str], tolerant: bool = False) -> tuple[pl.DataFrame, in
                     if blob[:2] == b"\x1f\x8b":
                         blob = gzip.decompress(blob)
                     d = _loads(blob)
+                except requests.RequestException as e:
+                    # A network failure is never a "bad member": skipping it in tolerant mode
+                    # would silently keep a truncated day (the 2026-10-08 Feb/Jun 2026 pull).
+                    raise CorruptReplica(f"{m.name}: network: {type(e).__name__}: {e}") from e
                 except (OSError, EOFError, zlib.error, ValueError) as e:
                     if not tolerant:
                         raise CorruptReplica(f"{m.name}: {type(e).__name__}: {e}") from e
@@ -256,11 +292,15 @@ def parse_day(urls: list[str], tolerant: bool = False) -> tuple[pl.DataFrame, in
 
 
 # ---------------------------------------------------------------- driver
-def fetch_day(day: dt.date, out: Path) -> None:
+def fetch_day(day: dt.date, out: Path, force: bool = False) -> None:
     dest = out / f"adsb_{day:%Y%m%d}.parquet"
+    old_pts = 0
     if dest.exists():
-        print(f"{day}: exists, skipping")
-        return
+        if not force:
+            print(f"{day}: exists, skipping")
+            return
+        old_pts = pl.scan_parquet(dest).select(pl.len()).collect().item()
+        print(f"{day}: exists ({old_pts:,} pts), re-fetching (--force)", flush=True)
     cands = candidates(day)
     if not cands:
         print(f"{day}: NO RELEASE FOUND on any replica")
@@ -288,6 +328,11 @@ def fetch_day(day: dt.date, out: Path) -> None:
             _manifest(out, day, tag, "failed", 0, 0, 0)
             return
     tag, df, n_tr, n_bad, status = result
+    if df.height <= old_pts:
+        print(f"{day}: re-fetch has {df.height:,} pts, not more than the existing {old_pts:,}; "
+              f"kept the existing file", flush=True)
+        _manifest(out, day, tag, f"{status}:not-better", n_tr, n_bad, df.height)
+        return
     tmp = dest.with_suffix(".parquet.tmp")
     df.write_parquet(tmp)
     tmp.replace(dest)
@@ -322,12 +367,15 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--days", nargs="+", required=True,
                     help="YYYY-MM-DD or YYYY-MM-DD:YYYY-MM-DD (inclusive), several allowed")
     ap.add_argument("--out", default=str(Path(__file__).resolve().parents[2] / "external-data" / "adsb"))
+    ap.add_argument("--force", action="store_true",
+                    help="re-fetch days that already exist; the file is replaced only if the "
+                         "new read has more points")
     args = ap.parse_args(argv)
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     for day in parse_days(args.days):
         try:
-            fetch_day(day, out)
+            fetch_day(day, out, force=args.force)
         except Exception as e:  # keep going: one bad day must not kill a long Colab run
             print(f"{day}: ERROR {type(e).__name__}: {e}", flush=True)
             _manifest(out, day, "", f"error:{type(e).__name__}", 0, 0, 0)
