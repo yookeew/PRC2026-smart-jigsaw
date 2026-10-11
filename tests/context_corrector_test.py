@@ -38,6 +38,7 @@ AIR = os.environ.get("CTX_AIR") == "1"    # block 8, reports/ctx_airline_preregi
 ADSB = os.environ.get("CTX_ADSB") == "1"  # block 9, reports/ctx_adsb_preregistration.md
 RO = os.environ.get("CTX_RO") == "1"      # block 10, stand re-occupation (PROGRESS.md §123; src/features/reocc_feats.py)
 HOUR = os.environ.get("CTX_HOUR") == "1"  # block 11, hour-window state (reports/ctx_hour_preregistration.md; PROGRESS.md §134)
+HOUR2 = os.environ.get("CTX_HOUR2") == "1"  # block 12, multi-scale / directional windows + ADS-B window (reports/ctx_hour2_preregistration.md)
 RO_FILE = os.environ.get("CTX_RO_FILE", str(scope.out_dir(ROOT / "cache" / "v50") / "reocc_feats3.parquet"))
 RO_COLS = ["ro_gap_last", "ro_tm_last", "ro_om_last", "ro_two_dep", "ro_tm_next", "ro_gap_prev", "ro_tm_prev",
            "ro_n_since_s", "ro_first_since_s", "ro_last_tin_x", "ro_last_land_gap"]
@@ -278,6 +279,52 @@ def reocc_block(dep: pl.DataFrame) -> pl.DataFrame:
 _TINMED: dict = {}
 
 
+def _win(t, v, w_lo, w_hi, min_n=3):
+    """Mean of v over the other rows with t_j in [t_i - w_lo, t_i + w_hi] (t sorted); NaN v skipped; count of used rows."""
+    ok = np.isfinite(v)
+    v0 = np.where(ok, v, 0.0)
+    cs, cn = np.concatenate([[0.0], np.cumsum(v0)]), np.concatenate([[0], np.cumsum(ok)])
+    lo, hi = np.searchsorted(t, t - w_lo, "left"), np.searchsorted(t, t + w_hi, "right")
+    s_, n = cs[hi] - cs[lo] - v0, cn[hi] - cn[lo] - ok
+    return np.where(n >= min_n, s_ / np.maximum(n, 1), np.nan), n.astype(float)
+
+
+def hour2_block(dep: pl.DataFrame, p: np.ndarray) -> pl.DataFrame:
+    """Block 12: other departures at the same airport -- (T - LOBT - p) and (T - AOBT_3 - p) over +-15 / +-60 min and
+    over the 30 min before / after T; and the ADS-B taxi of tracked neighbours (tiers appear, dwell; v4 detector)
+    minus their p, clipped to +-600 s, over +-30 min, one mean per tier. Label-free; p = the frame's input prediction."""
+    if "d" not in _DET:
+        _DET["d"] = (pl.concat([pl.read_parquet(f) for f in scope.day_files(DET4)], how="diagonal")
+                     .with_columns(pl.col("MVT_ID_mvt").cast(pl.Int64)).unique("MVT_ID_mvt"))
+    x = (dep.select("MVT_ID_mvt", "apt", "T", "t_LOBT_flt", "t_AOBT_3_flt").with_columns(p=pl.Series(np.asarray(p, dtype=np.float64)))
+         .with_row_index("_i").join(_DET["d"].select("MVT_ID_mvt", "adsb_tier", "adsb_pushback_ts"), on="MVT_ID_mvt", how="left")
+         .sort("apt", "T"))
+    assert x.height == dep.height
+    t = x["T"].cast(pl.Float64).to_numpy()
+    q = x["p"].to_numpy()
+    rl = t - x["t_LOBT_flt"].cast(pl.Float64).fill_null(np.nan).to_numpy() - q
+    ra = t - x["t_AOBT_3_flt"].cast(pl.Float64).fill_null(np.nan).to_numpy() - q
+    tier = x["adsb_tier"].fill_null("").to_numpy()
+    ab = np.clip(t - x["adsb_pushback_ts"].cast(pl.Float64).fill_null(np.nan).to_numpy() - q, -600, 600)
+    apt = x["apt"].to_numpy()
+    cols = ["h2_rl15", "h2_rl60", "h2_ra15", "h2_ra60", "h2_rl_pre", "h2_rl_post", "h2_ra_pre", "h2_ra_post",
+            "h2_ab_app", "h2_ab_dw", "h2_ab_n"]
+    o = {c: np.full(len(t), np.nan) for c in cols}
+    for a in np.unique(apt):
+        k = np.flatnonzero(apt == a)
+        tt = t[k]
+        for nm, v in (("rl", rl[k]), ("ra", ra[k])):
+            o[f"h2_{nm}15"][k], _ = _win(tt, v, 900, 900)
+            o[f"h2_{nm}60"][k], _ = _win(tt, v, 3600, 3600)
+            o[f"h2_{nm}_pre"][k], _ = _win(tt, v, 1800, 0)
+            o[f"h2_{nm}_post"][k], _ = _win(tt, v, 0, 1800)
+        o["h2_ab_app"][k], na = _win(tt, np.where(tier[k] == "appear", ab[k], np.nan), 1800, 1800, min_n=1)
+        o["h2_ab_dw"][k], nd = _win(tt, np.where(tier[k] == "dwell", ab[k], np.nan), 1800, 1800, min_n=1)
+        o["h2_ab_n"][k] = na + nd
+    out = pl.DataFrame({"_i": x["_i"].to_numpy(), **o}).sort("_i")
+    return out.select([pl.col(c).cast(pl.Float64).fill_nan(None) for c in cols])
+
+
 def hour_block(dep: pl.DataFrame, arr: pl.DataFrame, p: np.ndarray) -> pl.DataFrame:
     """Block 11: hour-window state from the other departures within +-30 min (their takeoff minus LOBT / AOBT_3 /
     SCHED minus their input prediction p), same-runway counts, LOBT / SCHED backlog, arrivals' taxi-in excess
@@ -315,7 +362,7 @@ def build(dep: pl.DataFrame, arr: pl.DataFrame, p: np.ndarray, cells) -> tuple[p
     b56 = time_blocks(dep, arr, p)
     parts = ([base, b1, b2, b3, b4, b56] + ([runway_block(dep, arr)] if RWY else []) + ([airline_block(dep, p)] if AIR else [])
              + ([adsb_block(dep, p)] if ADSB else []) + ([reocc_block(dep)] if RO else [])
-             + ([hour_block(dep, arr, p)] if HOUR else []))
+             + ([hour_block(dep, arr, p)] if HOUR else []) + ([hour2_block(dep, p)] if HOUR2 else []))
     X = pl.concat(parts, how="horizontal")
     return X, ctrl, ["apt_c", "stand_pfx"] + (["al_op"] if AIR else [])
 

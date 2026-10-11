@@ -1,0 +1,54 @@
+=== 1. Stand re-occupation and identity features (four-month frame)  2026-10-11 12:05
+    (exists: cache/v50/final4m/reocc_feats6.parquet)
+=== 2. Hour-block corrector members on the four-month ranking rows, then sel  2026-10-11 12:05
+=== 3. Control chain (ctxc1sel_ro). If the other machine's chain_ctxc1sel_ro_final is present it is kept as _ORIG and compared  2026-10-11 12:22
+    (exists: data/submissions/final4m/stack_lgb_catcorr_v3_ctxc1sel_ro_adsbq_partial_fb.parquet)
+    (exists: data/submissions/final4m/smart-jigsaw_v27ctxc1sel_ro.parquet)
+    (exists: data/submissions/final4m/chain_ctxc1sel_ro.parquet)
+a4011f35f82112dbc2d78932e930685e *data/submissions/final4m/chain_ctxc1sel_ro_final.parquet
+a4011f35f82112dbc2d78932e930685e *data/submissions/final4m/chain_ctxc1sel_ro_final_ORIG.parquet
+=== 4. Treatment chain (ctxc1sel_rohb)  2026-10-11 12:27
+=== 5. Delta, assembly on f4m_e (LIRF frozen), v63's recipe (OPDI deltas + G2)  2026-10-11 12:33
+delta RMS 41.91, mean +0.582
+  LFPG: 0.20 / 0.47 / 0.69 / 0.74 | 2026 max |lam| 105 (2025 145)
+  LTFM: 0.53 / 0.76 / 0.82 / 0.69 | 2026 max |lam| 349 (2025 1294)
+vs v62: per airport x month RMS / mean; mean shift vs p (new / v62)
+  EDDF: m1   53.8   -0.8  m2   45.0   -0.9  m6   21.7   -2.1  m7   21.8   -1.9 | shift   -1.71 /   -0.18
+  EDDM: m1   39.3   -1.4  m2   50.7   -1.4  m6   21.8   -1.8  m7   23.3   -1.5 | shift   +1.63 /   +3.18
+  EGLL: m1   39.2   -4.9  m2   29.7   -1.8  m6   34.0   -1.8  m7   31.3   -1.5 | shift   +2.37 /   +4.88
+  EHAM: m1   81.2   +3.9  m2   23.1   -0.4  m6   22.5   +0.6  m7   18.1   -1.4 | shift   +1.90 /   +1.39
+  LEBL: m1   25.7   -1.1  m2   22.8   -1.7  m6   26.7   -2.4  m7   30.3   -1.9 | shift   -7.98 /   -6.12
+  LEMD: m1   30.5   -2.3  m2   29.9   -1.9  m6   27.0   -2.0  m7   27.6   -2.5 | shift   +0.99 /   +3.17
+  LFPG: m1   72.9   -4.3  m2   27.1   -4.3  m6   39.4   -4.2  m7   28.9   -5.9 | shift  +13.68 /  +18.44
+  LIRF: m1    0.0   +0.0  m2    0.0   +0.0  m6    0.0   +0.0  m7    0.0   +0.0 | shift   +0.00 /   +0.00
+  LSZH: m1    0.0   +0.0  m2    0.0   +0.0  m6    0.0   +0.0  m7    0.0   +0.0 | shift   -0.85 /   -0.85
+  LTFM: m1   77.0  +15.7  m2   53.7  +21.2  m6   37.3  +22.9  m7   43.9  +20.6 | shift  -25.84 /  -45.96
+all: rows changed 560,325, RMS 36.74, mean +1.23, max |d| 1776
+wrote data/submissions/final4m/f4m_v64.parquet
+=== 6. blind_v5 = Jan/Jul from smart-jigsaw_v64, Feb/Jun from f4m_v64  2026-10-11 12:34
+| ---  | --- | ---   | ---   | ---  |
+| str  | i8  | u32   | f64   | f64  |
+|------|-----|-------|-------|------|
+| EDDF | 1   | 15667 | 39.7  | 0.4  |
+| EDDF | 7   | 20650 | 24.0  | 0.4  |
+| EDDM | 1   | 10953 | 30.6  | -0.1 |
+| EDDM | 7   | 15013 | 21.4  | -0.3 |
+| EGLL | 1   | 19283 | 30.3  | -0.2 |
+| EGLL | 7   | 20557 | 23.2  | 0.0  |
+| EHAM | 1   | 16232 | 47.7  | -0.7 |
+| EHAM | 7   | 21950 | 21.7  | 0.2  |
+| LEBL | 1   | 12201 | 22.1  | -0.4 |
+| LEBL | 7   | 17879 | 29.1  | 0.1  |
+| LEMD | 1   | 16802 | 27.6  | 0.2  |
+| LEMD | 7   | 20152 | 20.1  | -0.1 |
+| LFPG | 1   | 18129 | 37.2  | -0.0 |
+| LFPG | 7   | 21743 | 23.5  | -0.2 |
+| LIRF | 1   | 11061 | 100.6 | -5.7 |
+| LIRF | 7   | 15838 | 122.4 | -7.4 |
+| LSZH | 1   | 9995  | 33.0  | 0.7  |
+| LSZH | 7   | 13155 | 25.2  | -1.4 |
+| LTFM | 1   | 22396 | 42.5  | 0.1  |
+| LTFM | 7   | 25185 | 27.0  | 0.6  |
+output: 670,790 rows, range [0, 111648], median 942, mean 1014.3; Jan/Jul rows identical to smart-jigsaw_v64.parquet: True
+wrote data\submissions\final4m\blind_v5.parquet  md5 4d6fdfbe911971e8945adb51d5e217a8
+=== done  2026-10-11 12:34

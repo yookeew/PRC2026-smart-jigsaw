@@ -1,0 +1,28 @@
+stack weights (full holdout): {'lgb': np.float64(0.9765), 'catcorr': np.float64(0.0351)}
+holdout in-sample RMSE: lgb 310.44  stack 310.13
+quality factors: {'appear/good': 1.135, 'appear/poor': 0.774, 'dwell/good': 1.709, 'dwell/poor': 0.665}
+fallback blend: {'w': {'fb_dwell': 0.31481846879558234, 'fb_appear': 0.7244413909705533}, 'n_fit': 8824}
+partial: b 246 s/km | w {'near': 0.091, 'far': 0.005} | a {'EDDF': 278, 'EDDM': 173, 'EGLL': 561, 'EHAM': 159, 'LEBL': 261, 'LEMD': 355, 'LSZH': 236} | a_pooled 355
+ADS-B blend: tier w {'appear': 0.404, 'dwell': 0.176} | lags {'EDDF': -35, 'EDDM': -49, 'EGLL': -170, 'EHAM': -22, 'LEBL': -36, 'LEMD': -136, 'LFPG': -39, 'LSZH': -30} | cells {'EDDF/appear': 0.2, 'EDDF/dwell': 0.0, 'EDDM/appear': 0.85, 'EDDM/dwell': 0.5, 'EGLL/appear': 0.79, 'EGLL/dwell': 0.27, 'EHAM/appear': 0.06, 'EHAM/dwell': 0.04, 'LEBL/appear': 0.31, 'LEBL/dwell': 0.03, 'LSZH/appear': 0.17, 'LSZH/dwell': 0.09}
+wrote stack_lgb_catcorr_v3_ctxc1sel_rohb.parquet  n=670,790  median=951  mean=1023.1  max=112462
+ADS-B blended ranking rows: 186,982 of 670,790 (27.9%); mean shift -15.1s
+shape: (8, 4)
+| ADEP_mvt | n     | mean_shift_s | mean_abs_shift_s |
+| ---      | ---   | ---          | ---              |
+| str      | u32   | f64          | f64              |
+|----------|-------|--------------|------------------|
+| EDDF     | 3171  | -4.5         | 7.9              |
+| EDDM     | 37776 | -31.3        | 88.7             |
+| EGLL     | 36832 | -28.4        | 88.7             |
+| EHAM     | 54954 | -3.6         | 6.2              |
+| LEBL     | 24251 | -6.1         | 7.7              |
+| LEMD     | 14327 | -7.1         | 41.9             |
+| LFPG     | 68    | -15.5        | 39.7             |
+| LSZH     | 15603 | -8.4         | 9.6              |
+wrote stack_lgb_catcorr_v3_ctxc1sel_rohb_adsb.parquet  n=670,790  median=949  mean=1018.9  max=112462
+partial-track rows: 92,908 (13.9%); mean shift +1.9s; per airport {'EDDF': 7025, 'EDDM': 9972, 'EGLL': 16552, 'EHAM': 9660, 'LEBL': 15820, 'LEMD': 17674, 'LFPG': 523, 'LSZH': 15682}
+wrote stack_lgb_catcorr_v3_ctxc1sel_rohb_adsb_partial.parquet  n=670,790  median=949  mean=1019.1  max=112462
+quality-modulated blend: rows 186,982; mean |change vs unmodulated| 13.2s; quality mix {'good': 106511, 'poor': 80471}
+wrote stack_lgb_catcorr_v3_ctxc1sel_rohb_adsbq_partial.parquet  n=670,790  median=950  mean=1020.3  max=112462
+fallback rows: 11,550 (1.7%); mean |shift| 53.4s; per airport {'EDDF': 1661, 'EDDM': 197, 'EGLL': 3872, 'EHAM': 46, 'LEBL': 1115, 'LEMD': 2744, 'LFPG': 134, 'LSZH': 1781}
+wrote stack_lgb_catcorr_v3_ctxc1sel_rohb_adsbq_partial_fb.parquet  n=670,790  median=950  mean=1020.1  max=112462

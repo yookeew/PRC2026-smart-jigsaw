@@ -6526,3 +6526,112 @@ fetched to scratch only; same publisher as the daily sums): mean taxi-out = (ref
 - **State after §136–§139:** about 30 screens since v63. The chain is at the frontier of the information we allow
   ourselves; remaining leads are each ≈ 0.1 s (non-LIRF twin join-window hedge; LSZH / LFPG July level from the PRU
   monthly file; explicit NM differences in a base refit).
+
+## 140. v64 = 237.4538 on the board; blind_v5 built; CTX_HOUR2 withdrawn after its screen (2026-10-11)
+
+**Board: v64 (team numbering; our upload `smart-jigsaw_v59`, md5 6f482bdb…) = 237.4538 (−0.86 vs v63). Kept; new best.**
+Our upload numbers vs team numbers: v58 = v63, v59 = v64. Copied to `data/submissions/smart-jigsaw_v64.parquet` (same md5)
+for `run_v64_final4m.sh`. Next free team version: **v65**.
+
+**Blind board: `blind_v5`** (`run_v64_final4m.sh`, logs `logs/v64/final4m/`, `logs/v64/run_v64_final4m.out`) with the
+teammate's holdout / OOF files of `ctxc1r_roh`, `ctxc1rb_rohb`, `ctxc1sel_rohb` (copied in; `ctxc1r_rohb` = copy of `ctxc1r_roh`).
+- Control chain rerun reproduces the existing four-month `chain_ctxc1sel_ro_final` byte for byte (md5 a4011f35…).
+- Four-month delta RMS 41.9, mean +0.58 (live v64 vs v63: 39.0 / +0.46). After v63's recipe: 560,325 rows changed vs f4m_v62.
+- `data/submissions/final4m/blind_v5.parquet`, md5 **4d6fdfbe911971e8945adb51d5e217a8**: 670,790 rows, IDs exactly
+  `final_submitting`'s, no nulls; Jan/Jul rows identical to v64. vs blind_v4: Feb RMS 32.5 / mean +0.61, Jun 25.6 / +0.09
+  (Jan 51.0, Jul 25.8 = v64 vs v63); LIRF and LSZH unchanged. **blind_v5 replaces blind_v4 as the blind-board file.**
+- A local refit of the teammate's members (before their files arrived) did **not** reproduce them (early stopping 1234 / 753 /
+  2044 / 1770 vs 1274 / 1118 / 1435 / 1926): corrector refits differ across the two machines, so gates must use byte
+  copies of the production files, never a refit here. The local rebuild was stopped before writing anything.
+
+**CTX_HOUR2 (`reports/ctx_hour2_preregistration.md`): withdrawn before its gate.** Block 12 (±15 / ±60 min and before /
+after windows of T − LOBT − p and T − AOBT_3 − p; ADS-B taxi of appear / dwell neighbours minus p, ±30 min). Scratch screen
+(`hour2_screen.py`, paired residual LightGBM on the corrector's own OOF + holdout output, leave-period-out, trimmed vs control):
+
+| on top of | T1 (±30 min recomputed with q) | T3 (+ multi-scale, directional) | T2 (ADS-B window) | T4 (all) |
+|---|---|---|---|---|
+| `ctxc1sel_ro` (pre-v64), pooled / holdout | −0.79 / +0.09 | −1.30 / −0.35 | −0.36 / −0.56 | −1.42 / −0.58 |
+| `ctxc1sel_rohb` (v64), pooled / holdout | +0.57 / +0.33 | +0.00 / +0.23 | **−0.30 / −0.37** (6/6 periods) | −0.27 / −0.08 |
+
+- v64's block 11 already holds the extra windows' information; only the ADS-B neighbour window adds (≈ −0.1 s on the board
+  at §135's screen → board ratio of ≈ 0.4). Not worth ≈ 10 h of corrector fits (team decision). Code kept, off by default.
+- EGLL got worse in every variant on both bases (+0.7 to +0.9).
+
+**Other checks (analysis only).**
+- **Cap at d (= T − SOBT) for predictions > 2 h:** v64 has 17 such rows, all LIRF (12 NM-unmatched with d ≈ 13.5 h, 5 matched
+  at ≈ 2.3 h). In 2025, 7% of y > 2 h rows have y > d + 30 min, nearly all LIRF NM-unmatched (incl. date-wrap rows y ≈ 87,000).
+  Not applicable (LIRF frozen; the hedges are gated).
+- **Public repositories (top 25 at the 2026-10-10 snapshot):** only gracious-tornado (#19) has one
+  (`il-miscusi/prc-2026-gracious-tornado`, created 2026-10-11). Their README describes the same building blocks (NM join window
+  ±3,606 s, arrival-recovered window at LIRF / LTFM, EUROCONTROL monthly and daily reconciliation, adsb.lol pushback blend,
+  2 h cap at d, MLP + NNLS stack); their docs credit other teams' public repositories. Nothing of theirs is used here.
+- **Arrival-twin join window at the non-LIRF airports** (`reports/twin_window_nonlirf_preregistration.md`): **FAIL**. Moving
+  predictions inside the twin's ±3,606 s window to the nearest edge costs +0.20 s on 2025 (EHAM, LEBL, LFPG: the truth is
+  beyond the far edge); LTFM alone is clean (26 helped / 0 hurt) but moves only 3 rows in 2026. Not built.
+- **Day reconciliation as a posterior mean given the published total** (exponential tilting of each row's empirical
+  residual law, one θ per airport-day; scratch `tilt_day.py`, 2025 frame of §130–§133, leave-period-out, 8 airports):
+  no better than G2. Best variant (within-day-demeaned prior, κ fitted leave-period-out) vs G2: full +0.025, body +0.144,
+  Jan +0.29, Jul −0.10, Feb −1.53 (LTFM −0.55, EHAM +0.53). No day stage at all is +2.28 vs G2. A 25 % blend with G2:
+  −0.07 full, −0.05 body, but Feb −0.68 carries it (≈ −0.02 without February) and Jan +0.04. Not built; the day layer is
+  not where the gap to the leaders is.
+
+## 141. LIRF round 4: flight-number echo history on top of v48 -- screened; upload v60 = 237.6439, REJECTED (2026-10-11)
+
+Team decision: LIRF unfrozen for this one change; option 1 (no further 2025 gate; the board decides).
+`reports/lirf_hedge4_preregistration.md`, `src/post/lirf_hedge4.py`; screens `tests/lirf_round4_scope.py`, `tests/lirf_round4_past.py`.
+
+**Where LIRF's error is** (scratch `lirf_screen.py`, Jan + Jul 2025 holdout chain before v45–v48, cells weighted by 2026
+row counts): LIRF ≈ 46% of the board's MSE; NM-unmatched 1–4 h ≈ 15% (305 rows in 2026; a two-mode problem: 30% echo
+with y ≈ d, 70% normal), NM-matched 1–4 h ≈ 10%, NM-matched 15–60 min ≈ 8%, NM-unmatched 4–20 h ≈ 8%. v45/v47/v48 have
+since taken part of the unmatched pool (§118: remaining ≈ 5.5% for 1–3 h).
+
+**Screen: §111's flight-number history on top of v48** (§118's harness; v45 / v48 refitted leave-one-month-out; scope =
+v48's treated rows, 1,213 in 2025; control reproduces v48, ratio 1.000):
+
+| history | in-scope SSE vs v48 | months better |
+|---|---|---|
+| two-sided, ≥ 1 / 3 / 6 months away | 0.811 / 0.934 / 0.988 | 11/12, 10/12, 8/12 |
+| **past-only ≥ 1 month back** (Jan 2026 analogue; Feb–Dec) | **0.823** | 9/11 |
+| past-only ≥ 7 months back (Jul 2026 analogue; Aug–Dec) | 0.982 | 4/5 |
+
+March is worse in every variant. 2026 reach: Jan 78 scope-like rows, 59 with a 2025 history (58 from Nov/Dec); Jul 244, 74.
+Projection ≈ −0.65 (Jan) − 0.2 (Jul) ≈ −0.85 s, wide.
+
+*Numbering: from here on our upload numbers. Upload v59 = the teammate's "v64" (§135); the file `smart-jigsaw_v64.parquet`
+is a byte copy of v59 kept for `run_v64_final4m.sh`.*
+
+**Upload v60** = v59 + round 4 (`lirf_hedge4.py smart-jigsaw_v47 smart-jigsaw_v48 smart-jigsaw_v64 smart-jigsaw_v60`,
+`logs/v60_lirf_hedge4_build.log`):
+- v48 recomputed from v47 on its 287 treated rows: exact (max |diff| 0.0 s); v64 still carries v48's value on all 287.
+- 284 rows changed (all LIRF NM-unmatched, 1–6 h late, non-twin); 116 of 287 have a flight-number history.
+  Jan 62 rows, mean −167 s, RMS 929; Jul 225 rows, mean +252 s, RMS 954 (rows without history move too: the refitted
+  classifier re-weights v48's inputs; the ≥ 7-month screen, mostly such rows, was neutral to slightly positive).
+- Σ(Δ)² 2.58e8 (v47's change was 1.89e8): a wrong-way outcome could cost up to ≈ +0.8 s.
+- `data/submissions/smart-jigsaw_v60.parquet`, md5 3cbe283ffa83c6f6948efcf3999f5a05; 344,841 rows, IDs as v59, no nulls.
+  Keep iff board < 237.4538.
+
+**Board: v60 = 237.6439 (+0.19 vs v59). Rejected; v59 stays best, `blind_v5` stays the blind-board file.**
+- The screen's −18% (January analogue) did not transfer; per the no-probing rule (§82) nothing about individual
+  rows is inferred from the score. Another LIRF hedge that passed a 2025 screen and lost on the board (v20, v22, v28,
+  v40 before it); v45 / v47 / v48 won with physical or structural signals, this one was a learned history.
+- Next free upload number: see §142 (numbering realigned; next is v66).
+
+## 142. Version numbering realigned; teammate's v65 = 237.0694, new best (2026-10-11)
+
+**Numbering (user decision, 2026-10-11).** Our upload numbers had run behind the team's build numbers (uploads v58 / v59 =
+team v63 / v64). The uploads now skip ahead so both match again: **v60 (§141) was the last upload on the old count, and
+the next upload was v65. Upload numbers and team build numbers are the same from v65 on.** Uploads v61–v64 do not exist.
+Mapping for the record: upload v58 = team v63 (238.3173), upload v59 = team v64 (237.4538), upload v60 = LIRF round 4
+(§141, rejected, never had a team number). `data/submissions/smart-jigsaw_v64.parquet` is a byte copy of upload v59
+(for `run_v64_final4m.sh`). My withdrawn CTX_HOUR2 run (§140) was never a v65: its logs moved from `logs/v65/` to
+`logs/ctx_hour2/`, and §141's build log is now `logs/v60_lirf_hedge4_build.log`.
+
+**Board: v65 (teammate's build) = 237.0694 (−0.38 vs v64 = 237.4538). Kept; new best.**
+- `data/submissions/smart-jigsaw_v65.parquet`, md5 b202e54d8c5a08395ea9015d989c337f. Its code and write-up are not on
+  `origin/main` yet (checked 2026-10-11).
+- Label-free diff vs v64: 286,308 rows changed, RMS 33.8 s, mean −0.08; every airport except LIRF and LSZH (unchanged);
+  per airport RMS LTFM 60.1, LFPG 35.8, EDDF 34.4, EGLL 30.1, EHAM 27.9, LEMD 27.0, EDDM 26.2, LEBL 24.8. NM-matched rows
+  RMS 42 (Jan) / 28 (Jul), NM-unmatched 146 / 78. The same footprint as v64 (a corrector-level change through the day stage).
+- **Blind board:** `blind_v5` carries v64, not v65. When v65's code is pushed, its Feb/Jun part needs the same four-month
+  treatment (as `run_v64_final4m.sh` did for v64), then Jan/Jul = v65. Until then `blind_v5` stays the blind-board file.
+- Next upload: **v66**.
