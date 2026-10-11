@@ -1,0 +1,2 @@
+chain change RMS 48.56; id deltas new RMS 30.64, old 34.00; total delta RMS 50.79, mean +0.170
+wrote cache/v65/delta_rh2.parquet

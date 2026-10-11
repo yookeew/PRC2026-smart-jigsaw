@@ -16,13 +16,18 @@ sys.path.insert(0, str(ROOT / "tests"))
 import ctx_hour_gate as G  # noqa: E402
 
 TRIM = 18000
+# v65 retry (reports/lirf_matched_unfreeze_rh2_preregistration.md): GATE=cache/v65/gate_rh2 TAG=rh2 BAR=-0.15 BOARD=237.4538
+GATE = os.environ.get("GATE", "cache/v64/gate_roh")
+TAG = os.environ.get("TAG", "roh")
+BAR = float(os.environ.get("BAR", "-0.10"))
+BOARD = float(os.environ.get("BOARD", "238.3173"))
 
 
 def main() -> None:
     lab = G.labels()
     rm = lambda e: float(np.sqrt(np.mean(e ** 2)))  # noqa: E731
     ctl = pl.read_parquet(ROOT / "cache/eval/v42_chain_holdout.parquet").select(pl.col("MVT_ID_mvt").cast(pl.Int64), c=pl.col("v42").cast(pl.Float64))
-    x = ctl.join(G.rd(ROOT / "cache/v64/gate_roh/chain_all.parquet", "t"), on="MVT_ID_mvt").join(lab, on="MVT_ID_mvt", how="inner")
+    x = ctl.join(G.rd(ROOT / GATE / "chain_all.parquet", "t"), on="MVT_ID_mvt").join(lab, on="MVT_ID_mvt", how="inner")
     k = ((x["apt"] == "LIRF") & ~x["nm"]).to_numpy()
     y, c, t0, mo, nm = (x[q].to_numpy() for q in ("y", "c", "t", "mo", "nm"))
     t = np.where(k, t0, c)                      # only LIRF NM-matched rows change
@@ -41,16 +46,16 @@ def main() -> None:
     rkl = pl.read_parquet(ROOT / "data/ranking/ranking.parquet", columns=["PHASE_mvt", "ADEP_mvt", "FLIGHT_ID_mvt"]).filter(
         (pl.col("PHASE_mvt") == "DEP") & (pl.col("ADEP_mvt") == "LIRF") & pl.col("FLIGHT_ID_mvt").is_not_null()).height
     dm = rkl * np.mean((y - t0)[k] ** 2 - (y - c)[k] ** 2) / n26
-    print(f"  2026 projection (LIRF NM-matched share {rkl / n26:.3f}): {np.sqrt(238.3173 ** 2 + dm) - 238.3173:+.3f} s")
+    print(f"  2026 projection (LIRF NM-matched share {rkl / n26:.3f}): {np.sqrt(BOARD ** 2 + dm) - BOARD:+.3f} s")
     del n26_k
 
     o = (pl.concat([G.rd(f, "c") for f in sorted(glob.glob(str(ROOT / "cache/oof/ctxc1sel/*.parquet")))])
-         .join(pl.concat([G.rd(f, "t") for f in sorted(glob.glob(str(ROOT / "cache/oof/ctxc1sel_roh/*.parquet")))]), on="MVT_ID_mvt")
+         .join(pl.concat([G.rd(f, "t") for f in sorted(glob.glob(str(ROOT / f"cache/oof/ctxc1sel_{TAG}/*.parquet")))]), on="MVT_ID_mvt")
          .join(lab, on="MVT_ID_mvt", how="inner").filter((pl.col("apt") == "LIRF") & ~pl.col("nm") & (pl.col("y") <= TRIM)))
     om = {int(m): rm((g["y"] - g["t"]).to_numpy()) - rm((g["y"] - g["c"]).to_numpy()) for (m,), g in o.group_by("mo")}
     om = dict(sorted(om.items()))
-    print("OOF LIRF NM-matched trimmed by month (ctxc1sel_roh - ctxc1sel):", {m: round(v, 2) for m, v in om.items()})
-    ok = {"a": res["trimmed"] <= -0.10, "b": res["trimmed Jan"] < 0 and res["trimmed Jul"] < 0, "c": res["full"] <= 0,
+    print(f"OOF LIRF NM-matched trimmed by month (ctxc1sel_{TAG} - ctxc1sel):", {m: round(v, 2) for m, v in om.items()})
+    ok = {"a": res["trimmed"] <= BAR, "b": res["trimmed Jan"] < 0 and res["trimmed Jul"] < 0, "c": res["full"] <= 0,
           "d": res["body"] <= 0, "e": om.get(2, 1) < 0 and om.get(6, 1) < 0 and sum(v < 0 for v in om.values()) >= 7}
     print("conditions:", ok, "->", "PASS" if all(ok.values()) else "FAIL")
 

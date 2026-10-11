@@ -68,6 +68,68 @@ def build(dep: pl.DataFrame, arr: pl.DataFrame, tin_med: pl.DataFrame) -> pl.Dat
     return pl.concat(out).with_columns(pl.col(COLS).cast(pl.Float64).fill_nan(None))
 
 
+RWY_COLS = ["h_ra15", "h_rl15", "h_ra60", "h_rl60", "h_rac", "h_rlc", "bf_ra", "af_ra",
+            "rw_ra30", "rw_rl30", "rw_rs30", "rw_ra15", "rw_rl15", "rw_n30", "rw_bf_ra", "rw_af_ra", "rw_p30"]
+
+
+def _wmean(t, v, lo_w, hi_w, min_n=2):
+    """Mean of v over rows with t_j in [t - lo_w, t + hi_w] (t sorted), own row removed; hi_w < 0: before only
+    [t - lo_w, t); lo_w < 0: after only (t, t + hi_w]. NaN v are skipped."""
+    ok = np.isfinite(v)
+    v0 = np.where(ok, v, 0.0)
+    cs, cn = np.concatenate([[0.0], np.cumsum(v0)]), np.concatenate([[0], np.cumsum(ok)])
+    if hi_w < 0:
+        lo, hi = np.searchsorted(t, t - lo_w, "left"), np.searchsorted(t, t, "left")
+    elif lo_w < 0:
+        lo, hi = np.searchsorted(t, t, "right"), np.searchsorted(t, t + hi_w, "right")
+    else:
+        lo, hi = np.searchsorted(t, t - lo_w, "left"), np.searchsorted(t, t + hi_w, "right")
+    s, n = cs[hi] - cs[lo], cn[hi] - cn[lo]
+    if lo_w >= 0 and hi_w >= 0:
+        s, n = s - v0, n - ok
+    return np.where(n >= min_n, s / np.maximum(n, 1), np.nan), n.astype(float)
+
+
+def build_rwy(dep: pl.DataFrame) -> pl.DataFrame:
+    """Block 12 (reports/ctx_hour2_preregistration.md): the hour-window residuals at +-15 / +-60 min, clipped
+    (+-30 min), before / after only, and per departure runway (+-30 / +-15 min, before / after, mean p, count).
+    Same dep columns as build(); label-free."""
+    dep = dep.with_columns(rl=pl.col("t") - pl.col("lo") - pl.col("p"), ra=pl.col("t") - pl.col("a3") - pl.col("p"),
+                           rs=pl.col("t") - pl.col("s") - pl.col("p"))
+    out = []
+    for a in dep["apt"].unique().sort().to_list():
+        d = dep.filter(pl.col("apt") == a).sort("t")
+        t = d["t"].to_numpy().astype(float)
+        n = len(t)
+        rl, ra, rs, p = (d[c].to_numpy().astype(float) for c in ("rl", "ra", "rs", "p"))
+        rac, rlc, rsc = np.clip(ra, -1800, 1800), np.clip(rl, -1800, 1800), np.clip(rs, -3600, 3600)
+        o = {"MVT_ID_mvt": d["MVT_ID_mvt"].to_numpy()}
+        o["h_ra15"], _ = _wmean(t, ra, 900, 900)
+        o["h_rl15"], _ = _wmean(t, rl, 900, 900)
+        o["h_ra60"], _ = _wmean(t, ra, 3600, 3600)
+        o["h_rl60"], _ = _wmean(t, rl, 3600, 3600)
+        o["h_rac"], _ = _wmean(t, rac, 1800, 1800)
+        o["h_rlc"], _ = _wmean(t, rlc, 1800, 1800)
+        o["bf_ra"], _ = _wmean(t, rac, 1800, -1)
+        o["af_ra"], _ = _wmean(t, rac, -1, 1800)
+        for c in RWY_COLS[8:]:
+            o[c] = np.full(n, np.nan)
+        rw = d["RUNWAY_mvt"].fill_null("?").to_numpy().astype(str)
+        for r_ in np.unique(rw):
+            k = np.flatnonzero(rw == r_)
+            tt = t[k]
+            o["rw_ra30"][k], o["rw_n30"][k] = _wmean(tt, rac[k], 1800, 1800)
+            o["rw_rl30"][k], _ = _wmean(tt, rlc[k], 1800, 1800)
+            o["rw_rs30"][k], _ = _wmean(tt, rsc[k], 1800, 1800)
+            o["rw_ra15"][k], _ = _wmean(tt, rac[k], 900, 900)
+            o["rw_rl15"][k], _ = _wmean(tt, rlc[k], 900, 900)
+            o["rw_bf_ra"][k], _ = _wmean(tt, rac[k], 1800, -1)
+            o["rw_af_ra"][k], _ = _wmean(tt, rac[k], -1, 1800)
+            o["rw_p30"][k], _ = _wmean(tt, p[k], 1800, 1800)
+        out.append(pl.DataFrame(o))
+    return pl.concat(out).with_columns(pl.col(RWY_COLS).cast(pl.Float64).fill_nan(None))
+
+
 def movements(raw: pl.DataFrame) -> tuple[pl.DataFrame, pl.DataFrame]:
     """(departures without p, arrivals) from a raw movement frame (training file(s) or a ranking file)."""
     ep = lambda c: pl.col(c).dt.epoch("s").cast(pl.Float64)  # noqa: E731

@@ -35,9 +35,15 @@ def obs_flags() -> pl.DataFrame:
         opdi=(pl.col("o_lead_first").fill_null(0) >= 60))
 
 
-def frame25(keep_lirf=False) -> pl.DataFrame:
-    ho = pl.read_parquet(ROOT / "cache/v50/chain_all.parquet").select(pl.col("MVT_ID_mvt").cast(pl.Int64), p=pl.col("pred"))
-    oof = pl.concat([pl.read_parquet(p) for p in sorted((ROOT / "cache/oof/ctxc1sel").glob("fold=*.parquet"))]).select(
+# PRC_G2_HO / PRC_G2_OOF (reports/day_alloc_refit_preregistration.md): the 2025 frame on another corrector's holdout chain
+# and OOF folds. Defaults: the frame G2 was fitted on (v50's holdout chain and the OOF folds of ctxc1sel).
+G2_HO = os.environ.get("PRC_G2_HO", "cache/v50/chain_all.parquet")
+G2_OOF = os.environ.get("PRC_G2_OOF", "cache/oof/ctxc1sel")
+
+
+def frame25(keep_lirf=False, ho_path=None, oof_dir=None) -> pl.DataFrame:
+    ho = pl.read_parquet(ROOT / (ho_path or G2_HO)).select(pl.col("MVT_ID_mvt").cast(pl.Int64), p=pl.col("pred"))
+    oof = pl.concat([pl.read_parquet(p) for p in sorted((ROOT / (oof_dir or G2_OOF)).glob("fold=*.parquet"))]).select(
         pl.col("MVT_ID_mvt").cast(pl.Int64), p=pl.col("pred"))
     pred = pl.concat([ho, oof.join(ho.select("MVT_ID_mvt"), on="MVT_ID_mvt", how="anti")])
     cols = ["MVT_ID_mvt", "PHASE_mvt", "ADEP_mvt", "MVT_TIME_UTC_mvt", "SCHED_TIME_UTC_mvt", "TAXITIME_SEC_mvt", "FLIGHT_ID_mvt"]
