@@ -6295,3 +6295,51 @@ leave-one-out, trimmed y ≤ 5 h, 8 airports):
 - **Next (proposed):** the hour-window block inside the context corrector (a `CTX_HOUR` member next to `CTX_RO`), through
   the chain as v54 was built (delta against a byte copy of the production `ctxc1sel_ro`, never against a refit: refit
   noise, §105e, would add ≈ 2σ² ≈ +0.3 s). Needs the `_ro` corrector and four-month files from the other machine.
+
+## 135. Hour-window block in the context corrector -- gate PASS; v64 built, board pending. LIRF NM-matched unfreeze fails (2026-10-11)
+
+`reports/ctx_hour_preregistration.md` (written first; amendment A1 added before any gate number),
+`reports/lirf_matched_unfreeze_preregistration.md`. Code: block 11 in `tests/context_corrector_test.py` (`CTX_HOUR=1`, inputs from
+`src/post/hour_feats.py`), `tests/ctx_hour_gate.py`, `tests/lirf_matched_gate.py`, `src/post/v64_delta.py`, `cache/v64/run_chain.sh`,
+`run_v64_final4m.sh` (blind board, waiting for the four-month files). Logs `logs/v64/`.
+
+**Why.** §134: after G2 the day-level error is gone on 2025 but the airport-day × hour error is not (−2.41 s oracle on the
+holdout chain, LTFM-led), and label-free hour-window inputs carry it only inside a host model.
+
+**Members.** Ten hour-window inputs (`h_rl`, `h_ra`, `h_rs`, `h_p`, `h_n`, `rwy30`, `rwy15`, `bk_lobt`, `bk_sobt`, `h_tinx`;
+neighbours' p = the frame's stack) added to the stand-aware members: `ctxc1r_roh` (63 inputs) and `ctxc1rb_rohb`.
+- Control = byte copies of the production `ctxc1{r,rb,sel}_ro` (from the machine that built v54), never a refit: a refit
+  control would add ≈ 2σ² of refit noise (§105e) to the production delta.
+- Reproduction on this machine: the control holdout chain gives trimmed 241.84 (§124: −1.29 vs ctxc1sel, same); the
+  control production chain is byte-identical to the other machine's `chain_ctxc1sel_ro_final`; identity deltas 23.74 / 24.34 s
+  (v54's numbers); v63 rebuilt from v54 with `day_alloc_build.py` equals the uploaded v63 on all 344,841 rows.
+
+**Gate (holdout chain with v50's post-stages, vs the control):**
+
+| candidate | trimmed | full | body | trimmed Jan / Jul | OOF trimmed | pass |
+|---|---|---|---|---|---|---|
+| r only (`ctxc1sel_roh`) | −0.655 | −0.423 | −0.683 | −0.011 / −1.041 | −2.51, 10/10 months | yes |
+| **r + rb (`ctxc1sel_rohb`)** | **−0.819** | **−0.578** | **−0.824** | −0.114 / −1.244 | −2.72, 10/10 months (Feb −11.5, Jun −1.05) | **yes, picked** |
+
+- Corrector level (before post-stages), r only: holdout trimmed −4.50, body −1.23.
+- January is barely better (body +0.06): the gain is mostly July, as for most corrector blocks (§106's January artefact).
+- Per airport trimmed (rohb): EHAM −1.70, LSZH −1.58, LIRF −1.38, LTFM −1.20, LEMD −0.82, EDDF −0.70, LEBL/LFPG −0.48,
+  EGLL −0.47, EDDM +0.32.
+- 2026 projection on the rows production changes (no LIRF, no LSZH): **−0.41 s** (−0.49 with LSZH, −0.74 with LIRF too).
+- No input drift 2025 → 2026 (|SMD| ≤ 0.09 for all ten inputs).
+
+**v64** = (v54 + delta, `FREEZE_LIRF=1 v50_assemble.py`) → `day_alloc_build.py` (v63's recipe: OPDI deltas, G2 at 8 airports,
+LSZH / LIRF rows from v62), delta = (chain_rohb + identity deltas) − (chain_ro + identity deltas), both chains run here.
+- vs v63: 286,759 rows changed, RMS 39.0 s, mean +0.46, max |Δ| 1,652; LIRF and LSZH identical. Per airport RMS: LTFM 54.5,
+  LFPG 51.6, EHAM 49.2, EDDF 39.8, EGLL 34.5, EDDM 30.7, LEMD 28.9, LEBL 28.8.
+- `data/submissions/smart-jigsaw_v64.parquet`, md5 6f482bdb3dfd62f842c5885bc3f39d38. **Keep iff board < 238.3173.**
+- Expected ≈ −0.4 s (corrector changes transferred ≈ 1:1: v54 projected −0.96, board −0.90).
+- Not in v64 (disclosed, left for later): the LSZH part of the gain (the build keeps v62's LSZH rows) and LIRF (frozen).
+
+**LIRF NM-matched rows from the new chain (v65): FAIL.** v63's 26,516 LIRF NM-matched rows equal `chain_ctxc1sel_final`
+(frozen since v48). Replacing them with `chain_ctxc1sel_rohb`'s: pooled trimmed −0.080 (bar −0.10), June +0.07 at corrector
+level (bar < 0). Not built; LIRF stays frozen.
+
+**Blind board.** `run_v64_final4m.sh` repeats the delta method on the four-month chain and composes `blind_v5`
+(Jan/Jul = v64, Feb/Jun = `f4m_v64`). It needs the four-month files from the other machine (it stops at the first
+missing one). The new members' holdout / OOF files are scope-independent and already here. Next free version: **v65**.

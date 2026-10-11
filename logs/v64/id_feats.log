@@ -1,0 +1,7 @@
+C:\Users\zhang\smart-jigsaw\src\features\id_feats.py:33: UserWarning: Sortedness of columns cannot be checked when 'by' groups provided
+  j = dep.filter(pl.col("t_lo").is_not_null()).sort("t_lo").join_asof(
+fa_tmatch  2025 nonnull 0.1134 mean    0.389 | 2026 nonnull 0.1208 mean    0.413
+fa_omatch  2025 nonnull 0.1108 mean    0.595 | 2026 nonnull 0.1167 mean    0.598
+fa_origin  2025 nonnull 0.1137 mean    0.137 | 2026 nonnull 0.1213 mean    0.156
+fa_flnear  2025 nonnull 0.1137 mean    0.097 | 2026 nonnull 0.1213 mean    0.110
+fa_tin_x   2025 nonnull 0.1137 mean  130.909 | 2026 nonnull 0.1206 mean  147.886
