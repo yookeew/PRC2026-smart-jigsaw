@@ -4,3 +4,7 @@ ctxc1r_rs: features 110; trainable rows 1,740,247 (BASE 1,723,569, NM-unmatched 
 holdout corrector: best_iter 1496
 OOF block (2, 3): best_iter 1042
 OOF block (4, 5): best_iter 1931
+OOF block (6, 8): best_iter 1664
+OOF block (9, 10): best_iter 2108
+OOF block (11, 12): best_iter 1543
+wrote ctxc1r_rs_holdout_ev.parquet and cache\oof\ctxc1r_rs

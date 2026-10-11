@@ -1,0 +1,2 @@
+holdout: 129,053 of 344,339 rows from ctxc1rb_rs
+ranking: 127,729 of 344,841 rows from ctxc1rb_rs -> ctxc1sel_rs.parquet

@@ -50,3 +50,16 @@ As v66: production fits, `sel`, production chain (`run_v67_chain.sh`), delta = (
 hour carried NaN rather than null in `st_ar_*`, which the script's `drop_nulls` kept (empty per-airport list). `stop_feats.build`
 now returns null there (as `hour_feats` does); the corrector sees NaN either way, so the model inputs are unchanged. The
 run was relaunched from the start; nothing had been fitted.
+
+## Outcome (2026-10-11; `logs/v67/ctx_stop_gate.log`, `logs/v67/ctx_stop_drift.log`)
+
+| holdout chain vs `ctxc1sel_rf` | trimmed | full | body | trimmed Jan / Jul | OOF trimmed | pass |
+|---|---|---|---|---|---|---|
+| `ctxc1sel_rs` | −0.189 | −0.142 | −0.102 | **+0.031** / −0.320 | −0.173; Feb −0.26, **Jun +0.39**, 6/10 months | **no** |
+
+- Non-LIRF: trimmed −0.004, full +0.010, body +0.035: the whole holdout gain is LIRF (−1.05), which production freezes.
+  Per airport trimmed: LFPG −0.47, EHAM −0.35, EDDF −0.28, LEMD −0.19; EDDM +0.61, EGLL +0.42, LTFM +0.22.
+- 2026 projection on the rows production changes: +0.011 s.
+- (f) drift PASS (max |SMD| 0.041).
+**FAIL on (b) and (e). Not built; no v67** (the run was stopped during the production chain; only `*_ctxc1sel_rs*` stack files
+were written, v66 untouched). Block 14 is closed.

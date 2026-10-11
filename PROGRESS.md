@@ -6521,3 +6521,23 @@ residual harness, base `ctxc1sel_rf`, trimmed 215.36 at corrector level):
   60 min; time and movements since it ended): −0.32, Jan +0.01, mostly LTFM −1.04 / LIRF −0.82, body −0.06. Weak.
 - neighbour rotation pressure (±30 min: share of tight turnarounds, median slack, offsets of tight vs slack
   neighbours): −0.15, only LIRF; most airports slightly worse. Dead.
+
+## 139. Runway stoppage / discharge block (block 14) -- gate FAIL, nothing built; XGBoost corrector and LIRF flow-echo scoping (2026-10-11)
+
+`reports/ctx_stop_preregistration.md` (A1: NaN → null in `st_ar_*` before any fit; inputs unchanged). Code: `src/post/stop_feats.py`,
+block 14 in `tests/context_corrector_test.py` (`CTX_STOP=1`), `tests/ctx_stop_drift.py`, `run_v67.sh`, `run_v67_chain.sh`.
+Logs `logs/v67/`. Built on top of v66 (board pending at the time) — from now on only one candidate per round (user).
+
+- **Inputs (9):** the longest gap between consecutive takeoffs on the same runway / at the airport, and between landings,
+  inside [T − 60 min, T], with the time and movements since it ended. Screen on v66's corrector −0.32 (§138 list).
+- **Gate vs v66's `ctxc1sel_rf`: FAIL.** Holdout trimmed −0.189 but Jan +0.031; OOF −0.173 with June +0.39 and only
+  6/10 months better. Non-LIRF trimmed −0.004: the gain is all LIRF (frozen). Projection on production rows +0.011.
+  No v67. Block 14 closed.
+- **XGBoost corrector diversity** (`tests/xgb_corrector_scope.py`, GPU, v66 member-r inputs, fit on the 10 OOF months,
+  scored on the holdout at corrector level): XGBoost alone 246.87 vs LightGBM 244.22; error correlation 0.981; best blend
+  (0.25 XGBoost) −0.23 trimmed, body −0.14. Too little for a second corrector family. Closed.
+- **Flow inputs for the LIRF NM-unmatched echo hedge** (`tests/flow_screen/lirf_flow_echo.py`, v45 scope, 958 rows,
+  leave-one-month-out logistic on [logit p, v45 signals] ± flow): offset-weighted cost 9.10e9 → 8.85e9 (−2.8%) with
+  destination flow, log-loss 0.434 → 0.428, 7/10 months better. Real but small (≈ −0.2 s at most) on the rows with the
+  worst board-transfer record. Not built.
+- Next free version stays **v67**.
