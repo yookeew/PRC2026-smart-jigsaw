@@ -6406,3 +6406,70 @@ the other machine. Fallback without them: `final4m_compose.py smart-jigsaw_v65.p
 from v65, Feb/Jun from blind_v4). Next free version: **v66**.
 
 v65 had a small gain of -0.4, new best is now 237.0694
+
+## 137. After v65: is the direction used up? Error budget and new-signal screens; the flow block is the one fresh lead (2026-10-11, analysis only)
+
+**Board: v65 = 237.0694 (−0.38 vs v64; projected −0.71). Kept; new best; 29th.** Leader ≈ 212. Next free version: **v66**.
+Ground rule from here (user): the final blind board is one submission over Jan + Feb + Jun + Jul 2026, so a candidate is
+judged on all 2025 out-of-fold months (Feb and Jun required), not on the Jan/Jul holdout, and never on board scores.
+
+Scripts `tests/flow_screen/` (frame, decomp, cells, oracle, flow, flow2, flow3, screen, drift); data in
+`cache/analysis/flow_screen/`. Frame: 12 months of 2025 departures with the `ctxc1sel_rh2` corrector output (10 OOF months +
+the Jan/Jul cross-fit holdout), trimmed y ≤ 5 h, 2,084,876 rows, RMSE 217.07 at corrector level.
+
+**Error budget, v65's holdout chain (`cache/v65/gate_rh2/chain_all`, trimmed 240.31):**
+
+| segment | rows | RMSE | % SSE |
+|---|---|---|---|
+| NM-matched y ≤ 15 min | 46.3% | 139 | 15.5 |
+| NM-matched 15–30 min | 47.7% | 179 | 26.4 |
+| NM-matched 30–60 min | 4.2% | 519 | 19.5 |
+| NM-matched 1–3 h | 0.22% | 1,654 | 10.6 |
+| LIRF NM-unmatched | 0.11% (369) | 3,375 | 21.1 |
+| other NM-unmatched | 1.43% | 518 | 6.6 |
+
+- By airport: LIRF 40.3% of SSE (body RMSE 312), LTFM 12.3, LFPG 12.0, EGLL 11.6; the other six 2–5% each.
+- To reach 212 from the body alone, body RMSE would have to go 190 → 152 (−20%). Each recent corrector block gave ~1%.
+
+**Within-day direction (blocks 11/12): used up.** At corrector level the airport × 30 min × runway oracle is still −5.7
+(−8.4 non-LIRF), but §134–§136 showed label-free window inputs reach only a slice of it, and the extra dimensions screened
+today don't either:
+- static leave-month-out cells (shrunk k = 30) at non-LIRF airports are all worse: stand +0.21, stand × runway +0.46,
+  operator × stand +0.40, type × runway +0.28, flight number +0.19, ADES +0.04, runway × hour +0.60. The corrector is
+  calibrated on identity. (LIRF-only gains from flight number / ADES, −0.5, repeat §111 and stay frozen.)
+- operator ±30 min windows (median T − SOBT, T − LOBT, count): −0.07, two periods worse. Dead.
+- shared error along the destination: the cross-origin (other airports) hour × ADES residual mean makes things worse
+  (+4.8 on top of the airport-hour oracle). Errors are local to airport × time × runway, not to the flow.
+
+**The one fresh signal: flow state (candidate corrector block 13).** Label-free, from the movement file only (all ten
+origins are in every release):
+- destination flow: other origins' departures to the same ADES within ±60 min (count, median T − SOBT, median T − LOBT,
+  share > 30 min late); same origin, same ADES within ±90 min;
+- region flow: same ADES ICAO prefix (two letters), excluding the same ADES, same origin and other origins, ±60 min;
+- schedule-order displacement: departures at the same airport with SOBT within ±20 min — count, overtakers (scheduled later,
+  took off earlier), overtaken, median T gap, net share.
+- Reading: it tells the model whether a delayed flight's delay was spent at the gate (an ATFM-regulated flow) or on the
+  taxiway, not a shared residual (see the destination oracle above).
+
+Paired residual screen (LightGBM on y − corrector, control = pred, airport, T − SOBT, T − LOBT, T − AOBT_3, hour, NM flag;
+7 periods leave-period-out: Jan | Jul | Feb–Mar | Apr–May | Jun+Aug | Sep–Oct | Nov–Dec):
+
+| treatment − control | trimmed | body | by period | airports better |
+|---|---|---|---|---|
+| destination flow | −0.371 | −0.140 | −0.37 / −0.36 / −0.89 / −0.20 / −0.33 / −0.30 / −0.18 | 10/10 |
+| region flow | −0.249 | −0.032 | all 7 better | 9/10 |
+| schedule displacement | −0.215 | −0.069 | 5/7 better | 7/10 |
+| **all three** | **−0.600** | **−0.207** | −0.33 / −0.69 / **−1.70** / −0.37 / **−0.46** / −0.43 / −0.20 | **10/10** |
+
+- All three, per airport: LTFM −1.79, LIRF −1.44 (frozen in production), LFPG −0.41, LEMD −0.19, EGLL −0.15, EDDF / LEBL −0.12,
+  EHAM −0.09, LSZH −0.08, EDDM −0.07.
+- Size: block 12's screen was −1.02 and gave gate −0.72, board −0.38; so expect very roughly −0.2 to −0.35 s, non-LIRF.
+- 2025 → 2026 (final release, NM-matched, other-origin destination flow): coverage 0.75–0.79 in both years for every
+  month; SMD of the median offset +0.22 (Jan, the storm month), +0.07 (Feb), 0.00 (Jun), −0.17 (Jul); share late
+  +0.24 / +0.09 / −0.02 / −0.24. These are real delay-level differences inside 2025's month-to-month range (Jan 1,591 s vs
+  Jul 2,067 s in 2025), the size of block 12's max (0.20).
+
+**Proposed next (not started):** pre-register block 13 (`CTX_FLOW=1`, r + rb members on top of block 12), gate as §136
+with Feb and Jun OOF required, delta against byte copies of the production `ctxc1sel_rh2`, LIRF frozen; build v66 and the
+four-month port. Before that, the blind board still lacks v64 and v65 (`run_v64_final4m.sh`, `run_v65_final4m.sh` need the
+other machine's `final4m/` folders).
