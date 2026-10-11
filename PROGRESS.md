@@ -6473,3 +6473,51 @@ Paired residual screen (LightGBM on y − corrector, control = pred, airport, T 
 with Feb and Jun OOF required, delta against byte copies of the production `ctxc1sel_rh2`, LIRF frozen; build v66 and the
 four-month port. Before that, the blind board still lacks v64 and v65 (`run_v64_final4m.sh`, `run_v65_final4m.sh` need the
 other machine's `final4m/` folders).
+
+## 138. Flow-state block (block 13) in the context corrector -- gate PASS; v66 built, board pending (2026-10-11)
+
+`reports/ctx_flow_preregistration.md` (written first; amendment A1 before any gate number). Code: `src/post/flow_feats.py`,
+block 13 in `tests/context_corrector_test.py` (`CTX_FLOW=1`), `tests/ctx_flow_drift.py`, `tests/ctx_hour_gate.py`
+(`CTL_DIR` switch, default unchanged), `run_v66.sh`, `run_v66_chain.sh`. Logs `logs/v66/`.
+
+- **Inputs (21, label-free, §137):** destination flow from the other nine airports (±60 min) and from our own airport
+  (±90 min), region flow (same two-letter ADES prefix, different ADES, ±60 min, same / other origins) — each count, median
+  T − SOBT, median T − LOBT, share > 30 min late — and schedule-order displacement (SOBT within ±20 min: count, overtakers,
+  overtaken, median T gap, net share). `flow_feats.build` reproduces the screened features exactly (21/21 columns).
+- **A1, a bug found before any gate number:** `sq_net` subtracted unsigned counts, so negative values wrapped to ≈ 4.3e9 / n
+  (the §137 screen had it too). Fixed to signed arithmetic; the run was restarted from the start.
+- Members `ctxc1r_rf` (101 inputs) / `ctxc1rb_rf` (118), sel `ctxc1sel_rf`. Early stopping 1,505–2,444 rounds.
+
+**Gate (holdout chain with v50's post-stages, vs v65's `ctxc1sel_rh2`): PASS (a)–(f).**
+
+| | trimmed | full | body | trimmed Jan / Jul | OOF trimmed |
+|---|---|---|---|---|---|
+| all airports | −0.351 | −0.261 | −0.278 | −0.731 / −0.137 | −1.43, 10/10 months (Feb −0.46, Jun −2.13) |
+| non-LIRF | −0.707 | −0.499 | −0.437 | | |
+
+- Per airport trimmed: LTFM −1.36, LFPG −1.00, LSZH −0.94, EDDF −0.82, EHAM −0.75, EDDM −0.60, EGLL −0.36, LEMD −0.24, LEBL 0.00,
+  LIRF +0.98 (frozen in production, as LSZH is by the day recipe).
+- Drift (f): max pooled |SMD| 0.158 (`rxo_f30`); 2026 coverage equal to 2025's.
+- LIRF: the corrector-level gain (member r, 12 months: LIRF −9.6) sits on NM-unmatched rows, where the production v48 hedges
+  are far better than any corrector (holdout 3,233 vs 3,933 / 4,088). Nothing to take there.
+- 2026 projection on the rows production changes: **−0.47 s.**
+
+**v66** = v54 + delta (`FREEZE_LIRF=1 v50_assemble.py`) → `day_alloc_build.py` (v63's recipe), delta =
+(chain_rf + identity deltas) − (chain_ro + identity deltas) (RMS 57.0 s).
+- vs v65: 284,290 rows changed, RMS 24.9 s, mean +0.09, max |Δ| 683; LIRF and LSZH identical. Per airport RMS: LTFM 35.1,
+  LFPG 30.1, EDDF 27.4, EGLL 26.5, EHAM 24.8, LEMD 21.7, EDDM 21.0, LEBL 19.7.
+- `data/submissions/smart-jigsaw_v66.parquet`, md5 27cdb451694f6bbd1a384dbbea19f367. **Keep iff board < 237.0694.**
+- Four-month version: on the last day with the rest (`run_v65_final4m.sh` pattern, tag `_rf`). Next free version: **v67**.
+
+**LIRF NM-matched unfreeze, third attempt on `ctxc1sel_rf`: FAIL** (`reports/lirf_matched_unfreeze_rf_preregistration.md`,
+bar tightened to −0.20). Holdout pooled trimmed −0.047, Jul +0.015; OOF now 9/10 months better (June −0.72), but the
+corrector-level gains don't survive the chain. Closed after three attempts; LIRF stays frozen.
+
+**Screens on top of v66's corrector** (`tests/flow_screen/air_screen.py`, `stop_screen.py`, `rot_screen.py`; same paired
+residual harness, base `ctxc1sel_rf`, trimmed 215.36 at corrector level):
+- airline network (same operator's departures at the other nine airports ±60 min; + its arrivals): −0.08 / −0.14, Jan
+  worse. Dead.
+- runway stoppage / discharge (longest takeoff gap on the runway and at the airport, and longest landing gap, in the past
+  60 min; time and movements since it ended): −0.32, Jan +0.01, mostly LTFM −1.04 / LIRF −0.82, body −0.06. Weak.
+- neighbour rotation pressure (±30 min: share of tight turnarounds, median slack, offsets of tight vs slack
+  neighbours): −0.15, only LIRF; most airports slightly worse. Dead.

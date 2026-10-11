@@ -1,0 +1,34 @@
+=== 0. drift (condition f)  2026-10-11 14:33:40
+=== 1. holdout + OOF inputs, member r  2026-10-11 14:34:01
+=== 2. holdout + OOF inputs, member rb  2026-10-11 14:57:45
+=== 3. production fit, member r  2026-10-11 15:24:17
+=== 4. production fit, member rb  2026-10-11 15:29:36
+=== 5. sel  2026-10-11 15:35:43
+=== 6. holdout chain gate run  2026-10-11 15:35:45
+=== 7. gate  2026-10-11 15:38:47
+holdout chain rows 344,339; RMS change 26.48 s, mean -0.10
+  trimmed            control   240.31  treatment   239.95  delta -0.351
+  full               control   300.09  treatment   299.83  delta -0.261
+  body               control   189.90  treatment   189.62  delta -0.278
+  trimmed Jan        control   195.98  treatment   195.25  delta -0.731
+  trimmed Jul        control   270.80  treatment   270.66  delta -0.137
+  body Jan           control   173.27  treatment   172.76  delta -0.510
+  body Jul           control   202.47  treatment   202.35  delta -0.117
+  trimmed non-LIRF   control   193.26  treatment   192.55  delta -0.707
+  full non-LIRF      control   263.55  treatment   263.05  delta -0.499
+  body non-LIRF      control   176.06  treatment   175.63  delta -0.437
+  per airport trimmed: {'EDDF': -0.82, 'EDDM': -0.6, 'EGLL': -0.36, 'EHAM': -0.75, 'LEBL': 0.0, 'LEMD': -0.24, 'LFPG': -1.0, 'LIRF': 0.98, 'LSZH': -0.94, 'LTFM': -1.36}
+  per airport body:    {'EDDF': -0.57, 'EDDM': -0.62, 'EGLL': -0.05, 'EHAM': -0.4, 'LEBL': 0.05, 'LEMD': -0.25, 'LFPG': -0.52, 'LIRF': 0.76, 'LSZH': -0.6, 'LTFM': -0.96}
+  2026 projection (all airports): -0.329 s
+  2026 projection (LIRF frozen): -0.513 s
+  2026 projection (production rows (no LIRF, no LSZH)): -0.470 s
+OOF rows 1,740,628; trimmed pooled delta -1.429
+  trimmed by month: {np.int8(2): -0.46, np.int8(3): -0.68, np.int8(4): -1.81, np.int8(5): -1.44, np.int8(6): -2.13, np.int8(8): -2.13, np.int8(9): -2.13, np.int8(10): -0.93, np.int8(11): -0.76, np.int8(12): -1.31}
+  per airport trimmed: {'EDDF': -0.03, 'EDDM': -0.05, 'EGLL': -0.03, 'EHAM': -0.5, 'LEBL': -0.11, 'LEMD': -0.18, 'LFPG': -0.56, 'LIRF': -8.21, 'LSZH': -0.07, 'LTFM': -0.27}
+conditions: {'a trimmed <= -0.10': True, 'b Jan and Jul trimmed better': True, 'c full <= 0': True, 'd body <= +0.10': True, 'e OOF Feb, Jun better, >= 7/10 months': True}
+DECISION: PASS
+max pooled |SMD| 0.158 -> condition (f) PASS
+=== 8. production chain  2026-10-11 15:38:50
+chain ctxc1sel_rf done Sun Oct 11 15:41:59 WEST 2026
+=== 9. delta, assembly, day recipe  2026-10-11 15:41:59
+=== done  2026-10-11 15:42:18

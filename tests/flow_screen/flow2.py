@@ -22,7 +22,7 @@ sq=x.group_by("MVT_ID_mvt").agg(sq_n=pl.len(),
    sq_under=((pl.col("Sj")<pl.col("S"))&(pl.col("Tj")>pl.col("T"))).sum(),
    sq_mdT=(pl.col("Tj")-pl.col("T")).median())
 del x
-f=f.join(sq,on="MVT_ID_mvt",how="left").with_columns(sq_net=(pl.col("sq_over")-pl.col("sq_under"))/pl.col("sq_n"))
+f=f.join(sq,on="MVT_ID_mvt",how="left").with_columns(sq_net=(pl.col("sq_over").cast(pl.Float64)-pl.col("sq_under").cast(pl.Float64))/pl.col("sq_n"))  # §137 screen ran with an unsigned-underflow bug here (fixed after; prereg A1)
 f.write_parquet(S+"/dep25_flow2.parquet")
 dest=[c for c in f.columns if c.startswith(("xo60_","so90_"))]
 reg=[c for c in f.columns if c.startswith(("rso_","rxo_"))]

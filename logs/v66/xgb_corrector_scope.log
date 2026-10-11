@@ -1,0 +1,10 @@
+OOF stack weights: [0.577 0.428]
+rows 2,084,967 (OOF 1,740,628, holdout 344,339); features 100
+ctxc1r_rf: features 101, trainable 1,740,247, build 30s
+xgb best_iter 1286, fit 72s
+corr(lgb - y, xgb - y) 0.9807; RMS(lgb - xgb) 48.3
+  w_xgb 0.00: trimmed 244.220  Jan 206.808  Jul 270.634  body 200.445  non-LIRF 205.425
+  w_xgb 0.25: trimmed 243.991  Jan 206.640  Jul 270.364  body 200.308  non-LIRF 205.317
+  w_xgb 0.50: trimmed 244.359  Jan 207.022  Jul 270.727  body 200.600  non-LIRF 205.713
+  w_xgb 0.75: trimmed 245.319  Jan 207.949  Jul 271.722  body 201.321  non-LIRF 206.610
+  w_xgb 1.00: trimmed 246.867  Jan 209.416  Jul 273.340  body 202.464  non-LIRF 208.000

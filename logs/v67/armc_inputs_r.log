@@ -1,0 +1,6 @@
+OOF stack weights: [0.577 0.428]
+rows 2,084,967 (OOF 1,740,628, holdout 344,339); features 109
+ctxc1r_rs: features 110; trainable rows 1,740,247 (BASE 1,723,569, NM-unmatched added 16,678)
+holdout corrector: best_iter 1496
+OOF block (2, 3): best_iter 1042
+OOF block (4, 5): best_iter 1931
