@@ -6343,3 +6343,5 @@ level (bar < 0). Not built; LIRF stays frozen.
 **Blind board.** `run_v64_final4m.sh` repeats the delta method on the four-month chain and composes `blind_v5`
 (Jan/Jul = v64, Feb/Jun = `f4m_v64`). It needs the four-month files from the other machine (it stops at the first
 missing one). The new members' holdout / OOF files are scope-independent and already here. Next free version: **v65**.
+
+v64 worked and the new best is 237.4538 (gain ~0.9s)
