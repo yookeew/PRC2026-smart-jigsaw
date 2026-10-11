@@ -17,6 +17,9 @@ import polars as pl
 ROOT = Path(__file__).resolve().parents[1]
 TRIM = 18000
 TAG = os.environ.get("TAG", "roh")
+CTL = os.environ.get("CTL", "ro")                      # control corrector tag (v65 gate: rohb)
+GDIR = os.environ.get("GATE_DIR", "cache/v64")           # where gate_<TAG>/chain_all lives (control always cache/v64)
+BOARD = float(os.environ.get("BOARD", "238.3173"))       # current best, for the 2026 projection
 
 
 def labels() -> pl.DataFrame:
@@ -39,7 +42,7 @@ def main() -> None:
     rm = lambda e: float(np.sqrt(np.mean(e ** 2))) if len(e) else float("nan")  # noqa: E731
 
     # 1. holdout chain
-    x = (rd(ROOT / "cache/v64/gate_ro/chain_all.parquet", "c").join(rd(ROOT / f"cache/v64/gate_{TAG}/chain_all.parquet", "t"), on="MVT_ID_mvt")
+    x = (rd(ROOT / f"cache/v64/gate_{CTL}/chain_all.parquet", "c").join(rd(ROOT / f"{GDIR}/gate_{TAG}/chain_all.parquet", "t"), on="MVT_ID_mvt")
          .join(lab, on="MVT_ID_mvt", how="inner"))
     y, c, t = x["y"].to_numpy(), x["c"].to_numpy(), x["t"].to_numpy()
     apt, mo, nm = x["apt"].to_numpy(), x["mo"].to_numpy(), x["nm"].to_numpy()
@@ -56,12 +59,12 @@ def main() -> None:
     print("  per airport trimmed:", {a: round(d(trim & (apt == a)), 2) for a in sorted(set(apt))})
     print("  per airport body:   ", {a: round(d(body & (apt == a)), 2) for a in sorted(set(apt))})
     tot = sum(n26.values())
-    for lab_, keep in [("all airports", lambda a: True), ("LIRF frozen (production)", lambda a: a != "LIRF")]:
+    for lab_, keep in [("all airports", lambda a: True), ("LIRF frozen", lambda a: a != "LIRF"), ("production rows (no LIRF, no LSZH)", lambda a: a not in ("LIRF", "LSZH"))]:
         dm = sum(n26[a] * np.mean((y - t)[apt == a] ** 2 - (y - c)[apt == a] ** 2) for a in set(apt) if keep(a) and a in n26) / tot
-        print(f"  2026 projection ({lab_}): {np.sqrt(238.3173 ** 2 + dm) - 238.3173:+.3f} s")
+        print(f"  2026 projection ({lab_}): {np.sqrt(BOARD ** 2 + dm) - BOARD:+.3f} s")
 
     # 2. OOF months, corrector level
-    o = (pl.concat([rd(f, "c") for f in sorted((ROOT / "cache/oof/ctxc1sel_ro").glob("fold=*.parquet"))])
+    o = (pl.concat([rd(f, "c") for f in sorted((ROOT / f"cache/oof/ctxc1sel_{CTL}").glob("fold=*.parquet"))])
          .join(pl.concat([rd(f, "t") for f in sorted((ROOT / f"cache/oof/ctxc1sel_{TAG}").glob("fold=*.parquet"))]), on="MVT_ID_mvt")
          .join(lab, on="MVT_ID_mvt", how="inner"))
     yo, co, to, moo, apo = (o[k].to_numpy() for k in ("y", "c", "t", "mo", "apt"))

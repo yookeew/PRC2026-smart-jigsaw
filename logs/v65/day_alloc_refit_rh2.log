@@ -1,0 +1,17 @@
+rows 1,924,263; p change A -> B: RMS 45.7 s; rows whose predicted off-block day moves 52
+lambda done
+  P01 done
+  P02 done
+  P04 done
+  P06 done
+  P09 done
+  P11 done
+
+frame B, 8 airports: no day stage 202.693, OLD 200.250, NEW 200.202
+NEW - OLD: {'full': -0.048, 'body': 0.043, 'trim': -0.052}
+by month (full): {'01': 0.02, '02': -0.81, '03': 0.0, '04': -0.03, '05': -0.01, '06': -0.01, '07': 0.12, '08': -0.02, '09': -0.02, '10': -0.02, '11': -0.02, '12': 0.14}
+per airport (full): {'EDDF': 0.01, 'EDDM': -0.03, 'EGLL': -0.02, 'EHAM': -0.0, 'LEBL': -0.02, 'LEMD': -0.0, 'LFPG': -0.04, 'LTFM': -0.2}
+per airport (body): {'EDDF': 0.01, 'EDDM': -0.03, 'EGLL': -0.03, 'EHAM': 0.01, 'LEBL': -0.02, 'LEMD': -0.0, 'LFPG': -0.07, 'LTFM': 0.34}
+2026 projection: -0.036 s
+conditions: {'full <= -0.05': False, 'body <= 0': False, 'trimmed <= 0': True, '>= 8 of 12 months better': True, 'Feb <= 0 and Jun <= 0': True} (months better 8)
+DECISION: FAIL
