@@ -1,6 +1,6 @@
 # H: intra-day level from ADS-B-tracked departures -- pre-registration
 
-Written 2026-10-10 **before any number below was computed** except two scratch checks (PROGRESS §134/§135): on the
+Written 2026-10-10 **before any number below was computed** except two scratch checks (PROGRESS §136/§137 (§134/§135 before the merge)): on the
 Jan + Jul 2025 holdout chain after G2, the intra-day deviation (3 h block minus day) of tracked rows' residual correlates
 +0.07 to +0.49 per airport with the same deviation of untracked rows' residual (EDDF 0.48, EHAM 0.47, LEBL 0.49,
 LEMD 0.43, EGLL 0.32, EDDM 0.07; LFPG and LTFM have no tracked rows). That check used labels for tracked rows; the

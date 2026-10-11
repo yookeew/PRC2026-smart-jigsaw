@@ -1,6 +1,6 @@
 # G4: day-shift slope model with day-type inputs -- pre-registration
 
-Written 2026-10-10 **before any number below was computed**, after G3 failed (reports/day_alloc_g3_preregistration.md).
+Written 2026-10-10 **before any number below was computed**, after G3f failed (reports/day_alloc_g3flight_preregistration.md; called G3 before the team merge).
 Base: v63 = 238.3173 (G2x8, §133). Same 2025 data as §130–§133 (disclosed).
 
 ## Idea
@@ -17,7 +17,7 @@ Keyed on (airport, predicted off-block date) as λ̂ is.
 
 G4 = G2 (`tests/day_alloc_gbm.py`, same hyper-parameters, label, weight, clip, λ̂, periods, masks) + the two inputs.
 One candidate: **G4 at all 8 airports**. Pass iff vs G2x8: pooled full ≤ −0.10, body ≤ 0, trimmed ≤ 0, ≥ 8/12 months
-full better, February and June each not worse. **And, given G3: full without February ≤ −0.05** (so a gain that is only
+full better, February and June each not worse. **And, given G3f: full without February ≤ −0.05** (so a gain that is only
 LTFM's February 2025 cannot pass). Build if it passes: `src/post/day_alloc_build.py` with G4; keep iff board < 238.3173.
 
 ## Outcome (2026-10-10; `tests/day_alloc_g4.py`, `logs/day_alloc_g4.log`)

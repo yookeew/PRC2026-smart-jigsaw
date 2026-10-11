@@ -1,0 +1,33 @@
+extra inputs, null share: {'WK_TBL_CAT_flt': 0.0, 'MARKET_SEGMENT_flt': 0.0, 'n_dep_30m_prev': 0.0, 'dep_pressure': 0.0, 'inbound_arr_delay': 0.001, 'eobt_delay': 0.011, 'sched_ground': 0.001, 'aobt3_taxi': 0.011, 'deicing_risk': 0.0, 'wx_snow': 0.0, 'below_freezing': 0.0}
+[LightGBM] [Warning] Met negative value in categorical features, will convert it to NaN
+[LightGBM] [Warning] Met negative value in categorical features, will convert it to NaN
+period P01 done
+[LightGBM] [Warning] Met negative value in categorical features, will convert it to NaN
+[LightGBM] [Warning] Met negative value in categorical features, will convert it to NaN
+period P02 done
+[LightGBM] [Warning] Met negative value in categorical features, will convert it to NaN
+[LightGBM] [Warning] Met negative value in categorical features, will convert it to NaN
+period P04 done
+[LightGBM] [Warning] Met negative value in categorical features, will convert it to NaN
+[LightGBM] [Warning] Met negative value in categorical features, will convert it to NaN
+period P06 done
+[LightGBM] [Warning] Met negative value in categorical features, will convert it to NaN
+[LightGBM] [Warning] Met negative value in categorical features, will convert it to NaN
+period P09 done
+[LightGBM] [Warning] Met negative value in categorical features, will convert it to NaN
+[LightGBM] [Warning] Met negative value in categorical features, will convert it to NaN
+period P11 done
+vs G2x8 (v63's recipe), 2025, 12 months, 8 airports' rows; fMM = full by month
+shape: (3, 18)
+┌────────────┬────────┬───────┬────────┬───────────┬────────┬────────┬────────┬────────┬────────┬────────┬────────┬────────┬────────┬────────┬────────┬────────┬───────┐
+│ cand       ┆ full   ┆ body  ┆ trim   ┆ mo_better ┆ f01    ┆ f02    ┆ f03    ┆ f04    ┆ f05    ┆ f06    ┆ f07    ┆ f08    ┆ f09    ┆ f10    ┆ f11    ┆ f12    ┆ pass  │
+│ ---        ┆ ---    ┆ ---   ┆ ---    ┆ ---       ┆ ---    ┆ ---    ┆ ---    ┆ ---    ┆ ---    ┆ ---    ┆ ---    ┆ ---    ┆ ---    ┆ ---    ┆ ---    ┆ ---    ┆ ---   │
+│ str        ┆ f64    ┆ f64   ┆ f64    ┆ i64       ┆ f64    ┆ f64    ┆ f64    ┆ f64    ┆ f64    ┆ f64    ┆ f64    ┆ f64    ┆ f64    ┆ f64    ┆ f64    ┆ f64    ┆ bool  │
+╞════════════╪════════╪═══════╪════════╪═══════════╪════════╪════════╪════════╪════════╪════════╪════════╪════════╪════════╪════════╪════════╪════════╪════════╪═══════╡
+│ G2x8 (v63) ┆ 0.000  ┆ 0.000 ┆ 0.000  ┆ 0         ┆ 0.000  ┆ 0.000  ┆ 0.000  ┆ 0.000  ┆ 0.000  ┆ 0.000  ┆ 0.000  ┆ 0.000  ┆ 0.000  ┆ 0.000  ┆ 0.000  ┆ 0.000  ┆ false │
+│ G3x8       ┆ -0.208 ┆ 0.027 ┆ -0.223 ┆ 12        ┆ -0.000 ┆ -2.200 ┆ -0.070 ┆ -0.010 ┆ -0.020 ┆ -0.010 ┆ -0.070 ┆ -0.030 ┆ -0.030 ┆ -0.010 ┆ -0.050 ┆ -0.090 ┆ false │
+│ R0         ┆ 0.652  ┆ 0.454 ┆ 0.688  ┆ 0         ┆ 0.100  ┆ 3.090  ┆ 0.980  ┆ 0.600  ┆ 0.690  ┆ 0.420  ┆ 0.430  ┆ 0.250  ┆ 0.360  ┆ 0.410  ┆ 0.420  ┆ 0.540  ┆ false │
+└────────────┴────────┴───────┴────────┴───────────┴────────┴────────┴────────┴────────┴────────┴────────┴────────┴────────┴────────┴────────┴────────┴────────┴───────┘
+G3x8 per airport full: {'EDDF': -0.03, 'EDDM': -0.04, 'EGLL': -0.01, 'EHAM': 0.0, 'LEBL': -0.11, 'LEMD': -0.0, 'LFPG': -0.06, 'LTFM': -1.0}
+G3x8 per airport body: {'EDDF': -0.03, 'EDDM': -0.03, 'EGLL': -0.01, 'EHAM': 0.01, 'LEBL': -0.11, 'LEMD': 0.0, 'LFPG': -0.08, 'LTFM': 0.31}
+G3x8 2026 projection vs v63: -0.161 s
