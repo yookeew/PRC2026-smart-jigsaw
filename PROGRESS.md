@@ -6345,3 +6345,64 @@ level (bar < 0). Not built; LIRF stays frozen.
 missing one). The new members' holdout / OOF files are scope-independent and already here. Next free version: **v65**.
 
 v64 worked and the new best is 237.4538 (gain ~0.9s)
+
+**Board: v64 = 237.4538 (−0.86 vs v63; projected −0.41). Kept; new best; 30th on the board.** The corrector's hour-level
+change transferred at about twice its projection.
+
+## 136. Runway / multi-scale window block (block 12) in the context corrector -- gate PASS; v65 built, board pending. G2 refit and LIRF retry fail (2026-10-11)
+
+`reports/ctx_hour2_preregistration.md`, `reports/day_alloc_refit_preregistration.md`,
+`reports/lirf_matched_unfreeze_rh2_preregistration.md` (all written before their gate numbers). Code: `src/post/hour_feats.build_rwy`,
+block 12 in `tests/context_corrector_test.py` (`CTX_HOUR2=1`), `tests/ctx_hour2_drift.py`, `tests/day_alloc_refit.py`,
+`tests/ctx_hour_gate.py` / `tests/lirf_matched_gate.py` / `src/post/v64_delta.py` (env / argv switches, defaults unchanged),
+`tests/v57_dsm.py` / `tests/v61_learned_dayshift.py` (`PRC_G2_HO` / `PRC_G2_OOF` / `PRC_G2_LAM`, defaults unchanged),
+`run_v65.sh`, `run_v65_chain.sh`, `run_v65_final4m.sh` (blind board, waiting for the four-month files). Logs `logs/v65/`.
+
+**Where the error left after v64 sits** (non-LIRF holdout chain `gate_rohb`, trimmed, leave-one-out group means shrunk
+n/(n+3)): airport-day −1.66, × hour −4.50, × 30 min −4.80, **× 30 min × runway −6.62**, × hour × stand prefix −2.17,
+× operator +0.12. The departure runway is the strongest remaining dimension (LTFM −17.0 with it, −11.4 without); block 11
+was airport-wide at ±30 min only.
+
+**Screens** (residual LightGBM on `ctxc1sel_rohb`'s OOF + holdout output, six periods leave-period-out, paired):
+- block 12 (17 inputs: block 11's neighbour residuals at ±15 / ±60 min, clipped, before / after only, and per departure
+  runway at ±30 / ±15 min with mean p and count): trimmed **−1.02**, every period better, LTFM −3.76;
+- stand-prefix congestion (arrivals' taxi-in excess into the same stand prefix, runway taxi-in excess, same-prefix
+  departures): +0.07 on top of block 12. Dropped;
+- neighbour windows from the neighbours' *corrected* prediction (rohb OOF) instead of the stack: +0.08, unstable across
+  periods (Feb/Mar +0.79, LTFM +1.33). Dropped.
+
+**Gate (holdout chain with v50's post-stages, vs v64's `ctxc1sel_rohb`):**
+
+| candidate | trimmed | full | body | trimmed Jan / Jul | body Jan / Jul | OOF trimmed | pass |
+|---|---|---|---|---|---|---|---|
+| **`ctxc1sel_rh2`** (both members refitted with blocks 11 + 12) | **−0.718** | −0.610 | −1.050 | −0.048 / −1.123 | −0.308 / −1.573 | −1.29, 10/10 months (Feb −1.13, Jun −1.33) | **yes** |
+
+- Per airport trimmed: LTFM −5.06, LIRF −0.72, EDDF −0.71, LEMD −0.56, LEBL −0.11, EDDM +0.04, EGLL +0.24, LFPG +0.43,
+  EHAM +0.53, LSZH +1.15 (LIRF / LSZH rows are not changed by the build). Body: LTFM −4.65, no airport above +0.06.
+- Member r alone, corrector level: OOF −1.33 (10/10), holdout −1.12; early stopping takes 2,228 rounds (block 11 only: 1,274).
+- 2026 projection on the rows production changes (no LIRF, no LSZH): **−0.71 s** (−0.79 all airports).
+- Drift (f): max pooled |SMD| 0.20 (`rw_rs30`, more departure delay in 2026). Per airport, the AOBT_3-based inputs move
+  most at LFPG (+0.4 to +0.6 sd), as block 11's `h_ra` already did in v64.
+- After block 12 the oracle barely moves (× 30 min × runway −6.62 → −6.23): label-free window inputs reach only a slice of
+  the shared within-hour error. This direction is close to exhausted.
+
+**v65** = v54 + delta (`FREEZE_LIRF=1 v50_assemble.py`) → `day_alloc_build.py` (v63's recipe), delta =
+(chain_rh2 + identity deltas) − (chain_ro + identity deltas) (`v64_delta.py ... ctxc1sel_rh2 cache/v65`): delta RMS 50.8 s.
+- vs v64: 286,308 rows changed, RMS 33.8 s, mean −0.08, max |Δ| 1,353; LIRF and LSZH identical. Per airport RMS: LTFM 60.1,
+  LFPG 35.8, EDDF 34.4, EGLL 30.1, EHAM 27.9, LEMD 27.0, EDDM 26.2, LEBL 24.8.
+- `data/submissions/smart-jigsaw_v65.parquet`, md5 b202e54d8c5a08395ea9015d989c337f. **Keep iff board < 237.4538.**
+
+**G2 refit on the current corrector: FAIL.** G2's slope model and the eta of its daily λ̂ solve were fitted on the old
+`ctxc1sel` frame. Refit on the production corrector's 2025 frame, leave-period-out, vs production G2 on that frame:
+rh2 frame full −0.048 (bar −0.05), body +0.043; rohb frame −0.006 / +0.045. G2 does not go stale with the corrector.
+
+**LIRF NM-matched unfreeze, second attempt on `ctxc1sel_rh2`: FAIL.** Bar tightened to −0.15 for the retry. Holdout pooled
+trimmed −0.216, Jan / Jul both better, full −0.178, body −0.233; but OOF June +0.87 (and May +0.62, Sep +2.10). June also
+failed the first attempt. LIRF stays frozen.
+
+**Blind board.** `run_v65_final4m.sh` repeats the delta method on the four-month chain and composes `blind_v6`
+(Jan/Jul = v65, Feb/Jun = `f4m_v65`); it reuses `run_v64_final4m.sh`'s control chain. Both need the four-month files from
+the other machine. Fallback without them: `final4m_compose.py smart-jigsaw_v65.parquet blind_v4.parquet OUT` (Jan/Jul
+from v65, Feb/Jun from blind_v4). Next free version: **v66**.
+
+v65 had a small gain of -0.4, new best is now 237.0694

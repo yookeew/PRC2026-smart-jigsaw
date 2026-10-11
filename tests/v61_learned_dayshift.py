@@ -15,7 +15,8 @@ from post import pru_recon2 as R  # noqa: E402
 from post import pru_dsm as M  # noqa: E402
 import v57_dsm as T  # noqa: E402
 
-LAM_CACHE = ROOT / "cache/v57/lam_row_2025.parquet"
+# PRC_G2_LAM: lambda cache of another 2025 frame (PRC_G2_HO / PRC_G2_OOF in v57_dsm); the cache checks row IDs only
+LAM_CACHE = ROOT / os.environ.get("PRC_G2_LAM", "cache/v57/lam_row_2025.parquet")
 VARIANTS = ["S1", "S2", "S3", "S4"]
 
 

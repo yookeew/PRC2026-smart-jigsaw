@@ -1,0 +1,12 @@
+=== 1. holdout + OOF inputs, member r  2026-10-11 12:21:54
+=== 2. holdout + OOF inputs, member rb  2026-10-11 12:41:51
+=== 3. production fit, member r  2026-10-11 13:00:17
+=== 4. production fit, member rb  2026-10-11 13:06:04
+=== 5. sel  2026-10-11 13:11:29
+=== 6. holdout chain gate run  2026-10-11 13:11:32
+=== 7. gate  2026-10-11 13:14:41
+=== 8. drift  2026-10-11 13:14:44
+=== 9. production chain  2026-10-11 13:14:54
+chain ctxc1sel_rh2 done Sun Oct 11 13:18:59 WEST 2026
+=== 10. delta, assembly, day recipe  2026-10-11 13:18:59
+=== done  2026-10-11 13:19:19

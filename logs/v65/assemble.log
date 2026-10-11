@@ -1,0 +1,13 @@
+delta_rh2.parquet: rows 344,641, RMS 50.79
+vs base: RMS 44.87 s, mean +0.358, rows changed 309,726, max |d| 1768; frozen rows 26969; LIRF NM-unmatched identical True
+  EDDF RMS   41.99 mean   +0.38
+  EDDM RMS   30.20 mean   +0.58
+  EGLL RMS   33.89 mean   +0.08
+  EHAM RMS   50.38 mean   +5.71
+  LEBL RMS   29.97 mean   +0.90
+  LEMD RMS   32.54 mean   -2.15
+  LFPG RMS   56.00 mean   -3.20
+  LIRF RMS    0.00 mean   +0.00
+  LSZH RMS   33.24 mean   +0.60
+  LTFM RMS   72.09 mean   +0.83
+wrote cache/v65/p65.parquet

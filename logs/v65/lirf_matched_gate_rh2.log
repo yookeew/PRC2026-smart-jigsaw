@@ -1,0 +1,10 @@
+LIRF NM-matched holdout rows 26,131; RMS change 71.7, mean -2.2
+  on LIRF NM-matched rows: trimmed 383.71 -> 381.89; body 313.89 -> 312.00; full 383.78 -> 381.92
+  pooled trimmed      -0.216
+  pooled full         -0.178
+  pooled body         -0.233
+  pooled trimmed Jan  -0.123
+  pooled trimmed Jul  -0.275
+  2026 projection (LIRF NM-matched share 0.077): -0.231 s
+OOF LIRF NM-matched trimmed by month (ctxc1sel_rh2 - ctxc1sel): {2: -3.74, 3: -3.68, 4: -4.83, 5: 0.62, 6: 0.87, 8: -2.92, 9: 2.1, 10: -2.55, 11: -0.87, 12: -3.32}
+conditions: {'a': True, 'b': True, 'c': True, 'd': True, 'e': False} -> FAIL

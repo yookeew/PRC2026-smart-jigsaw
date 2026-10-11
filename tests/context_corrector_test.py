@@ -38,6 +38,7 @@ AIR = os.environ.get("CTX_AIR") == "1"    # block 8, reports/ctx_airline_preregi
 ADSB = os.environ.get("CTX_ADSB") == "1"  # block 9, reports/ctx_adsb_preregistration.md
 RO = os.environ.get("CTX_RO") == "1"      # block 10, stand re-occupation (PROGRESS.md §123; src/features/reocc_feats.py)
 HOUR = os.environ.get("CTX_HOUR") == "1"  # block 11, hour-window state (reports/ctx_hour_preregistration.md; PROGRESS.md §134)
+HOUR2 = os.environ.get("CTX_HOUR2") == "1"  # block 12, runway / multi-scale windows (reports/ctx_hour2_preregistration.md)
 RO_FILE = os.environ.get("CTX_RO_FILE", str(scope.out_dir(ROOT / "cache" / "v50") / "reocc_feats3.parquet"))
 RO_COLS = ["ro_gap_last", "ro_tm_last", "ro_om_last", "ro_two_dep", "ro_tm_next", "ro_gap_prev", "ro_tm_prev",
            "ro_n_since_s", "ro_first_since_s", "ro_last_tin_x", "ro_last_land_gap"]
@@ -296,6 +297,19 @@ def hour_block(dep: pl.DataFrame, arr: pl.DataFrame, p: np.ndarray) -> pl.DataFr
     return out.select([pl.col(c).cast(pl.Float64) for c in HF.HOUR_COLS])
 
 
+def hour2_block(dep: pl.DataFrame, p: np.ndarray) -> pl.DataFrame:
+    """Block 12: block 11's neighbour residuals at other window widths, clipped, one-sided and per departure
+    runway (src/post/hour_feats.build_rwy). Label-free; the frame's own p is the neighbours' prediction."""
+    from post import hour_feats as HF
+    d = pl.DataFrame({"MVT_ID_mvt": dep["MVT_ID_mvt"], "apt": dep["apt"], "RUNWAY_mvt": dep["rwy"], "t": dep["T"],
+                      "lo": dep["t_LOBT_flt"], "a3": dep["t_AOBT_3_flt"], "s": dep["t_SCHED_TIME_UTC_mvt"],
+                      "p": np.asarray(p, dtype=np.float64)})
+    f = HF.build_rwy(d)
+    out = d.select("MVT_ID_mvt").with_row_index("_i").join(f, on="MVT_ID_mvt", how="left").sort("_i")
+    assert out.height == dep.height
+    return out.select([pl.col(c).cast(pl.Float64) for c in HF.RWY_COLS])
+
+
 def build(dep: pl.DataFrame, arr: pl.DataFrame, p: np.ndarray, cells) -> tuple[pl.DataFrame, list[str], list[str]]:
     T = dep["T"]
     g = {c: T - dep[f"t_{c}"] for c in REFS}
@@ -315,7 +329,7 @@ def build(dep: pl.DataFrame, arr: pl.DataFrame, p: np.ndarray, cells) -> tuple[p
     b56 = time_blocks(dep, arr, p)
     parts = ([base, b1, b2, b3, b4, b56] + ([runway_block(dep, arr)] if RWY else []) + ([airline_block(dep, p)] if AIR else [])
              + ([adsb_block(dep, p)] if ADSB else []) + ([reocc_block(dep)] if RO else [])
-             + ([hour_block(dep, arr, p)] if HOUR else []))
+             + ([hour_block(dep, arr, p)] if HOUR else []) + ([hour2_block(dep, p)] if HOUR2 else []))
     X = pl.concat(parts, how="horizontal")
     return X, ctrl, ["apt_c", "stand_pfx"] + (["al_op"] if AIR else [])
 

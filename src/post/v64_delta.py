@@ -5,7 +5,7 @@ identity-arm deltas, both chains run on this machine (reports/ctx_hour_preregist
 
 Then  FREEZE_LIRF=1 v50_assemble.py smart-jigsaw_v54.parquet P64 DELTA  and  day_alloc_build.py P64 smart-jigsaw_v62.parquet v64.
 
-Run:  .venv/Scripts/python.exe src/post/v64_delta.py OUT.parquet [NEW_CORRECTOR, default ctxc1sel_roh]
+Run:  .venv/Scripts/python.exe src/post/v64_delta.py OUT.parquet [NEW_CORRECTOR, default ctxc1sel_roh] [ID_DIR, default cache/v64]
 """
 import os
 import sys
@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SUB, V64 = ROOT / "data" / "submissions", ROOT / "cache" / "v64"
 out_f = sys.argv[1]
 NEW = sys.argv[2] if len(sys.argv) > 2 else "ctxc1sel_roh"
+NEW_ID = Path(sys.argv[3]) if len(sys.argv) > 3 else V64   # v65: cache/v65 (id_<NEW> there)
 tpl = pl.read_parquet(ROOT / "data" / "ranking" / "submitting.parquet").select(pl.col("MVT_ID_mvt").cast(pl.Float64))
 
 
@@ -27,12 +28,12 @@ def col(path, src):
                     on="MVT_ID_mvt", how="left")["x"].fill_null(0.0).to_numpy()
 
 
-def ids(n):
-    return col(V64 / f"id_{n}" / "comb_delta_all_id.parquet", "delta") + col(V64 / f"id_{n}" / "nb_delta_ro_id.parquet", "delta")
+def ids(n, d=V64):
+    return col(d / f"id_{n}" / "comb_delta_all_id.parquet", "delta") + col(d / f"id_{n}" / "nb_delta_ro_id.parquet", "delta")
 
 
 new, old = col(SUB / f"chain_{NEW}_final.parquet", "TAXITIME_SEC_mvt"), col(SUB / "chain_ctxc1sel_ro_final.parquet", "TAXITIME_SEC_mvt")
-dn, do = ids(NEW), ids("ctxc1sel_ro")
+dn, do = ids(NEW, NEW_ID), ids("ctxc1sel_ro")
 d = (new + dn) - (old + do)
 print(f"chain change RMS {np.sqrt(np.mean((new - old) ** 2)):.2f}; id deltas new RMS {np.sqrt(np.mean(dn ** 2)):.2f}, "
       f"old {np.sqrt(np.mean(do ** 2)):.2f}; total delta RMS {np.sqrt(np.mean(d ** 2)):.2f}, mean {d.mean():+.3f}")
