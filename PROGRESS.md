@@ -6404,3 +6404,5 @@ failed the first attempt. LIRF stays frozen.
 (Jan/Jul = v65, Feb/Jun = `f4m_v65`); it reuses `run_v64_final4m.sh`'s control chain. Both need the four-month files from
 the other machine. Fallback without them: `final4m_compose.py smart-jigsaw_v65.parquet blind_v4.parquet OUT` (Jan/Jul
 from v65, Feb/Jun from blind_v4). Next free version: **v66**.
+
+v65 had a small gain of -0.4, new best is now 237.0694
