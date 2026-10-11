@@ -6541,3 +6541,4 @@ Logs `logs/v67/`. Built on top of v66 (board pending at the time) — from now o
   destination flow, log-loss 0.434 → 0.428, 7/10 months better. Real but small (≈ −0.2 s at most) on the rows with the
   worst board-transfer record. Not built.
 - Next free version stays **v67**.
+new best is 236.81 from v66, small gain of ~-0.2
