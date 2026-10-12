@@ -1,0 +1,82 @@
+OOF stack weights: [0.577 0.428]
+rows 2,084,967 (OOF 1,740,628, holdout 344,339); features 79
+ctxc1r_rh2mlp: features 80; trainable rows 1,740,247 (BASE 1,723,569, NM-unmatched added 16,678)
+    mlp epoch 0 24s inner RMSE 254.76
+    mlp epoch 1 23s inner RMSE 253.08
+    mlp epoch 2 23s inner RMSE 252.62
+    mlp epoch 3 23s inner RMSE 251.20
+    mlp epoch 4 23s inner RMSE 251.41
+    mlp epoch 5 23s inner RMSE 250.69
+    mlp epoch 6 23s inner RMSE 249.23
+    mlp epoch 7 23s inner RMSE 249.89
+    mlp epoch 8 23s inner RMSE 249.54
+    mlp epoch 9 24s inner RMSE 249.21
+    mlp epoch 10 23s inner RMSE 249.44
+    mlp epoch 11 23s inner RMSE 249.48
+holdout corrector: best_iter 9
+    mlp epoch 0 20s inner RMSE 266.32
+    mlp epoch 1 19s inner RMSE 263.75
+    mlp epoch 2 19s inner RMSE 264.26
+    mlp epoch 3 19s inner RMSE 262.63
+    mlp epoch 4 19s inner RMSE 261.29
+    mlp epoch 5 20s inner RMSE 259.73
+    mlp epoch 6 20s inner RMSE 259.75
+    mlp epoch 7 19s inner RMSE 260.14
+    mlp epoch 8 20s inner RMSE 259.13
+    mlp epoch 9 20s inner RMSE 258.88
+    mlp epoch 10 19s inner RMSE 259.11
+    mlp epoch 11 20s inner RMSE 259.20
+OOF block (2, 3): best_iter 9
+    mlp epoch 0 19s inner RMSE 275.87
+    mlp epoch 1 18s inner RMSE 262.80
+    mlp epoch 2 18s inner RMSE 276.26
+    mlp epoch 3 18s inner RMSE 263.11
+    mlp epoch 4 18s inner RMSE 262.38
+    mlp epoch 5 19s inner RMSE 259.86
+    mlp epoch 6 19s inner RMSE 258.01
+    mlp epoch 7 18s inner RMSE 256.12
+    mlp epoch 8 19s inner RMSE 256.14
+    mlp epoch 9 18s inner RMSE 256.65
+    mlp epoch 10 18s inner RMSE 256.61
+    mlp epoch 11 18s inner RMSE 256.82
+OOF block (4, 5): best_iter 7
+    mlp epoch 0 18s inner RMSE 211.20
+    mlp epoch 1 18s inner RMSE 209.11
+    mlp epoch 2 18s inner RMSE 208.58
+    mlp epoch 3 19s inner RMSE 207.11
+    mlp epoch 4 38s inner RMSE 206.81
+    mlp epoch 5 36s inner RMSE 206.58
+    mlp epoch 6 36s inner RMSE 206.86
+    mlp epoch 7 34s inner RMSE 206.74
+    mlp epoch 8 33s inner RMSE 206.68
+    mlp epoch 9 31s inner RMSE 206.71
+    mlp epoch 10 30s inner RMSE 206.85
+    mlp epoch 11 35s inner RMSE 206.89
+OOF block (6, 8): best_iter 5
+    mlp epoch 0 39s inner RMSE 264.81
+    mlp epoch 1 35s inner RMSE 262.27
+    mlp epoch 2 32s inner RMSE 261.49
+    mlp epoch 3 34s inner RMSE 261.38
+    mlp epoch 4 31s inner RMSE 260.63
+    mlp epoch 5 33s inner RMSE 258.03
+    mlp epoch 6 36s inner RMSE 258.88
+    mlp epoch 7 35s inner RMSE 258.53
+    mlp epoch 8 34s inner RMSE 258.55
+    mlp epoch 9 33s inner RMSE 257.70
+    mlp epoch 10 33s inner RMSE 258.24
+    mlp epoch 11 32s inner RMSE 258.17
+OOF block (9, 10): best_iter 9
+    mlp epoch 0 36s inner RMSE 268.24
+    mlp epoch 1 38s inner RMSE 266.15
+    mlp epoch 2 36s inner RMSE 264.59
+    mlp epoch 3 35s inner RMSE 264.79
+    mlp epoch 4 33s inner RMSE 264.06
+    mlp epoch 5 33s inner RMSE 261.77
+    mlp epoch 6 32s inner RMSE 261.73
+    mlp epoch 7 35s inner RMSE 264.93
+    mlp epoch 8 37s inner RMSE 261.09
+    mlp epoch 9 35s inner RMSE 260.68
+    mlp epoch 10 35s inner RMSE 261.32
+    mlp epoch 11 34s inner RMSE 261.47
+OOF block (11, 12): best_iter 9
+wrote ctxc1r_rh2mlp_holdout_ev.parquet and cache\oof\ctxc1r_rh2mlp

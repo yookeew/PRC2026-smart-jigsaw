@@ -1,0 +1,14 @@
+C:\Users\yuqiw\prc2025\tests\ctx_abwin_dm_drift.py:25: DeprecationWarning: the default behavior of `how='horizontal'` for `concat` is deprecated and will require equal heights in the next breaking release. Use `how='horizontal_extend'` to keep the current behavior.
+(Deprecated in version 1.42.1)
+  b = pl.concat([dep.select("apt", day=(pl.col("T") // 86400).cast(pl.Int64)), CC.abwin_block(dep, p).select(COLS)], how="horizontal")
+airport  input       mean25  mean26    sd25    sd26  ratio     SMD  nn25  nn26
+EDDF     h3_ab_app     -0.0     0.0    98.8   143.1   1.45  +0.000  0.92  0.60
+EDDF     h3_ab_dw      -0.0    -0.0   130.5   190.1   1.46  +0.000  0.89  0.42
+EDDM     h3_ab_app      0.0     0.0    71.3    76.4   1.07  +0.000  0.80  0.99
+EDDM     h3_ab_dw      -0.0     0.0    77.3    71.8   0.93  +0.000  0.81  1.00
+EHAM     h3_ab_app     -0.0    -0.0    73.7    82.8   1.12  -0.000  0.98  0.99
+EHAM     h3_ab_dw       0.0    -0.0    65.7    70.5   1.07  -0.000  0.99  1.00
+LEBL     h3_ab_app      0.0    -0.0    93.1    84.9   0.91  -0.000  0.94  0.95
+LEBL     h3_ab_dw       0.0     0.0   109.7   103.2   0.94  +0.000  0.92  0.94
+LSZH     h3_ab_app      0.0    -0.0   117.9   108.0   0.92  -0.000  0.80  0.96
+LSZH     h3_ab_dw       0.0    -0.0    93.7   122.5   1.31  -0.000  0.92  0.93

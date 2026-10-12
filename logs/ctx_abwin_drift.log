@@ -1,0 +1,22 @@
+(Deprecated in version 1.42.1)
+  a = pl.concat([dep.select("apt", day=(pl.col("T") // 86400).cast(pl.Int64)), CC.abwin_block(dep, s25)], how="horizontal")
+(Deprecated in version 1.42.1)
+  b = pl.concat([dep_r.select("apt"), CC.abwin_block(dep_r, s26)], how="horizontal")
+airport  input        mean25   mean26    sd25     SMD  null25  null26
+EDDF     h3_ab_app     -66.5    -73.1   103.5  -0.064   0.083   0.402
+EDDF     h3_ab_dw     -127.1   -174.0   137.2  -0.342   0.106   0.578
+EDDF     h3_ab_n         7.5      1.8     5.4  -1.057   0.000   0.000
+EDDM     h3_ab_app     -57.3    -50.6    77.0  +0.088   0.205   0.005
+EDDM     h3_ab_dw     -141.2   -131.5    82.8  +0.117   0.191   0.003
+EDDM     h3_ab_n        15.9     20.7    10.9  +0.440   0.000   0.000
+EHAM     h3_ab_app     -44.2    -16.7    76.8  +0.358   0.018   0.008
+EHAM     h3_ab_dw     -130.3   -113.6    68.7  +0.243   0.011   0.002
+EHAM     h3_ab_n        26.3     30.4    11.3  +0.368   0.000   0.000
+LEBL     h3_ab_app     -59.9    -72.5    97.6  -0.129   0.065   0.052
+LEBL     h3_ab_dw     -117.2   -128.8   116.1  -0.101   0.082   0.060
+LEBL     h3_ab_n         9.2     11.5     5.5  +0.411   0.000   0.000
+LSZH     h3_ab_app     -68.8    -69.5   122.3  -0.006   0.198   0.039
+LSZH     h3_ab_dw      -75.3   -144.8    99.2  -0.701   0.076   0.071
+LSZH     h3_ab_n         6.7      7.8     4.0  +0.296   0.000   0.000
+out-of-scope airports all null: True
+max in-scope |SMD| 1.057 -> drift stop TRIGGERED (FAIL)

@@ -1,0 +1,12 @@
+build delta RMS 24.58, mean -0.223; vs BASE rows changed 281,821, RMS 24.58, mean -0.222, max |d| 1055
+  EDDF: RMS  20.05  mean  +0.29
+  EDDM: RMS  22.22  mean  -0.07
+  EGLL: RMS  29.33  mean  -1.55
+  EHAM: RMS  18.96  mean  -0.03
+  LEBL: RMS  15.42  mean  +0.04
+  LEMD: RMS  20.21  mean  -0.12
+  LFPG: RMS  33.90  mean  -0.41
+  LIRF: RMS   0.00  mean  +0.00
+  LSZH: RMS   0.00  mean  +0.00
+  LTFM: RMS  36.91  mean  -0.05
+wrote data/submissions/smart-jigsaw_v67.parquet

@@ -1,0 +1,28 @@
+=== 1. production tree member r  2026-10-11 19:47:55
+=== 2. production tree member rb  2026-10-11 19:54:36
+=== 3. sel  2026-10-11 20:02:05
+=== 4. production MLP member  2026-10-11 20:02:07
+=== 5. blend  2026-10-11 20:08:08
+=== 6. ro chain (identity deltas; reproduction check)  2026-10-11 20:08:10
+chain ctxc1sel_ro done Sun Oct 11 20:13:44 RST 2026
+9809926241ffacd15f179c34a8ae97ea *data/submissions/chain_ctxc1sel_ro_final.parquet
+9809926241ffacd15f179c34a8ae97ea *cache/v66/ro_backup/chain_ctxc1sel_ro_final.parquet
+=== 7. chain + full build ctxc1sel_rh2  2026-10-11 20:13:44
+chain ctxc1sel_rh2 done Sun Oct 11 20:19:13 RST 2026
+=== 7. chain + full build ctxc1sel_rh2mb  2026-10-11 20:19:33
+chain ctxc1sel_rh2mb done Sun Oct 11 20:24:53 RST 2026
+=== 8. v67  2026-10-11 20:25:12
+build delta RMS 24.58, mean -0.223; vs BASE rows changed 281,821, RMS 24.58, mean -0.222, max |d| 1055
+  EDDF: RMS  20.05  mean  +0.29
+  EDDM: RMS  22.22  mean  -0.07
+  EGLL: RMS  29.33  mean  -1.55
+  EHAM: RMS  18.96  mean  -0.03
+  LEBL: RMS  15.42  mean  +0.04
+  LEMD: RMS  20.21  mean  -0.12
+  LFPG: RMS  33.90  mean  -0.41
+  LIRF: RMS   0.00  mean  +0.00
+  LSZH: RMS   0.00  mean  +0.00
+  LTFM: RMS  36.91  mean  -0.05
+wrote data/submissions/smart-jigsaw_v67.parquet
+e22ac7a3933478c4887bedce85ff42ba *data/submissions/smart-jigsaw_v67.parquet
+=== done  2026-10-11 20:25:14

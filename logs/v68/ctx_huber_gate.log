@@ -1,0 +1,21 @@
+holdout chain rows 344,339; RMS change 27.03 s, mean -0.40
+  trimmed            control   240.23  treatment   240.46  delta +0.236
+  full               control   300.10  treatment   300.26  delta +0.161
+  body               control   189.96  treatment   188.80  delta -1.157
+  trimmed Jan        control   195.60  treatment   195.64  delta +0.045
+  trimmed Jul        control   270.89  treatment   271.25  delta +0.351
+  body Jan           control   173.05  treatment   172.81  delta -0.235
+  body Jul           control   202.72  treatment   200.91  delta -1.806
+  trimmed non-LIRF   control   192.97  treatment   192.83  delta -0.136
+  full non-LIRF      control   263.42  treatment   263.30  delta -0.129
+  body non-LIRF      control   175.96  treatment   175.58  delta -0.383
+  per airport trimmed: {'EDDF': -0.22, 'EDDM': 0.13, 'EGLL': 0.54, 'EHAM': -0.62, 'LEBL': -0.43, 'LEMD': -0.26, 'LFPG': 0.43, 'LIRF': 1.91, 'LSZH': -1.36, 'LTFM': -0.45}
+  per airport body:    {'EDDF': -0.39, 'EDDM': 0.11, 'EGLL': -0.42, 'EHAM': -0.5, 'LEBL': -0.43, 'LEMD': -0.3, 'LFPG': -0.08, 'LIRF': -6.64, 'LSZH': -1.92, 'LTFM': -0.37}
+  2026 projection (all airports): +0.205 s
+  2026 projection (LIRF frozen): -0.135 s
+  2026 projection (production rows (no LIRF, no LSZH)): -0.073 s
+OOF rows 1,740,628; trimmed pooled delta -0.415
+  trimmed by month: {np.int8(2): -0.14, np.int8(3): -0.69, np.int8(4): -0.46, np.int8(5): -0.51, np.int8(6): -0.16, np.int8(8): 0.05, np.int8(9): -1.3, np.int8(10): -0.47, np.int8(11): -0.36, np.int8(12): -0.17}
+  per airport trimmed: {'EDDF': -0.2, 'EDDM': -0.27, 'EGLL': -0.29, 'EHAM': -0.36, 'LEBL': -0.48, 'LEMD': -0.17, 'LFPG': -0.15, 'LIRF': -0.97, 'LSZH': -1.75, 'LTFM': -0.22}
+conditions: {'a trimmed <= -0.10': False, 'b Jan and Jul trimmed better': False, 'c full <= 0': False, 'd body <= +0.10': True, 'e OOF Feb, Jun better, >= 7/10 months': True}
+DECISION: FAIL
