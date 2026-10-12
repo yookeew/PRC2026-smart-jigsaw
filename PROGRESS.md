@@ -7159,3 +7159,174 @@ deltas) − (chain_ro + identity deltas) (RMS 55.1 s).
 - Four-month version: on the last day with the rest (needs the other machine's `final4m/` files; the merged `ctxc1*_rf3`
   members need four-month `prod` runs for seed 42 and for `PRC_CTX_SEEDS=43,44`, then the same merge; `src/post/ctx_seedavg_merge.py` is not scope-aware yet: it reads `data/submissions/` and `cache/eval/` only). Next free version: **v68**.
 v67 is the new best at 236.673.
+
+## 155. Exploration round 6: three LIRF NM-unmatched levers (hedge repair, shifted block times, non-echo cap) -- analysis only, nothing built (2026-10-12)
+
+Scratch scripts in the session scratchpad (`lv/`: `levers_build.py`, `eval25.py`, `sim26.py`, `sh9.py`, `tw*.py`, `lb*.py`, `ne*.py`);
+candidate files in scratch only (`lv/out_jj/cand_{L1,L2,L3,ALL}.parquet` on v70; `lv/out_f4m/` for Feb/Jun). No repo code changed.
+
+**Where it started:** an artefact scan of v70 against 2025 label support. Outside LIRF only plausible high-side outliers
+(January 2026 winter days, pinned by the daily sums). At LIRF, 16 NM-unmatched rows 1–3.5 h late sit at 0–120 s (2025:
+2 of 1,373 such labels below 120 s).
+
+**Cause:** v45/v48 build the hedge as q·echo + (1 − q)·P_ne, with the non-echo branch P_ne = (P − p·offc)/(1 − p) recovered
+from the chain. In 2026, P_ne < 0 on 60/287 scope rows (2025 holdout 23/328) and the result is clipped to 0. v47 uses the
+same P_ne on twin rows. As a predictor of the non-echo taxi, P_ne is worse than a constant (2025 non-echo scope rows: RMSE
+1,524 vs 1,020 for 1,000 s).
+
+**L1 -- physical repair (64 live rows; projection −0.35 s, sd 0.07):**
+- N1: final floor 600 s on v48-scope rows (late-branch q05). 2025: leave-one-month-out (LOMO) 26/26 rows helped (8/8 months);
+  holdout 7/8. Plain floor only: q-weighted floors fail the holdout.
+- T1: twin rows whose echo the join window excludes → min(E[y | twin non-echo, y ≤ up], up). The 2025 labels are ordinary
+  taxis (76/76 ≤ up, median 903 s); v47's clip(P_ne, 0, up) has RMSE 817 there, the constant has an SSE ratio of 0.14. In 2026,
+  six such rows sit at exactly 0 s.
+- T2: forced twin rows whose echo is possible → 0.88·offc + 0.12·(lo + 900) (2025: 21/23 echo; SSE ratio 0.86 vs v47).
+  Flight-number normalisation (doubled prefixes) adds one 2026 twin (RYRR88TM).
+
+**L2 -- shifted block times (21 live rows; projection −0.59 s, sd 0.25, worse in 2% of simulations):**
+- Mechanism: some LIRF handlers record the block 1 h or 2 h early (the local UTC offset). The join then fails on time (an
+  NM-unmatched row with a small delay). 2025 LIRF NM-unmatched rows with 0 < T − S < 1 h:
+
+| flight-number format | shifted (y ≈ taxi + 1 h / 2 h) | echo | normal |
+|---|---|---|---|
+| null / doubled / odd (key failure) | 0 / 43 | 33 | 10 |
+| well-formed (time failure) | 33 / 53 | 13 (ITY, RYR, WMT, VLG, LOT, NOS …) | 1 |
+
+  BEL 14/14 shifted (all of summer 2025 +2 h); AEA, BAW, UAL, CTN, MSR, QTR, LZB, GFA also shift. Forced twins with
+  echo impossible: 6/7 shifted. LIRF only (0 such rows at the other nine airports). The frozen chain prices no shifted mode
+  (2025 holdout: frozen ≈ 1,100–2,400 vs labels ≈ 7,800–8,600).
+- Rule: key-failure rows → 0.767·off + 0.233·958; well-formed rows of airlines with ≥ 2 shifted 2025 rows → the shifted-mode
+  hedge (Beta-shrunk rate); forced twins with echo impossible → the +1/+2 h mixture (≥ lo).
+- 2025: LOMO vs the frozen proxy (stack Pb, corr 0.88 with the frozen chain on the holdout): −6.35e8, **12/12 months**.
+- 2026 rows: BEL5LC (Jul, 13 min late, v70 1,489 → 7,736), AEZ126F / AEZ11LJ (→ ≈ 6,500), AEA59RM / BAW6NL (→ ≈ 6,300),
+  plus 16 key-failure rows.
+
+**L3 -- cap on the non-echo branch (121 live rows; projection −0.40 s, sd 0.32, worse in 11%):**
+- v48-scope rows: non-echo branch min(P_ne, 0.25·P_ne + 0.75·1,097), cap only (it lowers). The upward direction fails the
+  holdout and a local-congestion estimate adds little.
+- 2025: holdout −1.88e8 (both months); LOMO −1.83e8, 8/12 months. Feb / Mar / Nov / Dec are worse, exactly the months
+  where q2 understates the echo rate by 0.11–0.15.
+- Sign depends on 2026 echo calibration: with echo probabilities ×0.7 −1.0 s, ×1.3 +0.07 s (2026 q2 mean 0.39 vs 0.50 in 2025).
+
+**Combined (206 rows):** 2025 holdout, every statistic re-estimated from the ten other months: RMSE 295.42 → 293.02
+(−2.40; each component better in total, both months better except T2 Jan +0.09e6). 2026 simulation: −1.33 s (sd 0.41,
+worse in 0.4%). No overlap with v70's 78 moved rows. Blind file: the same rules move 105 Feb/Jun rows (Σd² ≈ 1.1e8;
+e.g. null-flight rows valued 2,100–5,200 s → near echo, BEL9EL Jun 3,382 → 7,790).
+
+**Also checked this round (small or dead):** EHAM storm untracked NM-unmatched rows still ≈ 223 s too high (−0.035 s);
+non-LIRF key-failure rows calibrated (bias −5 s); non-LIRF echo is coincidence (≤ 1% beyond 30 min); non-LIRF twins flag
+no monsters; LIRF matched +1 h shifts rare and ambiguous; LIRF matched calibration by LOBT − S fine; ADS-B day witness
+conflicts with the sums (as §122 / §125); LIRF ADS-B 5–13% coverage, errors 400–1,100 s on late-branch rows; doubled
+prefixes do not separate echo from "+24 h" (≥ 12 h pool stays closed).
+
+## 156. v71 = v70 + LIRF hedge repair (L1) + shifted block times (L2) -- built (≈ −0.93 s), board pending (2026-10-12)
+
+`reports/lirf_hedge_repair_preregistration.md` (written before the build), `src/post/lirf_hedge_repair.py`, `logs/v71/`.
+- Build: `src/post/lirf_hedge_repair.py smart-jigsaw_v70.parquet smart-jigsaw_v71.parquet` (P0 = v42; `logs/v71/v71_build.log`).
+  - The 2025 constants come out as registered: P_E 0.880, PE_KEY 0.767, P0T 0.667, PE_TM 0.929, M_N 958, M_SH 838.
+  - Guard: 373 of 383 LIRF NM-unmatched rows equal the replayed chain v42 → v45 → v47 → v48. The 10 that don't (v70's count
+    moves and v49's two capped rows) are left alone.
+  - 85 rows changed, all LIRF NM-unmatched: N1 29, T1 22, T2 13, L2 key 16, L2 shift 3 (BEL5LC 1,489 → 7,736; AEZ126F
+    1,825 → 6,473; AEZ11LJ 1,893 → 6,631), L2 twin 2 (BAW6NL 4,387 → 6,238; AEA59RM 4,689 → 6,363).
+  - Σd² 1.33e8; stop rules 1–4 pass. Matches the scratch candidate within 1 s (rounding).
+- `data/submissions/smart-jigsaw_v71.parquet`, md5 **7a9508ba999d6c56efe3c33978e8fd7f**: 344,841 rows, template ID order,
+  no nulls, same schema as v70.
+- **Keep iff board < 236.2290.** Projection −0.93 s (L1 −0.35, sd 0.07; L2 −0.59, sd 0.25; 5–95% ≈ −1.35 … −0.5).
+- Blind board: dry run `PRC_SCOPE=final4m ... final4m/blind_v5_lszh.parquet` (scratch output, `logs/v71/blind_dryrun.log`):
+  78 rows, Σd² 1.29e8, stop rules pass. The real blind build runs after the v65–v70 ports on whatever blind file carries
+  them; Jan/Jul rows then come from the live v71 through `final4m_compose.py`.
+- L3 (non-echo cap) is in the script behind `LHR_L3=1`, off. A candidate for a later upload (§155: −0.40 s, sign depends on
+  2026 echo calibration).
+- **Board (2026-10-12): v71 = 235.493 (−0.736 vs v70 = 236.2290). Kept; new best.** Inside the projected range (−0.5 … −1.35, central −0.93), like v47 / v48 before it: the physical / mechanistic LIRF changes land, the learned ones did not.
+  Day total: v68 236.6730 → v71 235.493 (−1.18). Next free version: **v72**.
+
+## 157. L3 re-audited (weaker than §155 said); new lever: the airline's LIRF echo record (ALR) -- analysis only, nothing built (2026-10-12)
+
+Scratch scripts in the session scratchpad (`l3/`: `m1`–`m9`, `ds1`, `inv1`–`inv2`, `sh1`, `al1`–`al12`, `nm1`, `arr1`). No repo code changed.
+
+**L3 (non-echo cap) re-audit -- the §155 projection (−0.40 s) was optimistic:**
+- The simulation drew non-echo labels independently of the delay. In 2025 the low-q2 half of L3 does not help: q2 < 0.3 rows
+  LOMO +1.2e7, holdout +3.8e7. In q2 0.1–0.3 the echo rows sit at much larger delays (holdout 10,739 s vs 7,621 s), which is where
+  a lowered value costs most. The low-q2 half holds 57% of L3's 2026 change energy (ITY108 alone 1.1e7).
+- q2 ≥ 0.3 rows carry the gain (LOMO −1.66e8, holdout −2.22e8), but hurt badly in Feb / Mar / Nov / Dec 2025 (ratio ≈ +5 in
+  those months, where the echo rate exceeds q2 by 0.11–0.15, concentrated in q2 0.3–0.7). The P_ne inflation itself carries no echo
+  information beyond q2 (echo ≈ q2 in every inflation bin), so the problem is q2's winter calibration, not the cap.
+- 2026 q2 being lower than the 2025 mean (0.39 vs 0.50) is composition, not drift: the 2025 Jan + Jul scope also has q2 0.38.
+  January 2026 cannot be classed label-free as a winter-excess month or not (Jan 2025 was not one).
+- A day-sum estimator of the monthly echo shift (published LIRF daily delay sums) fails its 2025 validation (corr with the true
+  monthly shift +0.05): the LIRF sums cannot calibrate echo rates (as v56).
+- What survives: L3 on July rows with q2 ≥ 0.3 (every 2025 summer month better, holdout July ratio −3.0); outside the ALR rows
+  41 rows, energy 9.9e6, ≈ −0.11 … −0.18 s. Full L3 is not recommended.
+
+**ALR -- the airline's own echo record on v48-scope rows (LIRF NM-unmatched, 1–6 h, non-twin):**
+- Echo on these rows is airline-specific and persistent: ETH 21/21, TKJ 20/20, ISR 56/56, LAV 22/22, TWB 19/19 always echo;
+  ITY 3/61, KLM 0/17, EWG 0/14, ELY 0/12, EZY 1/24 almost never. q2 prices it only partly (ETH rows q2 0.26–0.91; EWG 0.03–0.83).
+  Half-year persistence 2025: ETH 9/9 → 12/12, ISR 24/24 → 32/32, ITY 2/21 → 1/40, KLM 0/8 → 0/9, EWG 0/4 → 0/10.
+- Mechanism: a time-failure row is echo when the airline updates its LOBT but the handler records the block at SCHED, late branch
+  when the LOBT goes stale and the real block is recorded -- both airline / handler practices.
+- Rule: airlines with n ≥ 12 scope rows and (e + 1)/(n + 2) ≤ 0.1 (time-format rows only) or ≥ 0.9; echo probability
+  π = σ(0.132 + 0.899·logit q2 + 0.728·logit((e + 1)/(n + 2))) (logistic, fitted on 2025 with out-of-month records; LOMO log-loss
+  0.343 vs q2 0.387 on all rows with a record); value π·offc + (1 − π)·(L3-capped non-echo branch), floor 600.
+- 2025 (records and π out of month): LOMO −4.14e8, 12/12 months; holdout chain Jan −3.6e7 (12 helped / 1 hurt), Jul −9.0e7
+  (37 / 11); past-only records (≥ 1 month gap, n ≥ 8) −1.49e8, 8/10 months; π calibrated in every bin.
+  Stand reuse does not override the record (low-echo airlines with reuse 0/9 echo, q2 0.40).
+- Label-free 2026 persistence check: LIRF early-arrival echo rate per airline, 2025 vs 2026, corr 0.91 over 55 airlines; the
+  decisive airlines keep their level (ISR / TKJ / TWB / LAV / MSC ≈ 1.0; ITY / KLM / EZY / EWG / ELY 0.02–0.06), except **KMM**
+  (Jan + Jul 2025 0.79 → 2026 0.33, ≈ 9 sd): excluded.
+- Disclosed choices made after seeing 2025 results: n ≥ 12 (n ≥ 8 let RAM 0/8 in, whose one echo cost March +1.5e8; the 2026
+  row set is unchanged by it), the L3-capped branch (LOMO −4.8e8 vs −3.9e8 with v48's branch), no down moves on key-format rows.
+- 2026: 57 rows (Jan 11, Jul 46), 44 move > 1 s, Σd² 1.54e8. Largest: ITY8015 16,231 → 8,356 (Jul, off 18,538, q2 0.80, π 0.37),
+  EWG70X 9,566 → 4,149, ELY384 6,260 → 2,182, ITY108 6,057 → 2,356, KLM76R 4,684 → 2,128, ETH713 1,608 → 4,602.
+- Projection (labels drawn from π): −1.05 s (sd 0.91, P(worse) 0.15); without ITY8015 −0.58 s (sd 0.40, 0.09). If the records
+  carried no information in 2026 (labels from q2): +0.58 s. Wrong-way bound +0.98 s.
+
+**Other checks this round:** LIRF NM-unmatched departures before schedule have labels at ≈ 600 s (2025: 16 rows, IQR 597–612;
+2026: 5 rows at 412–1,941; ≈ −0.02 s); well-formed flight numbers with ADES = LIRF behave as key failures (negligible); shifted
+blocks in the 1–6 h band are rare (≈ 16 of 1,312); the airline echo effect on LIRF NM-matched rows is already priced (holdout mean
+residual by record group −30 … +87 s).
+
+## 158. Airline echo record (ALR) checked in depth; three fixes, one row left out -- v72 ready to build (2026-10-12)
+
+`reports/lirf_airline_record_preregistration.md` (written before any v72 build), `src/post/lirf_airline_record.py`; scratch checks in
+the session scratchpad (`l3/ck1`–`ck8`, `v72_dry.log`, `blind_alr_dry.log`).
+
+**Checks that passed:**
+- **Not one airline:** all 11 decisive airlines are better in LOMO; leaving any one out keeps −2.9e8 … −4.1e8; an airline-cluster
+  bootstrap gives 5–95% −6.3e8 … −2.2e8.
+- **Delay:** low-echo airlines' echo rate is flat over 1–4 h (0.033 / 0.032 / 0.0); high-echo airlines ≈ 1.0 in every band.
+- **Row-level signals behind high q2:** irregular flight numbers and stand reuse do not beat the record (low-echo airlines
+  0/2 well-formed irregular, 0/9 stand reuse). ITA's 5/6 irregular echoes were doubled-prefix long-haul key failures ≥ 6 h,
+  outside scope. AIRCRAFT_TYPE_mvt is null on every NM-unmatched row, so it carries no information.
+- **Non-echo value:** the 2025 late-branch label mean matches these airlines' non-echo labels (mean 1,186, median 1,050).
+- **2026 persistence (label-free):** arrival echo per airline corr 0.91 (KMM changed → excluded); DLA discipline stable (ITY 0.976 →
+  0.974); ELY's extra 2026 NM-unmatched rows are the same late flights and stands as its non-echo 2025 rows.
+- **π uncertainty:** airline-cluster bootstrap of the logistic, e.g. EWG70X 0.21 (0.13–0.29), ETH713 0.74 (0.62–0.84).
+- **Production script:** reproduces the analysis to the second; the guard holds; the blind dry run passes the guard on 100% of
+  Feb / Jun scope rows.
+
+**Fixes made during the check:**
+1. **Non-echo branch:** the chain's implied branch was ≈ 0 on 22 of 57 candidate rows (the broken P_ne of §155). Replaced by the
+   2025 late-branch mean truncated at ub (2025 LOMO equal, holdout −1.11e8 vs −1.26e8). Lifts e.g. ELY384 from 2,182 to 3,051, and
+   ITA / ELY rows sitting at v71's 600 s floor to 1,100–1,400.
+2. **ADES = LIRF is a key failure:** 76% of such departures are NM-unmatched vs 0.9% otherwise. ITY614 is dropped.
+3. **Persistence guard needs a material change (> 0.15):** ITY's 3.1% → 2.2% at n = 3,531 was a false alarm. KMM (0.79 → 0.33)
+   stays excluded.
+
+**Left out: ITY8015** (July, 5.15 h late, q2 0.80, π 0.37). No 2025 low-echo row is ≥ 4 h late, so the record cannot vouch for
+that range. Rule: beyond 4 h, low-echo moves need q2 ≤ 0.2 to agree. This keeps ITY108 (q2 0.03 agrees) and drops ITY8015 alone,
+which held 43% of the change energy. ITY8015 on its own: π 0.21–0.50 vs break-even 0.62, about −0.5 ± 1 s.
+
+**v72 candidate** (dry run, scratch): v71 + 54 LIRF rows (Jan 10, Jul 44), Σd² 1.04e8.
+- If 2025 behaviour persists: **−0.64 s** (sd 0.41, worse in 11%).
+- If the record carries no information: +0.13 s. Midway: −0.25 s. Wrong-way bound +0.64 s.
+- 2025, final rule: LOMO −4.13e8 (12/12), holdout Jan −3.1e7 / Jul −8.0e7, past-only gap ≥ 4 months 6/6.
+- **Keep iff board < 235.493.** Blind: 37 Feb/Jun rows on the v71 blind dry run.
+- **Built (2026-10-12):** `smart-jigsaw_v72.parquet`, md5 **8e394b0c1352867d47affbbad1fe0465**, 54 rows changed vs v71, Σd² 1.04e8,
+  identical to the dry run (`logs/v72/v72_build.log`). Keep iff board < 235.493. Next free version: **v73**.
+- **NEXT UPLOAD (v73): include ITY8015** (MVT_ID 213150756) at 16,231 → 7,463 on top of v72 (team decision 2026-10-12; ≈ −0.5 s
+  expected, ±1 s swing; keep iff board < v72's score). See the pre-registration's last section.
+- **Board (2026-10-12): v72 = 234.5516 (−0.941 vs v71 = 235.493). Kept; new best.** Inside the projected range (central −0.64,
+  sd 0.41, 5–95% −1.06 … +0.19), on the side where the 2025 airline records carry into 2026. Below the day's 234.80 target.
+  Day total: v68 236.6730 → v72 234.5516 (−2.12). Per the no-probing rule, nothing about individual rows is read from the score.
+- **Tomorrow (2026-10-13): v73 = v72 + ITY8015** (MVT_ID 213150756, 16,231 → 7,463), as decided; keep iff board < 234.5516.
+  The blind file gets the ALR step too (`PRC_SCOPE=final4m src/post/lirf_airline_record.py`, after the v71 stage). Next free version: **v73**.
