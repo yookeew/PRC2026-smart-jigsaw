@@ -1,0 +1,16 @@
+OOF stack weights: [0.577 0.428]
+rows 2,084,967 (OOF 1,740,628, holdout 344,339); features 117
+ctxc1rb_rf_s2: features 118; trainable rows 1,740,247 (BASE 1,723,569, NM-unmatched added 16,678)
+  seeds [43, 44]: best_iter [2041, 1373]; RMS between seed fits 22.42
+holdout corrector: best_iter 2041
+  seeds [43, 44]: best_iter [1413, 1602]; RMS between seed fits 17.09
+OOF block (2, 3): best_iter 1413
+  seeds [43, 44]: best_iter [2165, 2070]; RMS between seed fits 15.79
+OOF block (4, 5): best_iter 2165
+  seeds [43, 44]: best_iter [1696, 1538]; RMS between seed fits 17.81
+OOF block (6, 8): best_iter 1696
+  seeds [43, 44]: best_iter [1691, 1964]; RMS between seed fits 18.58
+OOF block (9, 10): best_iter 1691
+  seeds [43, 44]: best_iter [1114, 1228]; RMS between seed fits 17.38
+OOF block (11, 12): best_iter 1114
+wrote ctxc1rb_rf_s2_holdout_ev.parquet and cache\oof\ctxc1rb_rf_s2

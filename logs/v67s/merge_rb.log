@@ -1,0 +1,1 @@
+ctxc1rb_rf3 = (1*ctxc1rb_rf + 2*ctxc1rb_rf_s2) / 3; RMS ctxc1rb_rf vs ctxc1rb_rf_s2: holdout 18.91 s, OOF folds [13.69, 13.27, 15.48, 16.17, 15.58], ranking 19.41 s
