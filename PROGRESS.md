@@ -6611,3 +6611,4 @@ deltas) − (chain_ro + identity deltas) (RMS 55.1 s).
   for both members' inputs + production), otherwise the new delta brings single-fit noise back.
 - Four-month version: on the last day with the rest (needs the other machine's `final4m/` files; the merged `ctxc1*_rf3`
   members need four-month `prod` runs for seed 42 and for `PRC_CTX_SEEDS=43,44`, then the same merge; `src/post/ctx_seedavg_merge.py` is not scope-aware yet: it reads `data/submissions/` and `cache/eval/` only). Next free version: **v68**.
+v67 is the new best at 236.673.
