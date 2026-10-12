@@ -1,0 +1,2 @@
+chain change RMS 54.37; id deltas new RMS 28.95, old 34.00; total delta RMS 56.99, mean +0.467
+wrote cache/v67s/delta_rf_check.parquet

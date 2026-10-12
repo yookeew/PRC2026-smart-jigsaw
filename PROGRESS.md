@@ -6951,3 +6951,211 @@ month median in full + 0.75 × daily deviation; a chosen on 2025 by the register
   Day total: v68 236.6730 → v70 236.2290 (−0.44). For the blind file: v69's LSZH re-levelling (`lszh_dayclose.py`, a 0.75)
   and both v70 parts (`lirf_count_dates.py`; `nm_lines_remove.py` with the four-month chain before / after `nm_lines`).
   Next free version: **v71**.
+
+## 151. After v65: is the direction used up? Error budget and new-signal screens; the flow block is the one fresh lead (2026-10-11, analysis only)
+
+*(Merged 2026-10-12 from `main`: the team's write-up, written there as §137–§140 in parallel with this branch's §144–§150, renumbered here as §151–§154; main's §136 is §143 here. Cross-references inside these sections are renumbered to match.)*
+
+**Board: v65 = 237.0694 (−0.38 vs v64; projected −0.71). Kept; new best; 29th.** Leader ≈ 212. Next free version: **v66**.
+Ground rule from here (user): the final blind board is one submission over Jan + Feb + Jun + Jul 2026, so a candidate is
+judged on all 2025 out-of-fold months (Feb and Jun required), not on the Jan/Jul holdout, and never on board scores.
+
+Scripts `tests/flow_screen/` (frame, decomp, cells, oracle, flow, flow2, flow3, screen, drift); data in
+`cache/analysis/flow_screen/`. Frame: 12 months of 2025 departures with the `ctxc1sel_rh2` corrector output (10 OOF months +
+the Jan/Jul cross-fit holdout), trimmed y ≤ 5 h, 2,084,876 rows, RMSE 217.07 at corrector level.
+
+**Error budget, v65's holdout chain (`cache/v65/gate_rh2/chain_all`, trimmed 240.31):**
+
+| segment | rows | RMSE | % SSE |
+|---|---|---|---|
+| NM-matched y ≤ 15 min | 46.3% | 139 | 15.5 |
+| NM-matched 15–30 min | 47.7% | 179 | 26.4 |
+| NM-matched 30–60 min | 4.2% | 519 | 19.5 |
+| NM-matched 1–3 h | 0.22% | 1,654 | 10.6 |
+| LIRF NM-unmatched | 0.11% (369) | 3,375 | 21.1 |
+| other NM-unmatched | 1.43% | 518 | 6.6 |
+
+- By airport: LIRF 40.3% of SSE (body RMSE 312), LTFM 12.3, LFPG 12.0, EGLL 11.6; the other six 2–5% each.
+- To reach 212 from the body alone, body RMSE would have to go 190 → 152 (−20%). Each recent corrector block gave ~1%.
+
+**Within-day direction (blocks 11/12): used up.** At corrector level the airport × 30 min × runway oracle is still −5.7
+(−8.4 non-LIRF), but §134, §135 and §143 showed label-free window inputs reach only a slice of it, and the extra dimensions screened
+today don't either:
+- static leave-month-out cells (shrunk k = 30) at non-LIRF airports are all worse: stand +0.21, stand × runway +0.46,
+  operator × stand +0.40, type × runway +0.28, flight number +0.19, ADES +0.04, runway × hour +0.60. The corrector is
+  calibrated on identity. (LIRF-only gains from flight number / ADES, −0.5, repeat §111 and stay frozen.)
+- operator ±30 min windows (median T − SOBT, T − LOBT, count): −0.07, two periods worse. Dead.
+- shared error along the destination: the cross-origin (other airports) hour × ADES residual mean makes things worse
+  (+4.8 on top of the airport-hour oracle). Errors are local to airport × time × runway, not to the flow.
+
+**The one fresh signal: flow state (candidate corrector block 13).** Label-free, from the movement file only (all ten
+origins are in every release):
+- destination flow: other origins' departures to the same ADES within ±60 min (count, median T − SOBT, median T − LOBT,
+  share > 30 min late); same origin, same ADES within ±90 min;
+- region flow: same ADES ICAO prefix (two letters), excluding the same ADES, same origin and other origins, ±60 min;
+- schedule-order displacement: departures at the same airport with SOBT within ±20 min — count, overtakers (scheduled later,
+  took off earlier), overtaken, median T gap, net share.
+- Reading: it tells the model whether a delayed flight's delay was spent at the gate (an ATFM-regulated flow) or on the
+  taxiway, not a shared residual (see the destination oracle above).
+
+Paired residual screen (LightGBM on y − corrector, control = pred, airport, T − SOBT, T − LOBT, T − AOBT_3, hour, NM flag;
+7 periods leave-period-out: Jan | Jul | Feb–Mar | Apr–May | Jun+Aug | Sep–Oct | Nov–Dec):
+
+| treatment − control | trimmed | body | by period | airports better |
+|---|---|---|---|---|
+| destination flow | −0.371 | −0.140 | −0.37 / −0.36 / −0.89 / −0.20 / −0.33 / −0.30 / −0.18 | 10/10 |
+| region flow | −0.249 | −0.032 | all 7 better | 9/10 |
+| schedule displacement | −0.215 | −0.069 | 5/7 better | 7/10 |
+| **all three** | **−0.600** | **−0.207** | −0.33 / −0.69 / **−1.70** / −0.37 / **−0.46** / −0.43 / −0.20 | **10/10** |
+
+- All three, per airport: LTFM −1.79, LIRF −1.44 (frozen in production), LFPG −0.41, LEMD −0.19, EGLL −0.15, EDDF / LEBL −0.12,
+  EHAM −0.09, LSZH −0.08, EDDM −0.07.
+- Size: block 12's screen was −1.02 and gave gate −0.72, board −0.38; so expect very roughly −0.2 to −0.35 s, non-LIRF.
+- 2025 → 2026 (final release, NM-matched, other-origin destination flow): coverage 0.75–0.79 in both years for every
+  month; SMD of the median offset +0.22 (Jan, the storm month), +0.07 (Feb), 0.00 (Jun), −0.17 (Jul); share late
+  +0.24 / +0.09 / −0.02 / −0.24. These are real delay-level differences inside 2025's month-to-month range (Jan 1,591 s vs
+  Jul 2,067 s in 2025), the size of block 12's max (0.20).
+
+**Proposed next (not started):** pre-register block 13 (`CTX_FLOW=1`, r + rb members on top of block 12), gate as §143
+with Feb and Jun OOF required, delta against byte copies of the production `ctxc1sel_rh2`, LIRF frozen; build v66 and the
+four-month port. Before that, the blind board still lacks v64 and v65 (`run_v64_final4m.sh`, `run_v65_final4m.sh` need the
+other machine's `final4m/` folders).
+
+## 152. Flow-state block (block 13) in the context corrector -- gate PASS; v66 built, board pending (2026-10-11)
+
+`reports/ctx_flow_preregistration.md` (written first; amendment A1 before any gate number). Code: `src/post/flow_feats.py`,
+block 13 in `tests/context_corrector_test.py` (`CTX_FLOW=1`), `tests/ctx_flow_drift.py`, `tests/ctx_hour_gate.py`
+(`CTL_DIR` switch, default unchanged), `run_v66.sh`, `run_v66_chain.sh`. Logs `logs/v66/`.
+
+- **Inputs (21, label-free, §151):** destination flow from the other nine airports (±60 min) and from our own airport
+  (±90 min), region flow (same two-letter ADES prefix, different ADES, ±60 min, same / other origins) — each count, median
+  T − SOBT, median T − LOBT, share > 30 min late — and schedule-order displacement (SOBT within ±20 min: count, overtakers,
+  overtaken, median T gap, net share). `flow_feats.build` reproduces the screened features exactly (21/21 columns).
+- **A1, a bug found before any gate number:** `sq_net` subtracted unsigned counts, so negative values wrapped to ≈ 4.3e9 / n
+  (the §151 screen had it too). Fixed to signed arithmetic; the run was restarted from the start.
+- Members `ctxc1r_rf` (101 inputs) / `ctxc1rb_rf` (118), sel `ctxc1sel_rf`. Early stopping 1,505–2,444 rounds.
+
+**Gate (holdout chain with v50's post-stages, vs v65's `ctxc1sel_rh2`): PASS (a)–(f).**
+
+| | trimmed | full | body | trimmed Jan / Jul | OOF trimmed |
+|---|---|---|---|---|---|
+| all airports | −0.351 | −0.261 | −0.278 | −0.731 / −0.137 | −1.43, 10/10 months (Feb −0.46, Jun −2.13) |
+| non-LIRF | −0.707 | −0.499 | −0.437 | | |
+
+- Per airport trimmed: LTFM −1.36, LFPG −1.00, LSZH −0.94, EDDF −0.82, EHAM −0.75, EDDM −0.60, EGLL −0.36, LEMD −0.24, LEBL 0.00,
+  LIRF +0.98 (frozen in production, as LSZH is by the day recipe).
+- Drift (f): max pooled |SMD| 0.158 (`rxo_f30`); 2026 coverage equal to 2025's.
+- LIRF: the corrector-level gain (member r, 12 months: LIRF −9.6) sits on NM-unmatched rows, where the production v48 hedges
+  are far better than any corrector (holdout 3,233 vs 3,933 / 4,088). Nothing to take there.
+- 2026 projection on the rows production changes: **−0.47 s.**
+
+**v66** = v54 + delta (`FREEZE_LIRF=1 v50_assemble.py`) → `day_alloc_build.py` (v63's recipe), delta =
+(chain_rf + identity deltas) − (chain_ro + identity deltas) (RMS 57.0 s).
+- vs v65: 284,290 rows changed, RMS 24.9 s, mean +0.09, max |Δ| 683; LIRF and LSZH identical. Per airport RMS: LTFM 35.1,
+  LFPG 30.1, EDDF 27.4, EGLL 26.5, EHAM 24.8, LEMD 21.7, EDDM 21.0, LEBL 19.7.
+- `data/submissions/smart-jigsaw_v66.parquet`, md5 27cdb451694f6bbd1a384dbbea19f367. **Keep iff board < 237.0694.**
+- Four-month version: on the last day with the rest (`run_v65_final4m.sh` pattern, tag `_rf`). Next free version: **v67**.
+
+**LIRF NM-matched unfreeze, third attempt on `ctxc1sel_rf`: FAIL** (`reports/lirf_matched_unfreeze_rf_preregistration.md`,
+bar tightened to −0.20). Holdout pooled trimmed −0.047, Jul +0.015; OOF now 9/10 months better (June −0.72), but the
+corrector-level gains don't survive the chain. Closed after three attempts; LIRF stays frozen.
+
+**Screens on top of v66's corrector** (`tests/flow_screen/air_screen.py`, `stop_screen.py`, `rot_screen.py`; same paired
+residual harness, base `ctxc1sel_rf`, trimmed 215.36 at corrector level):
+- airline network (same operator's departures at the other nine airports ±60 min; + its arrivals): −0.08 / −0.14, Jan
+  worse. Dead.
+- runway stoppage / discharge (longest takeoff gap on the runway and at the airport, and longest landing gap, in the past
+  60 min; time and movements since it ended): −0.32, Jan +0.01, mostly LTFM −1.04 / LIRF −0.82, body −0.06. Weak.
+- neighbour rotation pressure (±30 min: share of tight turnarounds, median slack, offsets of tight vs slack
+  neighbours): −0.15, only LIRF; most airports slightly worse. Dead.
+
+## 153. Runway stoppage / discharge block (block 14) -- gate FAIL, nothing built; XGBoost corrector and LIRF flow-echo scoping (2026-10-11)
+
+`reports/ctx_stop_preregistration.md` (A1: NaN → null in `st_ar_*` before any fit; inputs unchanged). Code: `src/post/stop_feats.py`,
+block 14 in `tests/context_corrector_test.py` (`CTX_STOP=1`), `tests/ctx_stop_drift.py`, `run_v67.sh`, `run_v67_chain.sh`.
+Logs `logs/v67/`. Built on top of v66 (board pending at the time) — from now on only one candidate per round (user).
+
+- **Inputs (9):** the longest gap between consecutive takeoffs on the same runway / at the airport, and between landings,
+  inside [T − 60 min, T], with the time and movements since it ended. Screen on v66's corrector −0.32 (§152 list).
+- **Gate vs v66's `ctxc1sel_rf`: FAIL.** Holdout trimmed −0.189 but Jan +0.031; OOF −0.173 with June +0.39 and only
+  6/10 months better. Non-LIRF trimmed −0.004: the gain is all LIRF (frozen). Projection on production rows +0.011.
+  No v67. Block 14 closed.
+- **XGBoost corrector diversity** (`tests/xgb_corrector_scope.py`, GPU, v66 member-r inputs, fit on the 10 OOF months,
+  scored on the holdout at corrector level): XGBoost alone 246.87 vs LightGBM 244.22; error correlation 0.981; best blend
+  (0.25 XGBoost) −0.23 trimmed, body −0.14. Too little for a second corrector family. Closed.
+- **Flow inputs for the LIRF NM-unmatched echo hedge** (`tests/flow_screen/lirf_flow_echo.py`, v45 scope, 958 rows,
+  leave-one-month-out logistic on [logit p, v45 signals] ± flow): offset-weighted cost 9.10e9 → 8.85e9 (−2.8%) with
+  destination flow, log-loss 0.434 → 0.428, 7/10 months better. Real but small (≈ −0.2 s at most) on the rows with the
+  worst board-transfer record. Not built.
+- Next free version stays **v67**.
+new best is 236.81 from v66, small gain of ~-0.2
+
+**Board: v66 = 236.8136 (−0.26 vs v65; projected −0.47). Kept; new best; 28th** (leaderboard API 2026-10-12 00:10 UTC+1:
+29th 236.98, 30th 237.12; leader strong-crane 212.85). Next free version: **v67**.
+
+## 154. New-signal screens on v66's corrector all small; v66's corrector averaged over three seeds (`ctxc1sel_rf3`) -- gate PASS; v67 built, board pending (2026-10-12)
+
+`reports/ctx_seedavg_rf_preregistration.md` (written first). Code: `tests/flow_screen/dir_screen.py`, `tests/flow_screen/lc_screen.py`,
+`src/post/order_feats.py` (block-15 candidate, not wired in), `src/post/ctx_seedavg_merge.py`, `run_v67s.sh`, `run_v67s_chain.sh`.
+Logs `logs/dir_screen.log`, `logs/lc_screen.log`, `logs/run_v67s.log`, `logs/v67s/`.
+
+**Error budget, v66's holdout chain** (`cache/v66/gate_rf/chain_all`, trimmed 239.95): by departure lateness T − SOBT
+(NM-matched), 30–60 min holds 25.9% of SSE (RMSE 233) and 60–120 min 21.3% (RMSE 372): the gate-wait vs taxi split is
+where the body error is. By airport: LIRF 40.6%, LFPG 11.9, EGLL 11.6, LTFM 12.2; body would need 190 → 152 for 212.
+
+**Screens on v66's corrector** (§151 harness: residual LightGBM on `ctxc1sel_rf`'s 12-month OOF + holdout output, 7 periods
+leave-period-out, paired; trimmed / body):
+- **D, departure-direction flow** (same-origin departures in the same 30° initial-bearing sector to ADES, ±60 min: n, median
+  T − SOBT, median T − LOBT, share > 30 min late; great-circle distance; coordinates from OurAirports, public domain):
+  −0.108 / −0.013, 6/7 periods, almost all LIRF (−0.66). Dead.
+- **L, takeoff-order displacement by LOBT** (same runway, LOBT within ±20 min: overtakers, overtaken, net share, median
+  takeoff gap) and by AOBT_3 (airport level): −0.186 / −0.166, Jan +0.03; LTFM −0.70.
+- **C, runway configuration ahead** (dominant departure runway per 15 min: time since / until a change, own runway dominant
+  20 / 40 min before takeoff, own runway's share of the bin): −0.100 / −0.032.
+- D+L+C −0.306 / −0.179 (Nov–Dec 0.00); **L+C −0.204 / −0.183** (Jan +0.02, the other six periods −0.12 to −0.46; LTFM −0.76,
+  LFPG −0.15, EDDF −0.14, LEMD −0.12). D's extra is LIRF only (frozen in production).
+- For scale: block 13 screened −0.60 / −0.21 (gate −0.35, board −0.26); block 14 −0.32 / −0.06 (gate FAIL). L+C is the
+  next block candidate (`src/post/order_feats.build` reproduces the screened 15 columns exactly); not run tonight.
+- Also checked: OPDI ground-event coverage by airport and month (2025 + 2026) — nothing outside LSZH / EDDF (EDDM ≤ 0.17,
+  EHAM ≤ 0.07, LEMD only Oct–Nov 2025). kind-mango's public repo has not changed since 2026-09-28.
+
+**Why seed averaging instead.** No screen is near block 13's size, and the corrector's refit variance (11.7–17.0 s RMS between
+seed fits, §105e / §108) is untouched by every block so far. §108's 3-seed average on v42's corrector gave trimmed −0.33 and
+failed only the old rule's July-body condition (+0.03). Here: both v66 members refitted with seeds 43 and 44 (in-process
+mean, `PRC_CTX_SEEDS=43,44`), averaged 1:2 with v66's own seed-42 fits (holdout, OOF folds, ranking rows), then `sel`.
+Build path checked first: v66 rebuilt from its own chain with `v64_delta.py` → `v50_assemble.py` → `day_alloc_build.py`
+is identical to the uploaded file.
+
+**Run status note (2026-10-12 01:00).** `bash run_v67s.sh` started 00:26 (log `logs/run_v67s.log`). The laptop was on battery
+(71%, CPU at 1.5 GHz): one corrector fit took ≈ 14.5 min instead of ≈ 4 min on AC (seed-43/44 holdout fit: best_iter 1,850 /
+1,578, RMS between the two seed fits 21.0 s). Windows' critical-battery action is Hibernate (4%), so if the battery ran out the
+run is frozen, not lost: plug in, wake the laptop, and it continues by itself (about 75 min of fits remain on AC at worst).
+It ends with `logs/v67s/ctx_seedavg_gate.log` (DECISION line) and, only on PASS, `data/submissions/smart-jigsaw_v67.parquet`.
+- The laptop was put on AC at ≈ 01:05; the run finished at 02:51 (`exit 0`).
+
+**Seed spread.** RMS between the seed-43 and seed-44 fits per corrector call 15.8–22.5 s (member r), 15.8–22.4 s (rb), production
+21.2 / 23.9 s; seed 42 vs the 43/44 mean: holdout 18.7 / 18.9 s, ranking rows 19.7 / 19.4 s. At corrector level (12 months, y ≤ 5 h)
+the 3-seed average vs seed 42 alone: member r −0.30 (12/12 months), rb −0.17 (10/12).
+
+**Gate (holdout chain with v50's post-stages, vs v66's `ctxc1sel_rf`; `logs/v67s/ctx_seedavg_gate.log`): PASS (a)–(e).**
+
+| | trimmed | full | body | trimmed Jan / Jul | body Jan / Jul | OOF trimmed |
+|---|---|---|---|---|---|---|
+| all airports | **−0.412** | −0.320 | −0.338 | −0.344 / −0.460 | −0.344 / −0.335 | −0.292, 10/10 months (Feb −0.45, Jun −0.23) |
+| non-LIRF | −0.404 | −0.281 | −0.328 | | | |
+
+- Per airport trimmed: LFPG −1.07, EGLL −0.64, LIRF −0.64 (frozen in production), LTFM −0.44, LSZH −0.31 (not changed by the
+  build), EDDM / LEMD −0.17, LEBL −0.11, EHAM −0.04, EDDF +0.01. OOF: every airport better (−0.07 EHAM to −0.72 LIRF).
+- Holdout chain RMS change 15.4 s, mean +0.11. Both months and the OOF months move together, as a variance reduction should.
+- 2026 projection on the rows production changes: **−0.28 s** (all airports −0.41).
+
+**v67** = v54 + delta (`FREEZE_LIRF=1 v50_assemble.py`) → `day_alloc_build.py` (v63's recipe), delta = (chain_rf3 + identity
+deltas) − (chain_ro + identity deltas) (RMS 55.1 s).
+- vs v66: 278,940 rows changed, RMS 17.1 s, mean −0.01, max |Δ| 620; LIRF and LSZH identical. Per airport RMS: EGLL 21.8,
+  LTFM 20.7, EDDF 18.8, LFPG 18.0, EHAM 17.8, EDDM 17.0, LEMD 16.3, LEBL 14.7.
+- `data/submissions/smart-jigsaw_v67.parquet`, md5 4cbe2902013a011db5c8bf395e19ef50. **Keep iff board < 236.8136.**
+- **Consequence if kept:** every later corrector block has to be fitted with the same three seeds (≈ 3× compute, ≈ 2 h on AC
+  for both members' inputs + production), otherwise the new delta brings single-fit noise back.
+- Four-month version: on the last day with the rest (needs the other machine's `final4m/` files; the merged `ctxc1*_rf3`
+  members need four-month `prod` runs for seed 42 and for `PRC_CTX_SEEDS=43,44`, then the same merge; `src/post/ctx_seedavg_merge.py` is not scope-aware yet: it reads `data/submissions/` and `cache/eval/` only). Next free version: **v68**.
+v67 is the new best at 236.673.

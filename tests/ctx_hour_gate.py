@@ -19,7 +19,7 @@ TRIM = 18000
 TAG = os.environ.get("TAG", "roh")
 CTL = os.environ.get("CTL", "ro")                      # control corrector tag (v65 gate: rohb)
 GDIR = os.environ.get("GATE_DIR", "cache/v64")           # where gate_<TAG>/chain_all lives (control always cache/v64)
-CDIR = os.environ.get("CTL_DIR", "cache/v64")            # where gate_<CTL>/chain_all lives (v66: cache/v66)
+CTL_DIR = os.environ.get("CTL_DIR", "cache/v64")         # where gate_<CTL>/chain_all lives (v66 gate: cache/v65)
 BOARD = float(os.environ.get("BOARD", "238.3173"))       # current best, for the 2026 projection
 
 
@@ -43,7 +43,7 @@ def main() -> None:
     rm = lambda e: float(np.sqrt(np.mean(e ** 2))) if len(e) else float("nan")  # noqa: E731
 
     # 1. holdout chain
-    x = (rd(ROOT / f"{CDIR}/gate_{CTL}/chain_all.parquet", "c").join(rd(ROOT / f"{GDIR}/gate_{TAG}/chain_all.parquet", "t"), on="MVT_ID_mvt")
+    x = (rd(ROOT / f"{CTL_DIR}/gate_{CTL}/chain_all.parquet", "c").join(rd(ROOT / f"{GDIR}/gate_{TAG}/chain_all.parquet", "t"), on="MVT_ID_mvt")
          .join(lab, on="MVT_ID_mvt", how="inner"))
     y, c, t = x["y"].to_numpy(), x["c"].to_numpy(), x["t"].to_numpy()
     apt, mo, nm = x["apt"].to_numpy(), x["mo"].to_numpy(), x["nm"].to_numpy()
