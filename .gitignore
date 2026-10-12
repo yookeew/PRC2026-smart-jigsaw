@@ -42,3 +42,7 @@ external-data/adsb_final2026/
 # Local AI-assistant files (internal notes and settings)
 CLAUDE.md
 .claude/
+
+# OurAirports coordinates (public domain; screen only, PROGRESS.md §140) — re-fetch:
+# curl -o external-data/ourairports/airports.csv https://davidmegginson.github.io/ourairports-data/airports.csv
+external-data/ourairports/*.csv

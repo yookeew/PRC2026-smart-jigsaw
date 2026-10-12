@@ -6542,3 +6542,73 @@ Logs `logs/v67/`. Built on top of v66 (board pending at the time) — from now o
   worst board-transfer record. Not built.
 - Next free version stays **v67**.
 new best is 236.81 from v66, small gain of ~-0.2
+
+**Board: v66 = 236.8136 (−0.26 vs v65; projected −0.47). Kept; new best; 28th** (leaderboard API 2026-10-12 00:10 UTC+1:
+29th 236.98, 30th 237.12; leader strong-crane 212.85). Next free version: **v67**.
+
+## 140. New-signal screens on v66's corrector all small; v66's corrector averaged over three seeds (`ctxc1sel_rf3`) -- gate PASS; v67 built, board pending (2026-10-12)
+
+`reports/ctx_seedavg_rf_preregistration.md` (written first). Code: `tests/flow_screen/dir_screen.py`, `tests/flow_screen/lc_screen.py`,
+`src/post/order_feats.py` (block-15 candidate, not wired in), `src/post/ctx_seedavg_merge.py`, `run_v67s.sh`, `run_v67s_chain.sh`.
+Logs `logs/dir_screen.log`, `logs/lc_screen.log`, `logs/run_v67s.log`, `logs/v67s/`.
+
+**Error budget, v66's holdout chain** (`cache/v66/gate_rf/chain_all`, trimmed 239.95): by departure lateness T − SOBT
+(NM-matched), 30–60 min holds 25.9% of SSE (RMSE 233) and 60–120 min 21.3% (RMSE 372): the gate-wait vs taxi split is
+where the body error is. By airport: LIRF 40.6%, LFPG 11.9, EGLL 11.6, LTFM 12.2; body would need 190 → 152 for 212.
+
+**Screens on v66's corrector** (§137 harness: residual LightGBM on `ctxc1sel_rf`'s 12-month OOF + holdout output, 7 periods
+leave-period-out, paired; trimmed / body):
+- **D, departure-direction flow** (same-origin departures in the same 30° initial-bearing sector to ADES, ±60 min: n, median
+  T − SOBT, median T − LOBT, share > 30 min late; great-circle distance; coordinates from OurAirports, public domain):
+  −0.108 / −0.013, 6/7 periods, almost all LIRF (−0.66). Dead.
+- **L, takeoff-order displacement by LOBT** (same runway, LOBT within ±20 min: overtakers, overtaken, net share, median
+  takeoff gap) and by AOBT_3 (airport level): −0.186 / −0.166, Jan +0.03; LTFM −0.70.
+- **C, runway configuration ahead** (dominant departure runway per 15 min: time since / until a change, own runway dominant
+  20 / 40 min before takeoff, own runway's share of the bin): −0.100 / −0.032.
+- D+L+C −0.306 / −0.179 (Nov–Dec 0.00); **L+C −0.204 / −0.183** (Jan +0.02, the other six periods −0.12 to −0.46; LTFM −0.76,
+  LFPG −0.15, EDDF −0.14, LEMD −0.12). D's extra is LIRF only (frozen in production).
+- For scale: block 13 screened −0.60 / −0.21 (gate −0.35, board −0.26); block 14 −0.32 / −0.06 (gate FAIL). L+C is the
+  next block candidate (`src/post/order_feats.build` reproduces the screened 15 columns exactly); not run tonight.
+- Also checked: OPDI ground-event coverage by airport and month (2025 + 2026) — nothing outside LSZH / EDDF (EDDM ≤ 0.17,
+  EHAM ≤ 0.07, LEMD only Oct–Nov 2025). kind-mango's public repo has not changed since 2026-09-28.
+
+**Why seed averaging instead.** No screen is near block 13's size, and the corrector's refit variance (11.7–17.0 s RMS between
+seed fits, §105e / §108) is untouched by every block so far. §108's 3-seed average on v42's corrector gave trimmed −0.33 and
+failed only the old rule's July-body condition (+0.03). Here: both v66 members refitted with seeds 43 and 44 (in-process
+mean, `PRC_CTX_SEEDS=43,44`), averaged 1:2 with v66's own seed-42 fits (holdout, OOF folds, ranking rows), then `sel`.
+Build path checked first: v66 rebuilt from its own chain with `v64_delta.py` → `v50_assemble.py` → `day_alloc_build.py`
+is identical to the uploaded file.
+
+**Run status note (2026-10-12 01:00).** `bash run_v67s.sh` started 00:26 (log `logs/run_v67s.log`). The laptop was on battery
+(71%, CPU at 1.5 GHz): one corrector fit took ≈ 14.5 min instead of ≈ 4 min on AC (seed-43/44 holdout fit: best_iter 1,850 /
+1,578, RMS between the two seed fits 21.0 s). Windows' critical-battery action is Hibernate (4%), so if the battery ran out the
+run is frozen, not lost: plug in, wake the laptop, and it continues by itself (about 75 min of fits remain on AC at worst).
+It ends with `logs/v67s/ctx_seedavg_gate.log` (DECISION line) and, only on PASS, `data/submissions/smart-jigsaw_v67.parquet`.
+- The laptop was put on AC at ≈ 01:05; the run finished at 02:51 (`exit 0`).
+
+**Seed spread.** RMS between the seed-43 and seed-44 fits per corrector call 15.8–22.5 s (member r), 15.8–22.4 s (rb), production
+21.2 / 23.9 s; seed 42 vs the 43/44 mean: holdout 18.7 / 18.9 s, ranking rows 19.7 / 19.4 s. At corrector level (12 months, y ≤ 5 h)
+the 3-seed average vs seed 42 alone: member r −0.30 (12/12 months), rb −0.17 (10/12).
+
+**Gate (holdout chain with v50's post-stages, vs v66's `ctxc1sel_rf`; `logs/v67s/ctx_seedavg_gate.log`): PASS (a)–(e).**
+
+| | trimmed | full | body | trimmed Jan / Jul | body Jan / Jul | OOF trimmed |
+|---|---|---|---|---|---|---|
+| all airports | **−0.412** | −0.320 | −0.338 | −0.344 / −0.460 | −0.344 / −0.335 | −0.292, 10/10 months (Feb −0.45, Jun −0.23) |
+| non-LIRF | −0.404 | −0.281 | −0.328 | | | |
+
+- Per airport trimmed: LFPG −1.07, EGLL −0.64, LIRF −0.64 (frozen in production), LTFM −0.44, LSZH −0.31 (not changed by the
+  build), EDDM / LEMD −0.17, LEBL −0.11, EHAM −0.04, EDDF +0.01. OOF: every airport better (−0.07 EHAM to −0.72 LIRF).
+- Holdout chain RMS change 15.4 s, mean +0.11. Both months and the OOF months move together, as a variance reduction should.
+- 2026 projection on the rows production changes: **−0.28 s** (all airports −0.41).
+
+**v67** = v54 + delta (`FREEZE_LIRF=1 v50_assemble.py`) → `day_alloc_build.py` (v63's recipe), delta = (chain_rf3 + identity
+deltas) − (chain_ro + identity deltas) (RMS 55.1 s).
+- vs v66: 278,940 rows changed, RMS 17.1 s, mean −0.01, max |Δ| 620; LIRF and LSZH identical. Per airport RMS: EGLL 21.8,
+  LTFM 20.7, EDDF 18.8, LFPG 18.0, EHAM 17.8, EDDM 17.0, LEMD 16.3, LEBL 14.7.
+- `data/submissions/smart-jigsaw_v67.parquet`, md5 4cbe2902013a011db5c8bf395e19ef50. **Keep iff board < 236.8136.**
+- **Consequence if kept:** every later corrector block has to be fitted with the same three seeds (≈ 3× compute, ≈ 2 h on AC
+  for both members' inputs + production), otherwise the new delta brings single-fit noise back.
+- Four-month version: on the last day with the rest (needs the other machine's `final4m/` files; the merged `ctxc1*_rf3`
+  members need four-month `prod` runs for seed 42 and for `PRC_CTX_SEEDS=43,44`, then the same merge; `src/post/ctx_seedavg_merge.py` is not scope-aware yet: it reads `data/submissions/` and `cache/eval/` only). Next free version: **v68**.
+v67 is the new best at 236.673.

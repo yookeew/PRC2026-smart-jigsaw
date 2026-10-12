@@ -61,3 +61,7 @@ only OpenSky-hosted data is the challenge dataset itself.
   step B") but never built. Stand/runway geometry from the Gateway table
   added nothing as a feature (PROGRESS.md §38), so no OSM-derived data
   exists in this repo.
+- **OurAirports airport coordinates** (https://davidmegginson.github.io/ourairports-data/airports.csv,
+  public domain, accessed 2026-10-12): fetched to `external-data/ourairports/airports.csv` (not committed)
+  for the departure-direction screen in PROGRESS.md §140 (`tests/flow_screen/dir_screen.py`). The screen
+  failed, so no submission uses it.

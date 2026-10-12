@@ -1,0 +1,39 @@
+=== 0. build-path check: v66 rebuilt from its own chain must equal the uploaded v66  2026-10-12 00:25:43
+v66 rebuild identical: True
+=== 1. holdout + OOF inputs, member r, seeds 43,44  2026-10-12 00:26:25
+=== 2. holdout + OOF inputs, member rb, seeds 43,44  2026-10-12 01:31:39
+=== 3. production fit, member r, seeds 43,44  2026-10-12 02:22:01
+=== 4. production fit, member rb, seeds 43,44  2026-10-12 02:32:25
+=== 5. merge 1:2 with v66's seed-42 fits, sel  2026-10-12 02:44:01
+ctxc1r_rf3 = (1*ctxc1r_rf + 2*ctxc1r_rf_s2) / 3; RMS ctxc1r_rf vs ctxc1r_rf_s2: holdout 18.65 s, OOF folds [14.47, 13.5, 15.67, 16.69, 14.81], ranking 19.66 s
+ctxc1rb_rf3 = (1*ctxc1rb_rf + 2*ctxc1rb_rf_s2) / 3; RMS ctxc1rb_rf vs ctxc1rb_rf_s2: holdout 18.91 s, OOF folds [13.69, 13.27, 15.48, 16.17, 15.58], ranking 19.41 s
+=== 6. holdout chain gate run  2026-10-12 02:44:06
+=== 7. gate  2026-10-12 02:47:11
+holdout chain rows 344,339; RMS change 15.41 s, mean +0.11
+  trimmed            control   239.95  treatment   239.54  delta -0.412
+  full               control   299.83  treatment   299.51  delta -0.320
+  body               control   189.62  treatment   189.29  delta -0.338
+  trimmed Jan        control   195.25  treatment   194.90  delta -0.344
+  trimmed Jul        control   270.66  treatment   270.20  delta -0.460
+  body Jan           control   172.76  treatment   172.41  delta -0.344
+  body Jul           control   202.35  treatment   202.01  delta -0.335
+  trimmed non-LIRF   control   192.55  treatment   192.15  delta -0.404
+  full non-LIRF      control   263.05  treatment   262.77  delta -0.281
+  body non-LIRF      control   175.63  treatment   175.30  delta -0.328
+  per airport trimmed: {'EDDF': 0.01, 'EDDM': -0.17, 'EGLL': -0.64, 'EHAM': -0.04, 'LEBL': -0.11, 'LEMD': -0.17, 'LFPG': -1.07, 'LIRF': -0.64, 'LSZH': -0.31, 'LTFM': -0.44}
+  per airport body:    {'EDDF': 0.06, 'EDDM': -0.1, 'EGLL': -0.48, 'EHAM': 0.01, 'LEBL': -0.05, 'LEMD': -0.16, 'LFPG': -1.13, 'LIRF': -0.45, 'LSZH': -0.08, 'LTFM': -0.33}
+  2026 projection (all airports): -0.408 s
+  2026 projection (LIRF frozen): -0.290 s
+  2026 projection (production rows (no LIRF, no LSZH)): -0.276 s
+OOF rows 1,740,628; trimmed pooled delta -0.292
+  trimmed by month: {np.int8(2): -0.45, np.int8(3): -0.27, np.int8(4): -0.33, np.int8(5): -0.13, np.int8(6): -0.23, np.int8(8): -0.25, np.int8(9): -0.53, np.int8(10): -0.35, np.int8(11): -0.22, np.int8(12): -0.15}
+  per airport trimmed: {'EDDF': -0.25, 'EDDM': -0.22, 'EGLL': -0.26, 'EHAM': -0.07, 'LEBL': -0.11, 'LEMD': -0.15, 'LFPG': -0.21, 'LIRF': -0.72, 'LSZH': -0.31, 'LTFM': -0.38}
+conditions: {'a trimmed <= -0.10': True, 'b Jan and Jul trimmed better': True, 'c full <= 0': True, 'd body <= +0.10': True, 'e OOF Feb, Jun better, >= 7/10 months': True}
+DECISION: PASS
+=== 8. production chain  2026-10-12 02:47:14
+chain ctxc1sel_rf3 done Mon Oct 12 02:50:48 WEST 2026
+=== 9. delta, assembly, day recipe  2026-10-12 02:50:48
+chain change RMS 52.79; id deltas new RMS 29.20, old 34.00; total delta RMS 55.12, mean +0.605
+wrote cache/v67s/delta_rf3.parquet
+=== done  2026-10-12 02:51:07
+exit 0
