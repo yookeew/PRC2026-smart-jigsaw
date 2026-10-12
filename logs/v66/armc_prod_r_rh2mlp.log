@@ -1,0 +1,18 @@
+stack weights (OOF months): [0.577 0.428]
+training rows 2,084,469 of 2,084,967 (BASE 2,062,591; NM-unmatched added 21,878); features 80
+NM-unmatched ranking rows served: 5,187; unseen null pattern: BASE 0.524 -> ctxc1r_rh2mlp 0.033
+    mlp epoch 0 26s inner RMSE 253.96
+    mlp epoch 1 26s inner RMSE 251.28
+    mlp epoch 2 27s inner RMSE 250.64
+    mlp epoch 3 26s inner RMSE 248.10
+    mlp epoch 4 25s inner RMSE 248.71
+    mlp epoch 5 25s inner RMSE 248.81
+    mlp epoch 6 26s inner RMSE 246.83
+    mlp epoch 7 26s inner RMSE 246.80
+    mlp epoch 8 27s inner RMSE 248.12
+    mlp epoch 9 26s inner RMSE 246.68
+    mlp epoch 10 26s inner RMSE 246.84
+    mlp epoch 11 27s inner RMSE 246.83
+corrector (ensemble2): global best_iter 9
+ranking: RMS change vs stack 139.9 s; mean -8.8 s
+wrote ctxc1r_rh2mlp.parquet and armc_rank_ctxc1r_rh2mlp.parquet

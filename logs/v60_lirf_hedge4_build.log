@@ -1,0 +1,6 @@
+v48 recomputed from v47 on 287 treated rows: max |diff| 0.0 s (rows > 1 s: 0)
+treated rows 287; base still at v48's value on 287 (others kept as base: 0); with a flight-number history 116 of 287
+  month 1: rows 62, moved > 1 s 62, mean change -167 s, RMS 929 s, mean q2 -> q4 0.612 -> 0.593
+  month 7: rows 225, moved > 1 s 222, mean change +252 s, RMS 954 s, mean q2 -> q4 0.334 -> 0.370
+rows differing from smart-jigsaw_v64.parquet: 284; sum of squared change 2.58e+08; RMS over all rows 27.36 s
+wrote smart-jigsaw_v65.parquet

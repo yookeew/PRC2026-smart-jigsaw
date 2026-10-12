@@ -1,0 +1,4 @@
+(holdout printout skipped: diagnostic only)
+12-month fit: {'EDDF': (909, 0.01), 'EDDM': (885, 0.024), 'EGLL': (1371, 0.027), 'EHAM': (481, 0.027), 'LEBL': (904, 0.021), 'LEMD': (954, 0.024), 'LFPG': (1135, 0.008), 'LIRF': (-2818, 1.062), 'LSZH': (547, 0.042), 'LTFM': (912, 0.153)} | Rome a=43089 b=0.526 (15 rows)
+ranking: line rows 130, Rome rows 6; mean shift on changed rows +1897 s; RMS change over all rows 58.9 s
+wrote chain_ctxc1sel_rohb_final.parquet

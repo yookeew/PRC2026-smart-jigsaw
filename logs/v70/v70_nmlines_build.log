@@ -1,0 +1,11 @@
+rows in scope 70; non-LIRF rows outside scope where the line stage moved the chain: 0
+  EDDF: rows   6, mean before  1413.5, after  1089.7, mean change   -323.8
+  EDDM: rows   2, mean before  1682.0, after   710.0, mean change   -972.0
+  EGLL: rows   5, mean before  2066.2, after  1333.4, mean change   -732.8
+  EHAM: rows  41, mean before  1605.4, after  1148.4, mean change   -456.9
+  LEBL: rows   5, mean before  1464.6, after   936.2, mean change   -528.4
+  LFPG: rows   5, mean before  1449.6, after  1069.0, mean change   -380.6
+  LSZH: rows   4, mean before  1691.8, after   859.8, mean change   -832.0
+  LTFM: rows   2, mean before  5242.0, after   963.0, mean change  -4279.0
+rows changed 70, sum d^2 6.67e+07, RMS over all rows 13.91
+wrote data/submissions/smart-jigsaw_v70.parquet

@@ -1,0 +1,7 @@
+input smart-jigsaw_v68.parquet: LSZH rows 23,150, on solved days 23,150; month medians before m1 -46.5, m7 -19.8
+  m1: rows 9,995, changed 9,995, mean +49.28, RMS 50.25
+  m7: rows 13,155, changed 13,155, mean +20.58, RMS 21.32
+all rows: RMS 9.51, max |d| 85
+month medians after m1 -0.0, m7 +0.1
+LOBT-window violations: 0 (LSZH 0)
+wrote data/submissions/smart-jigsaw_v69.parquet

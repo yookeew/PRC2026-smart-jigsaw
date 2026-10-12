@@ -1,0 +1,33 @@
+check, v62 recipe vs smart-jigsaw_v65.parquet: per airport rows differing / max |diff|
+  EDDF: 35,267 / 487
+  EDDM: 25,007 / 262
+  EGLL: 39,013 / 439
+  EHAM: 36,482 / 527
+  LEBL: 29,247 / 270
+  LEMD: 35,901 / 268
+  LFPG: 38,726 / 532
+  LIRF:      0 / 0
+  LSZH: 22,791 / 1203
+  LTFM: 47,174 / 550
+G2 slopes in use, mean by band (< 0 / 0-15 / 15-60 / >= 60 min):
+  EDDF: 0.30 / 0.55 / 0.81 / 0.85 | 2026 max |lam| 116 (2025 107)
+  EDDM: 0.29 / 0.45 / 0.68 / 0.89 | 2026 max |lam| 59 (2025 408)
+  EGLL: 0.26 / 0.50 / 0.67 / 0.66 | 2026 max |lam| 117 (2025 210)
+  EHAM: 0.23 / 0.32 / 0.44 / 0.60 | 2026 max |lam| 442 (2025 158)
+  LEBL: 0.36 / 0.67 / 0.87 / 0.81 | 2026 max |lam| 113 (2025 127)
+  LEMD: 0.38 / 0.60 / 0.80 / 0.78 | 2026 max |lam| 36 (2025 95)
+  LFPG: 0.18 / 0.46 / 0.69 / 0.75 | 2026 max |lam| 114 (2025 145)
+  LTFM: 0.60 / 0.82 / 0.86 / 0.75 | 2026 max |lam| 337 (2025 1294)
+vs v62: per airport x month RMS / mean; mean shift vs p (new / v62)
+  EDDF: m1   34.2   +0.2  m7   16.3   +0.2 | shift   -3.30 /   -3.50
+  EDDM: m1   24.5   -0.3  m7   15.5   +0.0 | shift   +0.49 /   +0.60
+  EGLL: m1   25.6   +0.1  m7   25.8   +0.5 | shift   +3.58 /   +3.24
+  EHAM: m1   29.4   -0.1  m7   14.7   -0.2 | shift   +1.60 /   +1.78
+  LEBL: m1   16.0   +0.0  m7   19.6   -0.0 | shift   -9.25 /   -9.24
+  LEMD: m1   20.7   -0.2  m7   19.2   +0.1 | shift   +1.45 /   +1.48
+  LFPG: m1   32.8   +0.1  m7   17.3   -0.0 | shift  +16.75 /  +16.74
+  LIRF: m1    0.0   +0.0  m7    0.0   +0.0 | shift   +0.00 /   +0.00
+  LSZH: m1    0.0   +0.0  m7    0.0   +0.0 | shift   -1.05 /   -1.05
+  LTFM: m1   36.8   +0.1  m7   20.9   -0.2 | shift  -32.43 /  -32.38
+all: rows changed 282,892, RMS 22.27, mean +0.02, max |d| 532
+wrote cache/v66/B_rh2.parquet

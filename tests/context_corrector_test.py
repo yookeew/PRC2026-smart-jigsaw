@@ -32,6 +32,9 @@ CELL_MIN, CELL_CLIP = 30, 7200.0
 PARAMS = dict(objective="regression", num_leaves=63, learning_rate=0.05, min_data_in_leaf=200,
               feature_fraction=0.9, lambda_l2=10.0, seed=42, deterministic=True, force_row_wise=True,
               verbose=-1, max_bin=127)
+HUBER = float(os.environ.get("CTX_HUBER", "0"))  # Huber loss, alpha in s (reports/ctx_huber_preregistration.md); 0 = L2
+if HUBER > 0:
+    PARAMS = {**PARAMS, "objective": "huber", "alpha": HUBER}
 TRIM = 18000
 RWY = os.environ.get("CTX_RWY") == "1"    # block 7, reports/ctx_runway_preregistration.md
 AIR = os.environ.get("CTX_AIR") == "1"    # block 8, reports/ctx_airline_preregistration.md
@@ -39,6 +42,10 @@ ADSB = os.environ.get("CTX_ADSB") == "1"  # block 9, reports/ctx_adsb_preregistr
 RO = os.environ.get("CTX_RO") == "1"      # block 10, stand re-occupation (PROGRESS.md §123; src/features/reocc_feats.py)
 HOUR = os.environ.get("CTX_HOUR") == "1"  # block 11, hour-window state (reports/ctx_hour_preregistration.md; PROGRESS.md §134)
 HOUR2 = os.environ.get("CTX_HOUR2") == "1"  # block 12, runway / multi-scale windows (reports/ctx_hour2_preregistration.md)
+ABWIN = os.environ.get("CTX_ABWIN") == "1"  # block 13, ADS-B neighbour window (reports/ctx_abwin_preregistration.md)
+ABWIN_APTS = ("EDDF", "EDDM", "EHAM", "LEBL", "LSZH")   # 2025 -> 2026 tracked-neighbour coverage stable or lower
+ABWIN_DM = os.environ.get("CTX_ABWIN_DM") == "1"  # block 13d, demeaned window (reports/ctx_abwin_dm_preregistration.md)
+ABWIN_DM_APTS = ("EDDM", "EHAM", "LEBL")
 FLOW = os.environ.get("CTX_FLOW") == "1"    # block 13, flow state (reports/ctx_flow_preregistration.md)
 STOP = os.environ.get("CTX_STOP") == "1"    # block 14, runway stoppage / discharge (reports/ctx_stop_preregistration.md)
 RO_FILE = os.environ.get("CTX_RO_FILE", str(scope.out_dir(ROOT / "cache" / "v50") / "reocc_feats3.parquet"))
@@ -313,6 +320,52 @@ def hour2_block(dep: pl.DataFrame, p: np.ndarray) -> pl.DataFrame:
     return out.select([pl.col(c).cast(pl.Float64) for c in HF.RWY_COLS])
 
 
+AB_WIN_COLS = ["h3_ab_app", "h3_ab_dw", "h3_ab_n"]
+
+
+def abwin_block(dep: pl.DataFrame, p: np.ndarray, apts=ABWIN_APTS) -> pl.DataFrame:
+    """Block 13: ADS-B taxi of the tracked neighbours (v4 tiers appear, dwell) minus their p, clipped to +-600 s, mean over
+    the other departures of the airport within +-30 min, one mean per tier, plus their count. Computed at `apts`
+    (ABWIN_APTS) only, null elsewhere (reports/ctx_abwin_preregistration.md). Label-free; p = the frame's input prediction."""
+    if "d" not in _DET:
+        _DET["d"] = (pl.concat([pl.read_parquet(f) for f in scope.day_files(DET4)], how="diagonal")
+                     .with_columns(pl.col("MVT_ID_mvt").cast(pl.Int64)).unique("MVT_ID_mvt"))
+    x = (dep.select("MVT_ID_mvt", "apt", "T").with_columns(p=pl.Series(np.asarray(p, dtype=np.float64))).with_row_index("_i")
+         .join(_DET["d"].select("MVT_ID_mvt", "adsb_tier", "adsb_pushback_ts"), on="MVT_ID_mvt", how="left").sort("apt", "T"))
+    assert x.height == dep.height
+    t = x["T"].cast(pl.Float64).to_numpy()
+    tier = x["adsb_tier"].fill_null("").to_numpy()
+    ab = np.clip(t - x["adsb_pushback_ts"].cast(pl.Float64).fill_null(np.nan).to_numpy() - x["p"].to_numpy(), -600, 600)
+    apt = x["apt"].to_numpy()
+    o = {c: np.full(len(t), np.nan) for c in AB_WIN_COLS}
+
+    def win(tt, v):
+        ok = np.isfinite(v)
+        v0 = np.where(ok, v, 0.0)
+        cs, cn = np.concatenate([[0.0], np.cumsum(v0)]), np.concatenate([[0], np.cumsum(ok)])
+        lo, hi = np.searchsorted(tt, tt - 1800, "left"), np.searchsorted(tt, tt + 1800, "right")
+        s, n = cs[hi] - cs[lo] - v0, cn[hi] - cn[lo] - ok
+        return np.where(n >= 1, s / np.maximum(n, 1), np.nan), n.astype(float)
+
+    for a in apts:
+        k = np.flatnonzero(apt == a)
+        if not len(k):
+            continue
+        o["h3_ab_app"][k], na = win(t[k], np.where(tier[k] == "appear", ab[k], np.nan))
+        o["h3_ab_dw"][k], nd = win(t[k], np.where(tier[k] == "dwell", ab[k], np.nan))
+        o["h3_ab_n"][k] = na + nd
+    out = pl.DataFrame({"_i": x["_i"].to_numpy(), **o}).sort("_i")
+    return out.select([pl.col(c).cast(pl.Float64).fill_nan(None) for c in AB_WIN_COLS])
+
+
+def abwin_dm_block(dep: pl.DataFrame, p: np.ndarray) -> pl.DataFrame:
+    """Block 13d: block 13's two tier means at ABWIN_DM_APTS minus their airport-day mean (day of T); no count. The
+    demeaning removes the 2025 -> 2026 level drift that stopped block 13 (reports/ctx_abwin_dm_preregistration.md)."""
+    b = abwin_block(dep, p, ABWIN_DM_APTS).select(AB_WIN_COLS[:2])
+    k = pl.concat([dep.select("apt", _d=(pl.col("T") // 86400).cast(pl.Int64)), b], how="horizontal")
+    return k.select([(pl.col(c) - pl.col(c).mean().over("apt", "_d")).alias(c.replace("h3_", "h3d_")) for c in AB_WIN_COLS[:2]])
+
+
 def flow_block(dep: pl.DataFrame) -> pl.DataFrame:
     """Block 13: destination / region flow and schedule-order displacement (src/post/flow_feats.py). Label-free."""
     from post import flow_feats as FF
@@ -353,6 +406,7 @@ def build(dep: pl.DataFrame, arr: pl.DataFrame, p: np.ndarray, cells) -> tuple[p
     parts = ([base, b1, b2, b3, b4, b56] + ([runway_block(dep, arr)] if RWY else []) + ([airline_block(dep, p)] if AIR else [])
              + ([adsb_block(dep, p)] if ADSB else []) + ([reocc_block(dep)] if RO else [])
              + ([hour_block(dep, arr, p)] if HOUR else []) + ([hour2_block(dep, p)] if HOUR2 else [])
+             + ([abwin_block(dep, p)] if ABWIN else []) + ([abwin_dm_block(dep, p)] if ABWIN_DM else [])
              + ([flow_block(dep)] if FLOW else []) + ([stop_block(dep, arr)] if STOP else []))
     X = pl.concat(parts, how="horizontal")
     return X, ctrl, ["apt_c", "stand_pfx"] + (["al_op"] if AIR else [])

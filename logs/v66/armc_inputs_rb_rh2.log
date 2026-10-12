@@ -1,0 +1,10 @@
+OOF stack weights: [0.577 0.428]
+rows 2,084,967 (OOF 1,740,628, holdout 344,339); features 96
+ctxc1rb_rh2: features 97; trainable rows 1,740,247 (BASE 1,723,569, NM-unmatched added 16,678)
+holdout corrector: best_iter 1466
+OOF block (2, 3): best_iter 1501
+OOF block (4, 5): best_iter 1950
+OOF block (6, 8): best_iter 1655
+OOF block (9, 10): best_iter 1384
+OOF block (11, 12): best_iter 1571
+wrote ctxc1rb_rh2_holdout_ev.parquet and cache\oof\ctxc1rb_rh2

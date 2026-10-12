@@ -6256,6 +6256,14 @@ at all 10 airports, and its Jan/Jul changes mirror v63's (LTFM Jan 29.6 / +15.0 
 gate (−2.76 / −0.30). `data/submissions/final4m/blind_v4.parquet` = Jan/Jul from v63, Feb/Jun from `f4m_g2`: 670,790 rows,
 IDs exactly `final_submitting`'s, md5 7f0ea743f80f63433b202fb241d101f9. **Use it only if v63 is kept; otherwise `blind_v3` stays.**
 
+**Board: v63 (our `smart-jigsaw_v58`) = 238.3173 (−0.47 vs v62 = 238.79). Kept; new best; v63 is the base from now on.**
+- ΔSSE ≈ −7.8e7 over 344,841 rows (238.79² → 238.3173²). The 2025 projection was −0.33 s, so it transferred at ≈ 1.4×,
+  in line with the earlier day-level changes (v55 ≈ 1.9×, v62 at or above its projected range).
+- The read is clean (v63 differs from v62 only through G2 at the 8 airports), but the board cannot split LTFM from the
+  other seven. No LTFM-only follow-up is chosen from this score (§82).
+- **Blind board: `blind_v4` (md5 7f0ea743f80f63433b202fb241d101f9) replaces `blind_v3` as the blind-board candidate**;
+  its Jan/Jul rows are exactly this file.
+
 ## 134. After v63: the day-level oracle is exhausted, the within-day error is not; G3 (within-day inputs in the allocation) fails its gate (2026-10-10)
 
 **Board: v63 = 238.3173 (−0.47 vs v62 = 238.79; projected −0.33). Kept; new best; v63 is the base.** `blind_v4` is
@@ -6349,7 +6357,291 @@ v64 worked and the new best is 237.4538 (gain ~0.9s)
 **Board: v64 = 237.4538 (−0.86 vs v63; projected −0.41). Kept; new best; 30th on the board.** The corrector's hour-level
 change transferred at about twice its projection.
 
-## 136. Runway / multi-scale window block (block 12) in the context corrector -- gate PASS; v65 built, board pending. G2 refit and LIRF retry fail (2026-10-11)
+*(Merged 2026-10-11 from the `febjune` branch: §136–§139 were written as §134–§137 on that branch, in parallel with
+the team's §134–§135, and are renumbered here. Their "G3" (per-flight inputs in G2's slope model) is called **G3f**
+to keep it apart from §134's G3 (hour-window inputs); its files are `*_g3flight*`.)*
+
+## 136. After G2: headroom check, two slope-model extensions (G3f, G4) -- both FAIL; nothing built (2026-10-10)
+
+`reports/day_alloc_g3flight_preregistration.md`, `reports/day_alloc_g4_preregistration.md` (each written before its run);
+`tests/day_alloc_g3flight.py`, `tests/day_alloc_g4.py`; logs `logs/day_alloc_g3flight.log`, `logs/day_alloc_g4.log`.
+
+- **Headroom (2025, 8 airports, scratch):** p without day stage 208.60; R0 206.52; G2 (leave-period-out) 205.86; oracle
+  day mean on p 206.08; oracle day × delay band 203.81; oracle day × 3 h block 201.18 (Feb 257 → 222).
+  G2 already beats a perfect uniform day shift. What is left is intra-day and needs a second, sub-day signal.
+- **Block-averaged AOBT_3 gap as that signal: dead.** Per (airport, day, 3 h block) mean of clip(T − AOBT_3 − q) minus the
+  day mean vs the same deviation of the residual: corr −0.15 to +0.04 per airport (pooled −0.14).
+- **G3f = G2 + 11 per-flight inputs** (wake, market segment, recent departures, departure pressure, inbound delay, EOBT delay,
+  scheduled ground time, AOBT_3 taxi, de-icing, snow, freezing): vs G2x8 full −0.21, **body +0.03 (LTFM +0.31)**,
+  12/12 months, Feb −2.20, without Feb ≈ −0.04. **FAIL.** The extra inputs re-fit LTFM's February 2025 snow days.
+- **G4 = G2 + day type** (ATC share of pre-departure delay, ATFM-regulated departure share): full +0.18, Feb +2.12,
+  5/12 months. **FAIL.**
+- **Reading:** with one published number per airport-day, G2's allocation is about as far as the day sums go. Further
+  day-level gains need a sub-day 2026 signal.
+- **H: intra-day level from ADS-B-located neighbours** (`reports/intraday_trk_preregistration.md` + amendment A1,
+  `tests/intraday_trk.py [--h3]`, `logs/intraday_trk*.log`). Scratch check with labels: on the Jan/Jul 2025 chain the
+  3 h-block deviation of tracked rows' residual correlates +0.3 to +0.5 with untracked rows' (EDDF, EGLL, EHAM, LEBL, LEMD).
+  - H1/H2 (signal = the day stage's tracked tiers): **FAIL**, betas ≈ 0. The `fb_dwell` / `fb_appear` tiers' ADS-B taxi is
+    off by +230 to +1,200 s at the median (< 3% within ±60 s); `appear` is the cleanest tier (70–92% within ±60 s of its
+    per-airport offset). Worth knowing for any later use of the raw pushback times.
+  - H3a/H3b (A1: `appear` + `dwell`, offset-corrected, clip ±300; RMS vs label 166 s): **FAIL** on the chain months
+    (H3a −0.001, H3b +0.059) though H3a helps the OOF corrector-level months (−0.036). The neighbour stage already
+    extracts the intra-day level from tracked neighbours.
+- **State after §133 and §136:** the day-level line is done (G2 is as far as one number per airport-day goes) and the obvious
+  sub-day signal is already used by the chain.
+
+## 137. Exploration round after v63: January excess, non-LIRF NM-unmatched, ADS-B coverage and calibration -- nothing to build (2026-10-10, analysis only)
+
+Scratch scripts (session scratchpad: `jan_diag.py`, `nmu_diag.py`, `witness.py`); no files changed.
+- **January vs July on the 2025 holdout chain (after G2, 8 airports):** 330.9 vs 209.1. The excess is LFPG NM-unmatched rows on
+  19 and 23 Jan 2025 (the two known label artefacts, §111): those two airport-days hold ≈ 70% of January's SSE (NM-unmatched
+  MSE contribution 79.9k Jan vs 5.0k Jul). Without them January is no worse than July at any airport (EDDM 87 vs 148,
+  LEBL 100 vs 234). De-icing / snow rows are 0.7% / 0.9% of January rows and carry little. **No January lever.**
+- **Non-LIRF NM-unmatched rows (July chain):** top 20 rows hold 58% of their SSE; they are real 2–3 h waits after an
+  on-time pushback (e.g. EGLL 30 Jul 2025, taxi 2.5–3 h, predicted 2.5–3.8k s), not echoes (taxi = T − SOBT ± 2 min: 0%
+  above 1 h). Nothing label-free predicts them.
+- **ADS-B coverage (share of departures with any tier), 2025 holdout → 2026:** EGLL Jul 9% → 84%, Jan 38% → 46%; EDDM Jul
+  31% → 84%; EHAM ≈ 85–90% both; LEBL 36–44% → 45–56%; LEMD 0–14% → 30%; EDDF 24–33% → 10–17%; LSZH 46–59% → 47–64%;
+  **LFPG and LTFM 0 in both years** (adsb.lol has LFPG points but almost all airborne). No recoverable fetch gaps: the LFPG
+  "zero days" are like every other LFPG day. (A first table that dropped null tiers from the denominator was wrong.)
+- **Calibration witness:** median of (prediction − offset-corrected ADS-B taxi) on `appear` / `dwell` rows, offsets per
+  (airport, tier) from all of 2025. 2025 holdout chain vs 2026 v63 agree within a few seconds at EDDF, EDDM, EHAM, LEBL, LEMD,
+  EGLL appear: the ADS-B stages stay calibrated where 2026 coverage is far larger. Exceptions: EGLL dwell −84 (2025 also −80,
+  unstable offset); LIRF appear Jan +71 (2025 offsets from 1.8k rows); **LSZH Jan appear −37 (2025 −2), dwell −16**, July
+  −20 / +16. LSZH is §125's three-way conflict again (anchor down; daily sums and `appear` up; `dwell` mixed); v49's LSZH
+  part was only ever scored inside a bundle. Left alone: settling it with an upload would fit a level to the board.
+- **Per-airport linear recalibration** (a + b·q, fitted on one chain month, applied to the other; scratch `recal.py`):
+  slopes 0.96–1.03, and RMSE worsens in both months (Jan 330.94 → 331.20, Jul 209.13 → 209.72). The output is calibrated.
+- **Where that leaves the board gap:** what remains on the 2025 holdout is ordinary-flight error at airports without ADS-B ground
+  coverage (LFPG, LTFM, most of EDDF / LEMD) and rare multi-hour holds. Neither has a label-free 2026 signal we have not used.
+
+## 138. Where the leaders' gap can come from: error budget, LIRF, unused NM fields, seasonal callsigns, blend headroom -- nothing to build (2026-10-10, analysis only)
+
+Scratch scripts in the session scratchpad (`budget.py`, `anchors.py`, `lirf_*.py`, `resid_audit.py`, `arr_blk.py`, `blend_head.py`);
+leaderboard snapshot `logs/leaderboard_2026-10-10.json` (5,279 submissions, 241 teams).
+
+- **Standings (team bests):** strong-crane 212.85, charming-eel 213.25, jolly-lobster 213.29, vigorous-whistle 214.34,
+  bold-ladder 215.04, intelligent-guitar 215.72; 14 teams < 225; **we are 31st at 238.32**. The organisers' team pages show
+  mostly solo ML-competition entrants. The ranking page states: "We will monitor submissions for attempts to learn from
+  or exploit the ranking process. We consider such practices unfair" (`euctrl-pru/prc_data_challenge_website_2026`).
+- **Error budget, 2025 holdout chain** (G2 at the 8 airports, v48 method at LIRF; the two LFPG artefact days removed;
+  RMSE 241.2, close to the board):
+
+| segment | rows | RMSE | share of SSE |
+|---|---|---|---|
+| LIRF NM-unmatched | 0.1% | 3,233 | 20.7% |
+| other NM-unmatched | 1.4% | 532 | 6.9% |
+| NM-matched y ≤ 30 min | 94.1% | 161 | 41.9% |
+| NM-matched 30–60 min | 4.2% | 522 | 19.5% |
+| NM-matched 1–3 h | 0.2% | 1,661 | 10.6% |
+
+  By airport: **LIRF 39.9%** of SSE, LTFM 12.7, EGLL 12.0, LFPG 11.9, LEBL 5.2, LEMD 4.8, EDDF 4.7, EHAM 3.7, LSZH 3.0, EDDM 2.1.
+  §120's 11 LIRF NM-unmatched ≥ 12 h rows carry ~2.46e9 of hedge cost, ≈ 12% of our board SSE; only board information
+  could resolve them (closed by our rule and by the organisers' statement). Net of them we would sit near 223; the
+  label-free gap to 213 is ≈ 10 s and diffuse.
+- **NM times as exact anchors: none.** Share of NM-matched departures with block within ±30 s of SCHED / IOBT / EOBT_1 /
+  LOBT / AOBT_3: ≤ 7% for planned times (LIRF 18%: the echo), AOBT_3 4–13%. LOBT = IOBT in these files.
+- **LIRF delayed NM-matched departures (T − S ≥ 45 min, LOBT − S ≤ 60 min): 11.7% of holdout SSE** (echo rows 6.3%, non-echo
+  hedge cost 5.3%).
+  - LOBT − S > 60 min ⇒ never echo in 2025 (0 / 5,480); the model already predicts the real branch there.
+  - **Flight-number echo history** (other-month delayed departures of the same FLIGHT_mvt): raw separation is strong
+    (history 0 → echo 1.4% on 48% of rows; history > 0.99 → 99.7%), but the chain already prices it (history > 0.9:
+    prediction at 0.95 of the echo value). A Jan ↔ Jul cross-fit correction with history features: Jan 641.6 → 665.8,
+    Jul 695.7 → 694.1, net holdout +0.13. **Dead.**
+- **Unused NM fields (ARVT_1, ARVT_3, ADES, ADES_FILED, CALLSIGN, FLIGHT_TYPE):** NM's implied planned taxi
+  (ARVT_1 − EOBT_1) − (ARVT_3 − T) correlates 0.35 with the label but −0.005 with our residual; a leave-period-out
+  residual model on the OOF months with these fields worsens RMSE (180.5 → 181.1). **Dead.**
+- **Arrival taxi-in, block level** (3 h block minus day, after G2): corr −0.07 to +0.22 with the departure residual
+  deviation on the chain months. **Dead** (same as AOBT_3 in §136).
+- **2026 unseen categories:** stands / runways / operators ≤ 1% everywhere except EDDM stands 7.5% (Jun / Jul); flight
+  numbers unseen in 2025 are 44–75% in Jun / Jul 2026 at EDDM, LEBL, LEMD, LFPG, LIRF, LTFM (1–7% in Jan / Feb). Not a format
+  change: airlines re-issue alphanumeric callsigns each IATA season, and Jan / Feb 2026 share the 2025/26 winter season.
+  Anything keyed on FLIGHT_mvt history has little summer-2026 reach.
+- **Blend headroom at the base level:** error correlation of our cached GBM variants with `lgb_mixed_nb` 0.94–0.99;
+  LightGBM + CatBoost (what the stack already does) cross-fit 229.7 → 227.6 on non-LIRF y ≤ 5 h. A further gain needs a
+  different model family (e.g. an MLP with embeddings on Colab's GPU) and a full chain rebuild.
+
+## 139. Exploration round 3: data-structure checks, base-model proxy screen, PRU monthly taxi-out -- small leads only (2026-10-11, analysis only)
+
+Scratch scripts in the session scratchpad; no repo files changed. "Carry" = slope of the full holdout chain's residual on a
+base-level prediction change, fitted on one chain month and applied to the other (how much of a base gain the chain lacks).
+
+**Data-structure facts (2025, labels):**
+- **The NM join is a ±1 h window on LOBT:** for NM-matched departures, |BLOCK − LOBT| ≤ 3,606 s on every row (0 of 312,885
+  outside). It explains §130/§138's "LIRF never echoes when LOBT − S > 60 min". The LOBT-window stage already enforces it
+  (8 holdout rows sit on a bound).
+- **NM-unmatched departures whose arrival twin is NM-matched** are unmatched because of that window: |BLOCK − LOBT_twin| > 1 h
+  on 97% (non-LIRF, 799 rows) and 100% (LIRF, 106). When T − LOBT_twin ∈ (0, 30] min the off-block must lie > 1 h before
+  LOBT: 68% of those labels exceed 1 h (median 74 min). v47 enforces this at LIRF only. **Lead (small):** 7 non-LIRF 2026
+  rows (4 in Jan / Jul: EHAM LH987, LFPG THY5RD / AFR37MD, LTFM THY2LZ; blind adds EDDM, LEBL, LFPG) are predicted 9–58 min
+  against an implied ≥ 62–111 min. A v47-style hedge is worth ≈ 0.1 s; 2025 reliability 68% (≈ 30 rows a year).
+- Stand-occupancy bounds (CLAUDE.md Stage 4) re-checked on the final chain: labels violate U as often as predictions do
+  (478 vs 446 high-confidence rows); clipping to U costs +1.5 s on the holdout. Still dead.
+- Non-LIRF "near-echoes" (taxi within 10 min of T − S): 0–1% at every airport except LTFM NM-unmatched delayed rows (8%,
+  25% taxi > 1 h, ≈ 0.8% of SSE). Twin-filled NM fields for NM-unmatched departures: 4% reach. Dead.
+
+**Screens on the 2025 holdout chain (all flat or worse):** cross-month conditional bias corrections by T − S, hour,
+prediction band, ADS-B tier, weekday, d̂, NM flag and their airport interactions (+0.11 to +0.63 s); recent airport-wide
+takeoff gap / post-gap burst (no bias pattern); month-level segment shifts witnessed by ADS-B (stand group, runway,
+operator; segment SD 6–16 s, inconsistent sign); LIRF ordinary rows: echo and non-echo RMSE equal (~245), flight-number
+history correction +0.13; LIRF oracle day level −0.14 s at most; snow / freezing days at tracked airports (v63 slightly
+*above* the ADS-B witness; LTFM's Jan 2026 snow days predicted at a taxi share inside the 2025 snow-day range).
+- **Calendar memorisation in the production fit:** a ±7-day doy shift moves 2026 base predictions by 5.2 s RMS (largest
+  airport-day means 16–21 s at LTFM / EGLL in early January); G2 re-levels days. Negligible.
+- **2026 NM-unmatched predictions vs 2025 truth by cell:** consistent; no artefact-day contamination.
+- **EGLL ADS-B offsets by month (2025):** EDDM / EHAM stable within ±2–9 s; EGLL noisy (7–62 rows a month in summer), and July
+  2026's dwell witness matches July 2025's.
+
+**Base-model proxy screen** (direct head, non-LIRF, refit on the 10 training months at eta 0.06, ~4 min per variant;
+holdout y ≤ 5 h; baseline 231.05):
+
+| variant | holdout | carry into the chain |
+|---|---|---|
+| local-time hour / minute | 231.08 | – |
+| destination region + domestic flag | 230.99 | – |
+| explicit NM differences (T − LOBT, T − EOBT, T − IOBT, AOBT_3 − LOBT) | **229.87** (every airport better) | slope 0.12–0.13 both months; chain −0.07 / −0.09 |
+| turnaround slack, turnaround-implied taxi | 230.91 | ≈ 0 |
+| takeoff-order inversions | 230.83 | ≈ 0 |
+
+Base-level feature gains are largely absorbed: the context corrector already has distance-to-NM-time features (§87).
+Feature-set changes alone move base predictions by ~39 s RMS, which sets the noise floor for these comparisons.
+
+**PRU monthly taxi-out additional time** (`ansperformance.eu/csv/taxi_out_additional_time_{2025,2026}.csv`, EUROCONTROL,
+fetched to scratch only; same publisher as the daily sums): mean taxi-out = (reference + additional) / reference flights.
+- 2025 vs our labels (PRU − ours): summer months within a few seconds and stable at EDDF, EDDM, EGLL, EHAM, LEMD, LSZH
+  (−1 … −13), LEBL −7 … −10, LTFM −15 … −24; **winter offsets large and unstable** (EDDM −164 Jan, LFPG −137, LSZH −83,
+  LTFM −264 in Feb) — PRU treats de-icing / long taxis differently. §125's level use failed for this reason.
+- Year-over-year same-month reading for July 2026 (implied truth − v63, all rows): EDDF −4, EDDM −1, EGLL −5, EHAM +3,
+  LEBL −7, LEMD +2, LTFM −8, **LSZH +19** (the fourth witness of a low LSZH July level after the daily sums +26, OPDI +46,
+  ADS-B appear +20), **LFPG +24** (but LFPG's 2025 summer offset jumps −16 → −45 between June and July), LIRF −41 (echo
+  tails; unstable with the cap). January is unreadable (winter offsets).
+- Worth: a +19 s LSZH July level ≈ 0.03 s, LFPG +24 ≈ 0.05 s. Small.
+- **More proxy variants:** per-runway traffic state (departures / arrivals on each airport's 4 busiest runways in the 20 min
+  before T) 230.81, carry ≈ 0; Huber α 400 → 232.09 (worse); α 1,600 → 230.69, carry 0.04. Nothing carries.
+- **Neural-net member (the open question from §138):** an MLP with categorical embeddings on the exact base design matrix
+  (`mlp_export.py` / `mlp_train.py`, CPU PyTorch in a throwaway scratch venv; 14 epochs × 27 s, June early stopping).
+  - Base level (non-LIRF, model rows, y ≤ 5 h): LightGBM proxy 217.54, MLP 219.89, error correlation 0.905 (GBM variants
+    0.94–0.99); 50/50 blend 213.43, cross-fit blend 213.61 (weights ≈ 0.55 / 0.45). **Real diversity, −4 s at the base.**
+  - Into the chain: corr(chain residual, MLP − LGB) +0.056; linear carry Jan → Jul −0.31, Jul → Jan +0.12. A cross-fit
+    residual GBM on top of the holdout chain with the MLP as input makes both months worse (Jan 170.51 → 170.92,
+    Jul 195.12 → 196.03), the same as the LightGBM control.
+  - **Verdict: not worth a stack rebuild.** The context corrector and the ADS-B stages already extract what the MLP adds.
+- **State after §136–§139:** about 30 screens since v63. The chain is at the frontier of the information we allow
+  ourselves; remaining leads are each ≈ 0.1 s (non-LIRF twin join-window hedge; LSZH / LFPG July level from the PRU
+  monthly file; explicit NM differences in a base refit).
+
+## 140. v64 = 237.4538 on the board; blind_v5 built; CTX_HOUR2 withdrawn after its screen (2026-10-11)
+
+**Board: v64 (team numbering; our upload `smart-jigsaw_v59`, md5 6f482bdb…) = 237.4538 (−0.86 vs v63). Kept; new best.**
+Our upload numbers vs team numbers: v58 = v63, v59 = v64. Copied to `data/submissions/smart-jigsaw_v64.parquet` (same md5)
+for `run_v64_final4m.sh`. Next free team version: **v65**.
+
+**Blind board: `blind_v5`** (`run_v64_final4m.sh`, logs `logs/v64/final4m/`, `logs/v64/run_v64_final4m.out`) with the
+teammate's holdout / OOF files of `ctxc1r_roh`, `ctxc1rb_rohb`, `ctxc1sel_rohb` (copied in; `ctxc1r_rohb` = copy of `ctxc1r_roh`).
+- Control chain rerun reproduces the existing four-month `chain_ctxc1sel_ro_final` byte for byte (md5 a4011f35…).
+- Four-month delta RMS 41.9, mean +0.58 (live v64 vs v63: 39.0 / +0.46). After v63's recipe: 560,325 rows changed vs f4m_v62.
+- `data/submissions/final4m/blind_v5.parquet`, md5 **4d6fdfbe911971e8945adb51d5e217a8**: 670,790 rows, IDs exactly
+  `final_submitting`'s, no nulls; Jan/Jul rows identical to v64. vs blind_v4: Feb RMS 32.5 / mean +0.61, Jun 25.6 / +0.09
+  (Jan 51.0, Jul 25.8 = v64 vs v63); LIRF and LSZH unchanged. **blind_v5 replaces blind_v4 as the blind-board file.**
+- A local refit of the teammate's members (before their files arrived) did **not** reproduce them (early stopping 1234 / 753 /
+  2044 / 1770 vs 1274 / 1118 / 1435 / 1926): corrector refits differ across the two machines, so gates must use byte
+  copies of the production files, never a refit here. The local rebuild was stopped before writing anything.
+
+**CTX_HOUR2 (`reports/ctx_hour2_withdrawn_preregistration.md`; renamed in the 2026-10-11 merge, since main's block 12 uses `reports/ctx_hour2_preregistration.md`): withdrawn before its gate.** Block 12 (±15 / ±60 min and before /
+after windows of T − LOBT − p and T − AOBT_3 − p; ADS-B taxi of appear / dwell neighbours minus p, ±30 min). Scratch screen
+(`hour2_screen.py`, paired residual LightGBM on the corrector's own OOF + holdout output, leave-period-out, trimmed vs control):
+
+| on top of | T1 (±30 min recomputed with q) | T3 (+ multi-scale, directional) | T2 (ADS-B window) | T4 (all) |
+|---|---|---|---|---|
+| `ctxc1sel_ro` (pre-v64), pooled / holdout | −0.79 / +0.09 | −1.30 / −0.35 | −0.36 / −0.56 | −1.42 / −0.58 |
+| `ctxc1sel_rohb` (v64), pooled / holdout | +0.57 / +0.33 | +0.00 / +0.23 | **−0.30 / −0.37** (6/6 periods) | −0.27 / −0.08 |
+
+- v64's block 11 already holds the extra windows' information; only the ADS-B neighbour window adds (≈ −0.1 s on the board
+  at §135's screen → board ratio of ≈ 0.4). Not worth ≈ 10 h of corrector fits (team decision). Code kept, off by default.
+- EGLL got worse in every variant on both bases (+0.7 to +0.9).
+
+**Other checks (analysis only).**
+- **Cap at d (= T − SOBT) for predictions > 2 h:** v64 has 17 such rows, all LIRF (12 NM-unmatched with d ≈ 13.5 h, 5 matched
+  at ≈ 2.3 h). In 2025, 7% of y > 2 h rows have y > d + 30 min, nearly all LIRF NM-unmatched (incl. date-wrap rows y ≈ 87,000).
+  Not applicable (LIRF frozen; the hedges are gated).
+- **Public repositories (top 25 at the 2026-10-10 snapshot):** only gracious-tornado (#19) has one
+  (`il-miscusi/prc-2026-gracious-tornado`, created 2026-10-11). Their README describes the same building blocks (NM join window
+  ±3,606 s, arrival-recovered window at LIRF / LTFM, EUROCONTROL monthly and daily reconciliation, adsb.lol pushback blend,
+  2 h cap at d, MLP + NNLS stack); their docs credit other teams' public repositories. Nothing of theirs is used here.
+- **Arrival-twin join window at the non-LIRF airports** (`reports/twin_window_nonlirf_preregistration.md`): **FAIL**. Moving
+  predictions inside the twin's ±3,606 s window to the nearest edge costs +0.20 s on 2025 (EHAM, LEBL, LFPG: the truth is
+  beyond the far edge); LTFM alone is clean (26 helped / 0 hurt) but moves only 3 rows in 2026. Not built.
+- **Day reconciliation as a posterior mean given the published total** (exponential tilting of each row's empirical
+  residual law, one θ per airport-day; scratch `tilt_day.py`, 2025 frame of §130–§133, leave-period-out, 8 airports):
+  no better than G2. Best variant (within-day-demeaned prior, κ fitted leave-period-out) vs G2: full +0.025, body +0.144,
+  Jan +0.29, Jul −0.10, Feb −1.53 (LTFM −0.55, EHAM +0.53). No day stage at all is +2.28 vs G2. A 25 % blend with G2:
+  −0.07 full, −0.05 body, but Feb −0.68 carries it (≈ −0.02 without February) and Jan +0.04. Not built; the day layer is
+  not where the gap to the leaders is.
+
+## 141. LIRF round 4: flight-number echo history on top of v48 -- screened; upload v60 = 237.6439, REJECTED (2026-10-11)
+
+Team decision: LIRF unfrozen for this one change; option 1 (no further 2025 gate; the board decides).
+`reports/lirf_hedge4_preregistration.md`, `src/post/lirf_hedge4.py`; screens `tests/lirf_round4_scope.py`, `tests/lirf_round4_past.py`.
+
+**Where LIRF's error is** (scratch `lirf_screen.py`, Jan + Jul 2025 holdout chain before v45–v48, cells weighted by 2026
+row counts): LIRF ≈ 46% of the board's MSE; NM-unmatched 1–4 h ≈ 15% (305 rows in 2026; a two-mode problem: 30% echo
+with y ≈ d, 70% normal), NM-matched 1–4 h ≈ 10%, NM-matched 15–60 min ≈ 8%, NM-unmatched 4–20 h ≈ 8%. v45/v47/v48 have
+since taken part of the unmatched pool (§118: remaining ≈ 5.5% for 1–3 h).
+
+**Screen: §111's flight-number history on top of v48** (§118's harness; v45 / v48 refitted leave-one-month-out; scope =
+v48's treated rows, 1,213 in 2025; control reproduces v48, ratio 1.000):
+
+| history | in-scope SSE vs v48 | months better |
+|---|---|---|
+| two-sided, ≥ 1 / 3 / 6 months away | 0.811 / 0.934 / 0.988 | 11/12, 10/12, 8/12 |
+| **past-only ≥ 1 month back** (Jan 2026 analogue; Feb–Dec) | **0.823** | 9/11 |
+| past-only ≥ 7 months back (Jul 2026 analogue; Aug–Dec) | 0.982 | 4/5 |
+
+March is worse in every variant. 2026 reach: Jan 78 scope-like rows, 59 with a 2025 history (58 from Nov/Dec); Jul 244, 74.
+Projection ≈ −0.65 (Jan) − 0.2 (Jul) ≈ −0.85 s, wide.
+
+*Numbering: from here on our upload numbers. Upload v59 = the teammate's "v64" (§135); the file `smart-jigsaw_v64.parquet`
+is a byte copy of v59 kept for `run_v64_final4m.sh`.*
+
+**Upload v60** = v59 + round 4 (`lirf_hedge4.py smart-jigsaw_v47 smart-jigsaw_v48 smart-jigsaw_v64 smart-jigsaw_v60`,
+`logs/v60_lirf_hedge4_build.log`):
+- v48 recomputed from v47 on its 287 treated rows: exact (max |diff| 0.0 s); v64 still carries v48's value on all 287.
+- 284 rows changed (all LIRF NM-unmatched, 1–6 h late, non-twin); 116 of 287 have a flight-number history.
+  Jan 62 rows, mean −167 s, RMS 929; Jul 225 rows, mean +252 s, RMS 954 (rows without history move too: the refitted
+  classifier re-weights v48's inputs; the ≥ 7-month screen, mostly such rows, was neutral to slightly positive).
+- Σ(Δ)² 2.58e8 (v47's change was 1.89e8): a wrong-way outcome could cost up to ≈ +0.8 s.
+- `data/submissions/smart-jigsaw_v60.parquet`, md5 3cbe283ffa83c6f6948efcf3999f5a05; 344,841 rows, IDs as v59, no nulls.
+  Keep iff board < 237.4538.
+
+**Board: v60 = 237.6439 (+0.19 vs v59). Rejected; v59 stays best, `blind_v5` stays the blind-board file.**
+- The screen's −18% (January analogue) did not transfer; per the no-probing rule (§82) nothing about individual
+  rows is inferred from the score. Another LIRF hedge that passed a 2025 screen and lost on the board (v20, v22, v28,
+  v40 before it); v45 / v47 / v48 won with physical or structural signals, this one was a learned history.
+- Next free upload number: see §142 (numbering realigned; next is v66).
+
+## 142. Version numbering realigned; teammate's v65 = 237.0694, new best (2026-10-11)
+
+**Numbering (user decision, 2026-10-11).** Our upload numbers had run behind the team's build numbers (uploads v58 / v59 =
+team v63 / v64). The uploads now skip ahead so both match again: **v60 (§141) was the last upload on the old count, and
+the next upload was v65. Upload numbers and team build numbers are the same from v65 on.** Uploads v61–v64 do not exist.
+Mapping for the record: upload v58 = team v63 (238.3173), upload v59 = team v64 (237.4538), upload v60 = LIRF round 4
+(§141, rejected, never had a team number). `data/submissions/smart-jigsaw_v64.parquet` is a byte copy of upload v59
+(for `run_v64_final4m.sh`). My withdrawn CTX_HOUR2 run (§140) was never a v65: its logs moved from `logs/v65/` to
+`logs/ctx_hour2/`, and §141's build log is now `logs/v60_lirf_hedge4_build.log`.
+
+**Board: v65 (teammate's build) = 237.0694 (−0.38 vs v64 = 237.4538). Kept; new best.**
+- `data/submissions/smart-jigsaw_v65.parquet`, md5 b202e54d8c5a08395ea9015d989c337f. Its code and write-up were not on
+  `origin/main` yet when this was written; they are now (merged 2026-10-11, write-up §143).
+- Label-free diff vs v64: 286,308 rows changed, RMS 33.8 s, mean −0.08; every airport except LIRF and LSZH (unchanged);
+  per airport RMS LTFM 60.1, LFPG 35.8, EDDF 34.4, EGLL 30.1, EHAM 27.9, LEMD 27.0, EDDM 26.2, LEBL 24.8. NM-matched rows
+  RMS 42 (Jan) / 28 (Jul), NM-unmatched 146 / 78. The same footprint as v64 (a corrector-level change through the day stage).
+- **Blind board:** `blind_v5` carries v64, not v65. When v65's code is pushed, its Feb/Jun part needs the same four-month
+  treatment (as `run_v64_final4m.sh` did for v64), then Jan/Jul = v65. Until then `blind_v5` stays the blind-board file.
+- Next upload: **v66**.
+
+## 143. Runway / multi-scale window block (block 12) in the context corrector -- gate PASS; v65 built, board pending. G2 refit and LIRF retry fail (2026-10-11)
+
+*(Merged 2026-10-11 from `main`: the team's v65 write-up, written there as §136 in parallel with this branch's §136–§142, renumbered here as §143. §142 records v65's board score.)*
 
 `reports/ctx_hour2_preregistration.md`, `reports/day_alloc_refit_preregistration.md`,
 `reports/lirf_matched_unfreeze_rh2_preregistration.md` (all written before their gate numbers). Code: `src/post/hour_feats.build_rwy`,
@@ -6407,7 +6699,262 @@ from v65, Feb/Jun from blind_v4). Next free version: **v66**.
 
 v65 had a small gain of -0.4, new best is now 237.0694
 
-## 137. After v65: is the direction used up? Error budget and new-signal screens; the flow block is the one fresh lead (2026-10-11, analysis only)
+## 144. v66 = 236.8 (team build); exploration round 4: corrector variants, LIRF echo signals, segment drift, holidays -- small or dead (2026-10-11, analysis only)
+
+**Board: v66 (teammate's build, code not on `main` yet) = 236.8 (−0.27 vs v65). New best.** Label-free diff vs v65: 284,290
+rows changed, RMS 24.9 s, mean +0.09; every airport except LIRF and LSZH (unchanged): the footprint of a corrector-level
+change through the day stage, as v64 / v65. Next free version: **v67**.
+
+Scratch scripts in the session scratchpad; no repo files changed except where stated. **Corrector screens:** member `r`
+(blocks 1–7 + RO + hour, Arm C c1, ensemble2) refitted on 8 OOF months and scored on held-out month pairs; later on v65's
+inputs (+ block 12, rebuilt from `origin/main`'s `hour_feats.build_rwy`). "Trimmed" = y ≤ 5 h; LTFM / LFPG have no ADS-B,
+so their ±0.3 s moves give the refit-noise floor.
+
+| variant (vs the same harness's tree corrector) | held out | non-LIRF trimmed | non-LIRF body | reading |
+|---|---|---|---|---|
+| base members' internals (echo probs, raw, LGB − Cat) as inputs | Feb + Aug | −0.60 | +0.11 | gain = LTFM February NM-unmatched snow rows; LIRF NM-unmatched rows (frozen) −96 |
+| Huber δ 1,000 objective | Feb + Aug | +2.43 | −0.40 | body better almost everywhere, tail worse (rows with \|L2 correction\| > 300 s: +2.5% SSE) |
+| 30 base features (type, weather, congestion …) as inputs | Feb + Aug | −1.18 | +0.44 | tail better (LTFM Feb snow), body worse |
+| day-of-year (cos / sin) input | Feb + Aug | −0.63 | +0.07 | LTFM Feb tail only |
+| season-weighted training (Gaussian in month distance) | Feb + Aug | +0.39 | +0.07 | dead |
+| Huber on small-L2-correction rows, L2 elsewhere (label-free gate) | Feb + Aug | −0.19 | −0.37 | small |
+| **ADS-B neighbour window (T2, §140) on v65's inputs** | Feb + Aug / May + Nov | −0.96 / −0.38 | −0.70 / −0.33 | all four months better → block 13, §145 |
+| **MLP member, 0.3 weight (on v65's inputs)** | Feb + Aug / May + Nov | −3.80 / −0.68 | −0.27 / −0.33 | all four months better → §146 |
+
+- February 2025 at LTFM (snow days, NM-unmatched rows the trees correct badly) dominates every Feb + Aug comparison; the
+  May + Nov pair was added for that reason.
+- **LIRF NM-matched echo from the arrival side** (label-free in 2026: arrivals are intact). Among delayed LIRF NM-matched
+  departures (T − S ≥ 45 min, echo rate 6.3%), an echoed inbound arrival lifts the echo rate to 27% (1,503 rows) and a
+  same-day operator arrival echo > 0.6 to 66% (454 rows). Leave-one-month-out logistic on (logit p, signals), applied as
+  §113's echo-weight swap on the corrector output: SSE ratio 0.998 (≥ 45 min) and 0.997 (≥ 10 min), 9/12 months. The base
+  echo probability already prices it. **Dead.**
+- **LIRF NM-unmatched ≥ 12 h, mechanism check (2025 labels):** the 11 "+24 h" and 18 echo rows all cross local midnight and
+  share airlines (ITY680 twice +24 h, ITY672 / 674 echo). No label-free separator; the pool stays closed (§115).
+- **Segment-level 2026 drift vs the AOBT_3 anchor** (airport × runway × stand prefix, airport-month demeaned, v65 vs 2025
+  same-month truth): RMS 14–38 s against 2025 month-to-month noise of 13–28 s; largest excess LTFM (38 vs 28) and LFPG
+  (37 vs 26). Bounded at ≈ 0.3 s even if all real, and indistinguishable from anchor drift. Not actionable.
+- **Recency of cell biases:** month-to-month correlation of (airport, stand, runway) mean residuals ≈ 0 at every lag;
+  operators 0.12 at lag 1. **Transductive aggregates** (same flight number over the month, operator-day windows of
+  T − S / T − LOBT − p / T − AOBT_3 − p): |corr| with the corrector residual ≤ 0.03. Raw 2026 null rates per airport match
+  2025. All dead.
+- **Holidays** (team question): on 2025 holiday airport-days the corrector's mean bias is −19 s on 1 / 6 Jan (the known
+  January holdout artefact, §106), within the normal day spread (median |day bias| 11 s, p90 34 s); only 1 and 6 Jan fall
+  in the scored months, and the day stage re-levels every 2026 airport-day. ≈ 0.03 s even if fully fixed. **Not pursued.**
+- **ADS-B on tracked rows:** the chain is already at the detector's noise floor (EHAM / EDDM median |error| 15–22 s); 2026
+  coverage of good tiers is far above 2025 at EGLL (July 75% vs < 5%), EDDM, LEMD. The neighbour stage demeans per
+  airport-day, so an EGLL lag error cannot bias 2026 levels.
+
+## 145. ADS-B neighbour window (block 13, CTX_ABWIN) -- STOPPED at its label-free drift check (2026-10-11)
+
+`reports/ctx_abwin_preregistration.md` (scope fixed from 2025 → 2026 coverage before any number), `abwin_block` in
+`tests/context_corrector_test.py` (off by default), `tests/ctx_abwin_drift.py`, `logs/ctx_abwin_drift.log`.
+- Scope EDDF / EDDM / EHAM / LEBL / LSZH (EGLL, LEMD, LIRF excluded: neighbour coverage jumps in 2026).
+- Drift check, run before any corrector fit: max in-scope |SMD| 1.06 > 0.25 → **stop**. The count moves with coverage
+  everywhere (EDDF −1.06); the residual means move at LSZH (dwell −0.70, the LSZH level conflict of §125 / §137), EHAM
+  (appear +0.36) and EDDF (dwell −0.34). Only EDDM and LEBL pass, worth ≈ 0.07 s at the screen sizes. No gate, no build.
+
+## 146. MLP member in the context corrector -- gate PASS (arm B); v67 built, board pending (2026-10-11)
+
+`reports/ctx_mlp_preregistration.md` (written before any Jan / Jul number; screens disclosed). Code: `src/models/ctx_mlp.py`,
+`CTX_MLP=1` in `src/post/ctx_armc.py` (default off), `src/post/ctx_mlp_blend.py`, `tests/ctx_mlp_drift.py`,
+`src/post/v67_build.py`, `run_v66_ctl.sh`, `run_v66_mlp_gate.sh`, `run_v66_mlp_seq.sh`, `run_v66_chain.sh`,
+`run_v67_build.sh`. Logs `logs/v66/`. Team decision: a neural-network member is tried despite DESIGN.md's "no neural
+networks"; PyTorch 2.14.1 CPU wheel installed in `.venv` (not yet declared in `pyproject.toml`).
+
+**Why.** §144: every input or objective variant of the tree corrector trades body against tail; the corrector is
+saturated as a model family. An MLP fitted to the same target (y − stack) on the same inputs, rows and folds makes
+different errors (correlation 0.95–0.96 with the trees, vs 0.99+ between tree variants) and extrapolates where trees
+cannot (LTFM snow-day NM-unmatched rows). Alone it is worse (body +2 to +4); blended at 0.3 it was better in all four
+screened months.
+
+**Design.** Control = v65's corrector refitted here (`ctxc1sel_rh2`); treatments = the same file blended 0.7 / 0.3 with the
+MLP member (`ctxc1r_rh2mlp`: embeddings for airport / stand prefix, 512-256-128, Huber δ 1,000 s, 12 epochs, best epoch on
+the inner days, seed 0). The tree part is shared, so the gate sees the MLP blend only.
+
+| holdout chain vs control | trimmed | full | body | trimmed Jan / Jul | OOF trimmed | pass |
+|---|---|---|---|---|---|---|
+| A: blend at all airports | −0.877 | −0.692 | −0.663 | −0.55 / −1.09 | −0.93; Jun +0.13 | no (e) |
+| **B: blend at member-r airports** | **−0.849** | **−0.745** | **−0.637** | **−0.83 / −0.87** | **−1.12, 9/10 months** | **yes** |
+
+- A loses at EHAM / LEBL / LSZH OOF, where the tree part is member `rb` with own-row ADS-B inputs the MLP lacks.
+- B per airport (trimmed): EGLL −2.39, LIRF −1.67, LTFM −1.34, LFPG −1.11, LEMD −0.34; EDDM +0.69.
+- 2026 projection on the rows production changes: −0.65 s.
+- MLP − tree on 2026 rows: no level shift (|SMD| ≤ 0.07), larger spread than 2025 (the out-of-range January 2026 rows).
+
+**v67** = v66 + (B(rh2mb) − B(rh2)), both full builds on this machine (the `ro` production chain reproduces the other
+machine's byte for byte): RMS 24.6 s vs v66, mean −0.22; LIRF / LSZH identical. `data/submissions/smart-jigsaw_v67.parquet`,
+md5 e22ac7a3933478c4887bedce85ff42ba. **Keep iff board < v66's score.** If kept: declare `torch` in `pyproject.toml` (CPU
+index), update DESIGN.md's "no neural networks", and repeat the four-month version for the blind board. Next free
+version: **v68**.
+
+**Board (2026-10-11): v67 = 237.9138 (+1.1 vs v66 = 236.8). REJECTED; v66 stays best.** The 24.6 s RMS change carried almost no
+signal on 2026 (a change uncorrelated with the truth would cost ≈ +1.3). Most likely cause, from label-free numbers: MLP
+extrapolation in January 2026 (storm month, outside the 2025 input range). RMS of (MLP − tree), blended airports, NM-matched:
+Jan / Jul 2025 66 / 71 s, **Jan 2026 86 s** (p99 372 vs 265–279), Jul 2026 53 s; NM-unmatched Jan 2026 329 s. Trees saturate
+outside their training range; the MLP does not, and the in-distribution 2025 holdout cannot show it. The registered drift
+check was "reported, not a condition"; it showed the growth. **Lesson: non-tree members need a stop rule on their 2026
+output spread.** No January- or July-only upload (that would read month-level labels from the board, §82 / §115). MLP line
+closed for the live board; `torch` stays undeclared. Next free version: **v68**.
+
+*(Reverted 2026-10-11 after the board result, team decision: the MLP code (`src/models/ctx_mlp.py`, the `CTX_MLP` hook in `src/post/ctx_armc.py`, `src/post/ctx_mlp_blend.py`, `src/post/v67_build.py`, `tests/ctx_mlp_drift.py`, the `run_v66_*.sh` / `run_v67_build.sh` scripts) was removed and PyTorch uninstalled from `.venv`. The record is `reports/ctx_mlp_preregistration.md`, this section and `logs/v66/`; `smart-jigsaw_v67.parquet` is kept as a rejected upload. `tests/ctx_hour_gate.py`'s `CTL_DIR` switch stays (default unchanged).)*
+
+## 147. Member `rb` at EDDM / LEMD in the corrector selection -- STOPPED at its drift rule (2026-10-11)
+
+`reports/ctx_sel_eddm_preregistration.md`, `tests/ctx_sel_drift.py`, `logs/v66/ctx_sel_drift.log`.
+- **Lead:** with v65's members refitted here, rb − r (corrector level, y ≤ 5 h) is −19.7 s RMSE at EDDM, better in 12/12
+  months; LEMD −6.1 (10/12). `sel` uses r at EDDM since §86, whose July 2025 holdout coverage (31%) was the outlier
+  (OOF days 71%, Jan 2025 86%, 2026 85–88%).
+- **Stop rule (registered after v67's lesson): any block-9 input |SMD| > 0.25 at the added airport.** Fired: EDDM 0.52,
+  LEMD 0.55, on the coverage flags only (`ab_matched` 0.8 → 1.0); the ADS-B timing inputs are stable (|SMD| ≤ 0.11).
+  Team decision: honour the stop as written, no amendment. Lesson: drift rules should name the measurement inputs and
+  report coverage flags separately.
+- Other checks this round (scratch, no repo change): EGLL's ADS-B clock vs AOBT_3 moved +20 to +60 s from 2025 to 2026
+  (EHAM flat), but the day stage's 2026 λ at EGLL is −8.5 ± 7 s in July, so no level problem; steady 2026 λ at LFPG (−31 s
+  both months) and LTFM (+58 / +27) is already 55–80% applied by G2 (≈ 0.15 s left at most). LIRF echo rates do not cluster
+  by day (sd 0.029 vs binomial 0.023), so the daily totals cannot locate echo days. Flight-number residual history:
+  corr 0.037. All dead.
+
+
+## 148. Exploration round 5: error pools, ADS-B trust, gap links, staleness checks; three gated candidates (2026-10-11)
+
+Scratch scripts in the session scratchpad (`pools.py`, `resid_probe.py`, `tiers.py`, `det_acc.py`, `det_wrong.py`, `agree.py`,
+`egll_q.py`, `egll_trust.py`, `witness3.py`, `a3drift.py`, `gaplink*.py`, `sgcont.py`, `g2stale.py`, `hyb.py`); analysis only
+unless stated.
+
+**Where the holdout chain's trimmed SSE sits** (`ctxc1sel_rh2` chain, y ≤ 5 h, RMSE 240.2): non-LIRF NM-matched y ≤ 40 min
+41% (90% of rows), LIRF NM-unmatched 21% (369 rows, frozen), LIRF NM-matched 19%, non-LIRF NM-matched 40 min – 5 h 12%,
+non-LIRF NM-unmatched 7%. One board second needs ≈ −2% SSE in the ordinary pool.
+
+**Closed (dead or already priced):**
+- **MVT_ID order:** follows scheduled time (98–99% of adjacent pairs at EDDF / LIRF / EGLL; random at LTFM), not block time.
+  No leak.
+- **Cross-month bucket bias** on the chain residual (airport × hour, dow, delay, T − AOBT_3, prediction band, runway, stand,
+  operator, …), fitted on one holdout month and applied to the other: every probe worse (+0.2 to +0.8). No calibration lever.
+- **ADS-B detections:** errors are bimodal (most within ±60 s of an airport offset; 10–25% put the "pushback" 30+ min before
+  the label). The chain already discounts them (13k "too early" rows: mean prediction 903 s vs label 875 vs raw ADS-B 3,043).
+  By ADS-B / AOBT_3 agreement band, blending more raw ADS-B into the chain never helps at any airport (best weight 0–0.2).
+- **EGLL 2026 ADS-B** is far better than any 2025 day (AOBT_3 − ADS-B IQR per day: median 477 s vs 1,202 s; 66 vs 17 points
+  per track), so the board's EGLL July rows (84% tracked vs 9% in July 2025) sit in better agreement bands. The chain's
+  per-band trust is already at the 2025 optimum; the gain comes through composition. No lever without 2026 labels.
+- **LIRF ADS-B** is excluded from both ADS-B stages; on LIRF tracked rows raw ADS-B (+ offset) is worse than the chain in
+  every delay band. Not reopened.
+- **AOBT_3 provenance 2025 → 2026:** the default-taxi spike share and whole-minute share are flat per airport-month; median
+  AOBT_3 − ADS-B agreement is stable except LSZH July (the known LSZH level conflict). No 2026 misreading.
+- **Long-range inbound links across the Feb–Jun gap** (§132): ~2.3k July rows link to a January arrival. On the holdout
+  (built with the same gap), those rows have RMSE 196.6 / bias −0.5 vs 193.1 / +4.9 for other July rows. Harmless.
+- **Stand-group pushback contention** (departures from the same stand group / prefix within ±10–15 min): correlation with the
+  chain residual within airport-day ±0.005 in both months.
+- **G2 slope model refitted on the current chain** (it is fitted on `cache/v50/chain_all` + `ctxc1sel` OOF): leave-period-out
+  full −0.105, all from LTFM in February (−1.5 that month); January +0.05, July +0.04. Staleness costs nothing in the scored
+  months.
+- **Hour-level headroom on the current chain** (non-LIRF trimmed, leave-one-out oracle mean removal): airport-day −1.57,
+  airport-day × 3 h −3.34, airport-day × hour −4.33, so ≈ 2.8 s remains within the day after the day stage. Long taxis
+  (> 30 min, 4% of non-LIRF NM-matched rows, 36% of their SSE, bias +266 s) cluster: the top 5% of airport-day-hours hold 70%
+  of their SSE (LFPG, EGLL, LTFM lead).
+- **Runway-closure / burst block** (scratch `scr_prep3.py`, label-free: longest takeoff gap in the past hour at the airport
+  and own runway, time and departures since the last ≥ 10 min gap, 30-min throughput vs the hour-of-day median, longest
+  landing gap): corrector screen non-LIRF trimmed −0.34 (Feb + Aug) but **+0.20** (May + Nov, both months worse); LIRF −2.97 /
+  −2.19 (frozen rows). Inconsistent; dead for the shipped airports.
+- Not pursued: a CatBoost corrector member (diversity-only changes have not transferred: v44 +0.19, v67 +1.1); corrector
+  hyperparameters (§107); Huber in the post-stages (their tails are wrong detections that the inputs partly flag).
+
+**Gated candidates (pre-registered before their numbers):**
+1. `reports/ctx_huber_preregistration.md`: Huber α = 1,000 corrector members, used on NM-matched rows, L2 on NM-unmatched
+   rows (`CTX_HUBER`, `src/post/ctx_huber_hybrid.py`, output-spread stop `tests/ctx_huber_drift.py`; driver
+   `run_v68_huber_gate.sh`, logs `logs/v68/`). Screens: hybrid trimmed −0.41 / −0.70 on rh2 inputs, +0.10 on the older roh
+   inputs. **Gate FAIL** (`logs/v68/ctx_huber_gate.log`): holdout chain trimmed +0.236, full +0.161, body −1.157, July
+   trimmed +0.351; LIRF trimmed +1.91 (body −6.64), non-LIRF trimmed −0.136; OOF −0.415 (9 / 10 months). Huber lowers real
+   tails (LIRF, July); the corrector-level screens (member r, no post-stages) did not show it. Not built.
+2. `reports/lirf_matched_unfreeze_rh2hy_preregistration.md`: third attempt at taking LIRF NM-matched rows from the current
+   chain (bar −0.20), only if (1) passes. The second attempt (rh2) passed everything but OOF June. **Not run** ((1) failed).
+3. `reports/ctx_abwin_dm_preregistration.md`: block 13 reformulated (`CTX_ABWIN_DM`): tier means demeaned within
+   airport-day, no count, EDDM / EHAM / LEBL only (EDDF and LSZH out on label-free spread, `tests/ctx_abwin_dm_drift.py`).
+   Screens: non-LIRF trimmed −0.48 / −0.19, all four months better (EDDM / EHAM / LEBL rows alone −0.31 / −0.08). L2 branch
+   (`run_v68_abwin_dm.sh l2`, control `ctxc1sel_rh2`): **gate FAIL** -- holdout trimmed −0.033 (Jan +0.229 / Jul −0.186),
+   EHAM +0.60, LEBL −0.83; OOF −0.080, June +0.30, 6 / 10 months. Not built.
+
+## 149. v68 = new best (team build); why LIRF changes miss; LSZH level from the daily sums -- v69 built, board pending (2026-10-12)
+
+**Board: v68 (teammate's build, corrector-level change; vs v66: 278,940 rows changed, RMS 17.1 s, LIRF and LSZH
+identical) is the new best.** Next free version: **v70** (v69 below).
+
+**Why LIRF changes have missed (scratch `noise.py`; each upload's 2026 change vector priced with 2025 per-cell residual
+variance of the v42 / v48 recipes; z = (board Δ − projection) / sd):**
+
+| type | uploads | board sd | z vs projection |
+|---|---|---|---|
+| physical join-window bounds | v47, v48 | 0.6–0.7 s | +0.03, −0.10 (landed on projection) |
+| few-row bets (11–321 rows, RMS change ≈ 1 ks) | v20, v45, v46, v60 | 0.7–3.7 s | 1.5–2.3 (noise exceeds the gain) |
+| many-row small shifts (4k–26k rows) | v22, v28, v56 | 0.2–0.8 s | **3.7–6.0** (systematically wrong) |
+
+- The NM-matched unfreeze (26k rows, RMS ≈ 63 s) is the third type; not retried.
+- v56 split on the holdout (`PRU_A_LIRF=0`): the day-sum echo posteriors carry −1.69 of its −1.76; in 2026 they carry
+  Σd² 4.6e8 against 2.4e7 for the ordinary-row shift. The posteriors were what missed.
+- Closed this session: LOBT-window lower bound as an echo posterior (already priced: predictions sit above the bound,
+  echo rate 10–16% there); airline DLA discipline (the selection effect behind v48's matched rate); ≥ 12 h rows ("+24 h" =
+  real block stamped one day early, y − 86,400 = 770–1,990 s; no separator in 2025's 29 rows); LIRF arrival echo rate
+  2025 → 2026 flat (8.5–12.7%), July 2026 delay mix = July 2025.
+
+**Other dead ends:** `FLIGHT_ID_mvt` is sorted exactly by LOBT (0 inversions); EGLL 2026 ADS-B is not under-trusted (chain
+within 23 s median of offset-corrected appear-tier ADS-B, as EHAM / EDDM); no EUROCONTROL aggregate finer than daily.
+Residual day-sum gaps after G2 at the eight airports exist in 2025 too (LTFM +8 to +42 s, EGLL +15 to +40 every month)
+and closing them hurts 2025 (+0.39 trimmed): a structural bias of the solve, not a 2026 level.
+
+**LSZH level (`reports/lszh_dayclose_preregistration.md`, `src/post/lszh_dayclose.py`, `logs/v69/`).** LSZH's daily-sum gap
+is −9 … +10 s in every 2025 month; in 2026 it is −6 / +3 (Jan / Jul) on v48 and on the current chain, but −44 / −24 on v49
+and −47 / −20 on v68 (every day negative): v49's anchor-based LSZH level fix (§121, read on the board only as part of a
+three-part bundle) is what the sums contradict. v69 = v68 with LSZH re-levelled per day by the sums (R0 point solve,
+month median in full + 0.75 × daily deviation; a chosen on 2025 by the registered rule): Jan +49.3 s, Jul +20.6 s on
+23,150 rows; every other row identical. md5 fc4de5dd3b46b3cf264ecf500cb66a66. **Keep iff board < v68's score**
+(≈ −0.16 s if the sums are right, about +0.16 s if the anchor was). Blind version `final4m/blind_v5_lszh.parquet`
+(Feb +14.1, Jun +8.9); the LSZH delta carries onto later blind files (LSZH rows are identical across v64–v68 builds).
+- **Board (2026-10-12): v69 = 236.5174 (v68 = 236.6730, −0.156). Kept; new best.** On the −0.16 projection, in the
+  direction the daily sums gave. Blind board: LSZH from `final4m/blind_v5_lszh.parquet`, or rerun
+  `PRC_SCOPE=final4m src/post/lszh_dayclose.py <blind file> <out> 0.75` on whichever blind file carries the v65/v66/v68 port.
+  Next free version: **v70**.
+
+## 150. Day counts at LIRF, stale NM lines, monster labels -- v70 built (≈ −0.38 s), held below the −0.6 bar (2026-10-12)
+
+`reports/lirf_count_dates_preregistration.md` (+ A1), `src/post/lirf_count_dates.py`, `src/post/nm_lines_remove.py`, `logs/v70/`.
+
+- **Published day counts are exact at LIRF:** `FLT_DEP_IFR_2` (departures per UTC off-block date) equals our labels' count
+  on 358/365 days of 2025 (misses: 5 month-ends, one block 5 s before midnight). For delayed LIRF departures whose echo
+  block (S) and real block (T − taxi) fall on different UTC dates, the counts decide which date the block is on.
+  Validated on 2025 with labels hidden: 78/120 straddlers decided, 77 right; echo-only dates 33/33, real-only 28/28.
+- 2025 mechanism: NM-unmatched UTC straddlers 1–12 h late are echo (35) or "+24 h" (1), never real (non-straddlers:
+  54% real). Local-midnight crossing alone is not the mechanism (70% echo vs 46%).
+- **2026 anomalies, left alone:** three LIRF NM-unmatched rows that the counts place on a real-only date (RYR9ZM
+  Jul 1/2; one of the null-flight row / WMTMT4SG on Jul 4/5; a Jan 18/19 pair). 2025 says these are never real, so
+  count and mechanism disagree (≈ 50/50, v69 already near that hedge); each is a ±1 s single-row bet.
+- **NM lines are stale outside LIRF:** the per-airport line (y = a + b·d on all NM-unmatched rows, applied at d > 6 h, since
+  v33) is worse than the corrector it overrides at 8/9 airports: out of sample (LOMO lines vs OOF corrector, 144 rows)
+  SSE 2.84e8 vs 8.51e7, 11/12 months; the corrector is nearly unbiased there (+123 s).
+- **Monster labels:** in 2025, 13 non-LIRF rows with |error| > 2 h hold 22% of non-LIRF SSE, all NM-unmatched: near-echoes
+  (block ≈ SCHED, EGLL / LSZH / LTFM / LFPG) and date bugs (LSZH NJE389D 87,341 s, LFPG EJU983W 84,240 s). The broken block
+  is what fails the NM join. Not identifiable label-free at LFPG / LSZH / EHAM (counts inexact there); at EGLL the 2026
+  counts are exact on 112/112 days, so no such row there; count pairs elsewhere are explained by rows near midnight.
+- **EHAM storm (v49 fix 2):** with the current corrector the tracked-row bias is +329 s (was +490), production sits +552 above
+  the corrector on the 116 untracked storm rows → ≈ 223 s too high (≈ −0.035 s if fixed). Not built.
+- Dead: LIRF NM-unmatched 6–12 h to the exact echo value (2025: 33 echo / 1 real; v70 already at the optimal hedge);
+  count-matched night-bank shift at LTFM (−2.5% of night-row SSE at half strength, +9.5% at full; ≈ −0.03 s).
+- **v70** = v69 + count echo moves (8 LIRF rows) + NM-line removal (70 non-LIRF rows): md5 d7514e33…, projection ≈ −0.38 s.
+  **Held** (team bar −0.6 s for this upload). Both parts also apply to Feb / Jun for the blind file.
+- **After v70, more directions (all dead or small):** monster flags from movement fields (none: stand / runway / type /
+  rule all populated; most rows with y > 1 h and y ≈ off are real disruption days, e.g. EGLL 2025-03-16, LTFM snow);
+  disruption-day reallocation (days with ≥ 8% NM-unmatched departures: NM-unmatched rows +402 s after G2, matched −54, but a
+  leave-period-out shift is worse at every threshold, +0.21 to +0.38, sign flips by period; 2026's such days are the EHAM
+  storm); count-based monster detection at LFPG / LSZH / EHAM (day-count baseline wanders sd 1.7–2.5 flights/day, so a
+  single misdated row is invisible; 2025's five date-bug monsters ≈ 1.9e10 SSE, ~20% of 2025 error, are not
+  label-free detectable). v70 stays at ≈ −0.38 s (realised range ≈ −0.15 … −0.45: two LTFM rows carry 55% of the line
+  removal's change energy); the EHAM storm correction (≈ −0.035 s) is the only further robust piece found.
+- **Board (2026-10-12): v70 = 236.2290 (−0.288 vs v69). Kept; new best.** Inside the projected range (central −0.38).
+  Day total: v68 236.6730 → v70 236.2290 (−0.44). For the blind file: v69's LSZH re-levelling (`lszh_dayclose.py`, a 0.75)
+  and both v70 parts (`lirf_count_dates.py`; `nm_lines_remove.py` with the four-month chain before / after `nm_lines`).
+  Next free version: **v71**.
+
+## 151. After v65: is the direction used up? Error budget and new-signal screens; the flow block is the one fresh lead (2026-10-11, analysis only)
+
+*(Merged 2026-10-12 from `main`: the team's write-up, written there as §137–§140 in parallel with this branch's §144–§150, renumbered here as §151–§154; main's §136 is §143 here. Cross-references inside these sections are renumbered to match.)*
 
 **Board: v65 = 237.0694 (−0.38 vs v64; projected −0.71). Kept; new best; 29th.** Leader ≈ 212. Next free version: **v66**.
 Ground rule from here (user): the final blind board is one submission over Jan + Feb + Jun + Jul 2026, so a candidate is
@@ -6432,7 +6979,7 @@ the Jan/Jul cross-fit holdout), trimmed y ≤ 5 h, 2,084,876 rows, RMSE 217.07 a
 - To reach 212 from the body alone, body RMSE would have to go 190 → 152 (−20%). Each recent corrector block gave ~1%.
 
 **Within-day direction (blocks 11/12): used up.** At corrector level the airport × 30 min × runway oracle is still −5.7
-(−8.4 non-LIRF), but §134–§136 showed label-free window inputs reach only a slice of it, and the extra dimensions screened
+(−8.4 non-LIRF), but §134, §135 and §143 showed label-free window inputs reach only a slice of it, and the extra dimensions screened
 today don't either:
 - static leave-month-out cells (shrunk k = 30) at non-LIRF airports are all worse: stand +0.21, stand × runway +0.46,
   operator × stand +0.40, type × runway +0.28, flight number +0.19, ADES +0.04, runway × hour +0.60. The corrector is
@@ -6469,23 +7016,23 @@ Paired residual screen (LightGBM on y − corrector, control = pred, airport, T 
   +0.24 / +0.09 / −0.02 / −0.24. These are real delay-level differences inside 2025's month-to-month range (Jan 1,591 s vs
   Jul 2,067 s in 2025), the size of block 12's max (0.20).
 
-**Proposed next (not started):** pre-register block 13 (`CTX_FLOW=1`, r + rb members on top of block 12), gate as §136
+**Proposed next (not started):** pre-register block 13 (`CTX_FLOW=1`, r + rb members on top of block 12), gate as §143
 with Feb and Jun OOF required, delta against byte copies of the production `ctxc1sel_rh2`, LIRF frozen; build v66 and the
 four-month port. Before that, the blind board still lacks v64 and v65 (`run_v64_final4m.sh`, `run_v65_final4m.sh` need the
 other machine's `final4m/` folders).
 
-## 138. Flow-state block (block 13) in the context corrector -- gate PASS; v66 built, board pending (2026-10-11)
+## 152. Flow-state block (block 13) in the context corrector -- gate PASS; v66 built, board pending (2026-10-11)
 
 `reports/ctx_flow_preregistration.md` (written first; amendment A1 before any gate number). Code: `src/post/flow_feats.py`,
 block 13 in `tests/context_corrector_test.py` (`CTX_FLOW=1`), `tests/ctx_flow_drift.py`, `tests/ctx_hour_gate.py`
 (`CTL_DIR` switch, default unchanged), `run_v66.sh`, `run_v66_chain.sh`. Logs `logs/v66/`.
 
-- **Inputs (21, label-free, §137):** destination flow from the other nine airports (±60 min) and from our own airport
+- **Inputs (21, label-free, §151):** destination flow from the other nine airports (±60 min) and from our own airport
   (±90 min), region flow (same two-letter ADES prefix, different ADES, ±60 min, same / other origins) — each count, median
   T − SOBT, median T − LOBT, share > 30 min late — and schedule-order displacement (SOBT within ±20 min: count, overtakers,
   overtaken, median T gap, net share). `flow_feats.build` reproduces the screened features exactly (21/21 columns).
 - **A1, a bug found before any gate number:** `sq_net` subtracted unsigned counts, so negative values wrapped to ≈ 4.3e9 / n
-  (the §137 screen had it too). Fixed to signed arithmetic; the run was restarted from the start.
+  (the §151 screen had it too). Fixed to signed arithmetic; the run was restarted from the start.
 - Members `ctxc1r_rf` (101 inputs) / `ctxc1rb_rf` (118), sel `ctxc1sel_rf`. Early stopping 1,505–2,444 rounds.
 
 **Gate (holdout chain with v50's post-stages, vs v65's `ctxc1sel_rh2`): PASS (a)–(f).**
@@ -6522,14 +7069,14 @@ residual harness, base `ctxc1sel_rf`, trimmed 215.36 at corrector level):
 - neighbour rotation pressure (±30 min: share of tight turnarounds, median slack, offsets of tight vs slack
   neighbours): −0.15, only LIRF; most airports slightly worse. Dead.
 
-## 139. Runway stoppage / discharge block (block 14) -- gate FAIL, nothing built; XGBoost corrector and LIRF flow-echo scoping (2026-10-11)
+## 153. Runway stoppage / discharge block (block 14) -- gate FAIL, nothing built; XGBoost corrector and LIRF flow-echo scoping (2026-10-11)
 
 `reports/ctx_stop_preregistration.md` (A1: NaN → null in `st_ar_*` before any fit; inputs unchanged). Code: `src/post/stop_feats.py`,
 block 14 in `tests/context_corrector_test.py` (`CTX_STOP=1`), `tests/ctx_stop_drift.py`, `run_v67.sh`, `run_v67_chain.sh`.
 Logs `logs/v67/`. Built on top of v66 (board pending at the time) — from now on only one candidate per round (user).
 
 - **Inputs (9):** the longest gap between consecutive takeoffs on the same runway / at the airport, and between landings,
-  inside [T − 60 min, T], with the time and movements since it ended. Screen on v66's corrector −0.32 (§138 list).
+  inside [T − 60 min, T], with the time and movements since it ended. Screen on v66's corrector −0.32 (§152 list).
 - **Gate vs v66's `ctxc1sel_rf`: FAIL.** Holdout trimmed −0.189 but Jan +0.031; OOF −0.173 with June +0.39 and only
   6/10 months better. Non-LIRF trimmed −0.004: the gain is all LIRF (frozen). Projection on production rows +0.011.
   No v67. Block 14 closed.
@@ -6546,7 +7093,7 @@ new best is 236.81 from v66, small gain of ~-0.2
 **Board: v66 = 236.8136 (−0.26 vs v65; projected −0.47). Kept; new best; 28th** (leaderboard API 2026-10-12 00:10 UTC+1:
 29th 236.98, 30th 237.12; leader strong-crane 212.85). Next free version: **v67**.
 
-## 140. New-signal screens on v66's corrector all small; v66's corrector averaged over three seeds (`ctxc1sel_rf3`) -- gate PASS; v67 built, board pending (2026-10-12)
+## 154. New-signal screens on v66's corrector all small; v66's corrector averaged over three seeds (`ctxc1sel_rf3`) -- gate PASS; v67 built, board pending (2026-10-12)
 
 `reports/ctx_seedavg_rf_preregistration.md` (written first). Code: `tests/flow_screen/dir_screen.py`, `tests/flow_screen/lc_screen.py`,
 `src/post/order_feats.py` (block-15 candidate, not wired in), `src/post/ctx_seedavg_merge.py`, `run_v67s.sh`, `run_v67s_chain.sh`.
@@ -6556,7 +7103,7 @@ Logs `logs/dir_screen.log`, `logs/lc_screen.log`, `logs/run_v67s.log`, `logs/v67
 (NM-matched), 30–60 min holds 25.9% of SSE (RMSE 233) and 60–120 min 21.3% (RMSE 372): the gate-wait vs taxi split is
 where the body error is. By airport: LIRF 40.6%, LFPG 11.9, EGLL 11.6, LTFM 12.2; body would need 190 → 152 for 212.
 
-**Screens on v66's corrector** (§137 harness: residual LightGBM on `ctxc1sel_rf`'s 12-month OOF + holdout output, 7 periods
+**Screens on v66's corrector** (§151 harness: residual LightGBM on `ctxc1sel_rf`'s 12-month OOF + holdout output, 7 periods
 leave-period-out, paired; trimmed / body):
 - **D, departure-direction flow** (same-origin departures in the same 30° initial-bearing sector to ADES, ±60 min: n, median
   T − SOBT, median T − LOBT, share > 30 min late; great-circle distance; coordinates from OurAirports, public domain):

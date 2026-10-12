@@ -1,0 +1,9 @@
+input blind_v5.parquet: LSZH rows 44,908, on solved days 44,908; month medians before m1 -46.4, m2 -14.8, m6 -9.9, m7 -19.7
+  m1: rows 9,995, changed 9,995, mean +49.21, RMS 50.15
+  m2: rows 9,374, changed 9,373, mean +14.09, RMS 15.89
+  m6: rows 12,384, changed 12,384, mean +8.94, RMS 11.57
+  m7: rows 13,155, changed 13,155, mean +20.58, RMS 21.34
+all rows: RMS 7.24, max |d| 84
+month medians after m1 -0.2, m2 -0.2, m6 +0.1, m7 -0.1
+LOBT-window violations: 14 (LSZH 0)
+wrote data/submissions/final4m/blind_v5_lszh.parquet

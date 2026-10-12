@@ -1,0 +1,3 @@
+rows moved: 45 of 344,841; up 28, mean |shift| 115 s
+by airport: {'EDDF': 1, 'EDDM': 2, 'EGLL': 2, 'EHAM': 5, 'LEBL': 3, 'LEMD': 4, 'LFPG': 11, 'LIRF': 1, 'LSZH': 1, 'LTFM': 15}
+wrote chain_ctxc1sel_ro_win.parquet
