@@ -1,0 +1,35 @@
+2025 constants: twin non-echo labels 76 (mean 957); P_E 0.880 (forced, echo possible: 23); PE_KEY 0.767; P0T 0.667; PE_TM 0.929; M_N 958; M_SH 838
+shape: (2, 5)
+┌──────┬──────┬────────┬───────┬─────┐
+│ fmt  ┆ echo ┆ normal ┆ other ┆ sh  │
+│ ---  ┆ ---  ┆ ---    ┆ ---   ┆ --- │
+│ str  ┆ u32  ┆ u32    ┆ u32   ┆ u32 │
+╞══════╪══════╪════════╪═══════╪═════╡
+│ key  ┆ 33   ┆ 10     ┆ 0     ┆ 0   │
+│ time ┆ 13   ┆ 1      ┆ 5     ┆ 28  │
+└──────┴──────┴────────┴───────┴─────┘
+LIRF NM-unmatched rows 619; v48 scope 474; twins (exact + normalised) 56; rows equal to the replayed chain 256 (363 touched by later stages, left alone)
+shape: (6, 5)
+┌─────────┬─────┬─────────┬────────┬─────────────┐
+│ tag     ┆ n   ┆ mean    ┆ rms    ┆ energy      │
+│ ---     ┆ --- ┆ ---     ┆ ---    ┆ ---         │
+│ str     ┆ u32 ┆ f64     ┆ f64    ┆ f64         │
+╞═════════╪═════╪═════════╪════════╪═════════════╡
+│ L2key   ┆ 13  ┆ -1689.0 ┆ 1939.0 ┆ 4.8874713e7 │
+│ L2shift ┆ 1   ┆ 4407.0  ┆ 4407.0 ┆ 1.9421649e7 │
+│ L2twin  ┆ 1   ┆ 1851.0  ┆ 1851.0 ┆ 3.426201e6  │
+│ N1      ┆ 36  ┆ 403.0   ┆ 444.0  ┆ 7.108901e6  │
+│ T1      ┆ 21  ┆ 410.0   ┆ 1209.0 ┆ 3.071236e7  │
+│ T2      ┆ 6   ┆ 1030.0  ┆ 1791.0 ┆ 1.9242598e7 │
+└─────────┴─────┴─────────┴────────┴─────────────┘
+shape: (2, 6)
+┌────────────┬─────┬────────┬────────┬────────┬─────────┐
+│ FLIGHT_mvt ┆ mo  ┆ off    ┆ v      ┆ new    ┆ tag     │
+│ ---        ┆ --- ┆ ---    ┆ ---    ┆ ---    ┆ ---     │
+│ str        ┆ i8  ┆ f64    ┆ f64    ┆ f64    ┆ str     │
+╞════════════╪═════╪════════╪════════╪════════╪═════════╡
+│ BAW6NL     ┆ 7   ┆ 4082.0 ┆ 4387.0 ┆ 6238.0 ┆ L2twin  │
+│ BEL9EL     ┆ 6   ┆ 2158.0 ┆ 3382.0 ┆ 7789.0 ┆ L2shift │
+└────────────┴─────┴────────┴────────┴────────┴─────────┘
+stop rules 1-4 pass; rows changed 78, sum d^2 1.29e+08, RMS over the file 13.86 s
+wrote C:/Users/yuqiw/AppData/Local/Temp/claude/c--Users-yuqiw-prc2025/58a29bb3-61f0-439e-aa7d-42556e0f1ffc/scratchpad/lv/blind_v5_lszh_lhr_dryrun.parquet
