@@ -1,0 +1,39 @@
+A. md5 and lineage
+   027b245e7a54c99dc753040fb8317f4c ok  smart-jigsaw_v75.parquet
+   9b818fb96911e546ebc591a81830bec8 ok  smart-jigsaw_v76.parquet
+   af5dcb99e817a08f1834fae4996545b2 ok  final4m/f4m_v75.parquet
+   6ce6152ca956b5b271235de937496969 ok  final4m/blind_v7.parquet
+   08adc51280d01f1521e27e72f06ce21c ok  final4m/blind_v8.parquet
+   08adc51280d01f1521e27e72f06ce21c ok  final4m/smart-jigsaw_final.parquet
+   blind_v7: Feb/Jun == f4m_v75 True, Jan/Jul == v75 True
+   final:    Feb/Jun == f4m_v75 True, Jan/Jul == v76 True  (rows Jan/Jul 344,841, Feb/Jun 325,949)
+B. same MVT_ID = same movement in both releases (live departures)
+   live departures 344,841, found in the final release 344,841
+   ADEP_mvt             identical on 344,841 of 344,841
+   ADES_mvt             identical on 344,841 of 344,841
+   FLIGHT_mvt           identical on 344,841 of 344,841
+   FLIGHT_ID_mvt        identical on 344,841 of 344,841
+   SCHED_TIME_UTC_mvt   identical on 344,841 of 344,841
+   STAND_mvt            identical on 344,841 of 344,841
+   RUNWAY_mvt           identical on 344,841 of 344,841
+   AIRCRAFT_TYPE_mvt    identical on 344,841 of 344,841
+   LOBT_flt             identical on 344,841 of 344,841
+   AOBT_3_flt           identical on 344,841 of 344,841
+   CALLSIGN_flt         identical on 344,841 of 344,841
+C. independent recompute of v76 (pandas)
+   recompute == v76: True; scope rows 313,042; changed vs v75 289,842 (all in scope: True)
+D. format
+   smart-jigsaw_v76.parquet: columns True, row order == submitting.parquet True, rows 344,841, nulls 0, dups 0, dtype int32, range [18, 111648]
+   final4m/smart-jigsaw_final.parquet: columns True, row order == final_submitting.parquet True, rows 670,790, nulls 0, dups 0, dtype int32, range [0, 111648]
+E. label-free proxies, NM-matched non-LIRF rows, mid frame
+   T - AOBT_3:
+     all                            n 311,541  MSE(v75)-MSE(avg)   186.4 +-  36.8   MSE(v75)-MSE(4m)    57.6 +-  73.8
+     tracked, identical detections  n  94,523  MSE(v75)-MSE(avg)   -59.5 +-  44.6   MSE(v75)-MSE(4m)  -204.7 +-  90.0
+     untracked                      n 216,321  MSE(v75)-MSE(avg)   284.8 +-  47.6   MSE(v75)-MSE(4m)   199.5 +-  95.0
+     detections differ              n     697  MSE(v75)-MSE(avg)  2996.5 +- 3908.2   MSE(v75)-MSE(4m) -8385.2 +- 8227.4
+     airport-day clustered: 186.4 +- 56.5 s^2/row (558 clusters); bootstrap 95% CI [83.1, 302.6], P(average worse) 0.0000
+     airport x month cells where the average is better: 15 of 18
+   T - ADS-B pushback (identical detections):
+     tracked                        n  94,594  MSE(v75)-MSE(avg)     8.2 +-  14.9   MSE(v75)-MSE(4m)   -67.1 +-  29.8
+F. release frame
+   sd(T_final - T_live) 4.92 s; slope of (four-month - live) on it 1.157; share of the difference variance 0.050; E[d^2]/4 162.2 s^2/row

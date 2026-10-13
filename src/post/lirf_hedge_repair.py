@@ -212,7 +212,8 @@ def main(in_f, out_f, p0_f) -> None:
            "L2twin": np.all(nv[tg == "L2twin"] >= np.round(lo[idx][tg == "L2twin"]) - 1)}
     assert all(chk.values()), f"stop rule 3: value checks {chk}"
     energy = float((ch["d"] ** 2).sum())
-    assert L3_ON or energy <= 1.5e8, f"stop rule 4: sum d^2 {energy:.3g}"
+    e_max = 1.5e8 * tpl.height / 344841          # live-board bound, per row: the four-month template is ~1.95x the rows
+    assert L3_ON or energy <= e_max, f"stop rule 4: sum d^2 {energy:.3g} > {e_max:.3g}"
     print(f"stop rules 1-4 pass; rows changed {ch.height}, sum d^2 {energy:.3g}, RMS over the file {np.sqrt(energy / tpl.height):.2f} s")
 
     upd = ch.select(pl.col("MVT_ID_mvt").alias("_id"), "new")

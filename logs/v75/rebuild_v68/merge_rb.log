@@ -1,0 +1,2 @@
+holdout / OOF not merged (four-month scope, or a member has no holdout / OOF inputs): ranking rows only
+ctxc1rb_rf3 = (1*ctxc1rb_rf + 2*ctxc1rb_rf_s2) / 3; RMS ctxc1rb_rf vs ctxc1rb_rf_s2: holdout nan s, OOF folds [], ranking 19.36 s

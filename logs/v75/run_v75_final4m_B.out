@@ -1,0 +1,55 @@
+=== B1. four-month members, merge, sel  2026-10-13 16:32:28
+    (exists: data/submissions/final4m/ctxc1r_rf.parquet)
+    (exists: data/submissions/final4m/ctxc1rb_rf.parquet)
+    (exists: data/submissions/final4m/ctxc1r_rf_s2.parquet)
+    (exists: data/submissions/final4m/ctxc1rb_rf_s2.parquet)
+    (exists: data/submissions/final4m/ctxc1r_rf3.parquet)
+    (exists: data/submissions/final4m/ctxc1rb_rf3.parquet)
+    (exists: data/submissions/final4m/ctxc1sel_rf3.parquet)
+==> logs/v75/final4m/merge_r.log <==
+ctxc1r_rf3 = (1*ctxc1r_rf + 2*ctxc1r_rf_s2) / 3; RMS ctxc1r_rf vs ctxc1r_rf_s2: holdout nan s, OOF folds [], ranking 16.44 s
+
+==> logs/v75/final4m/merge_rb.log <==
+ctxc1rb_rf3 = (1*ctxc1rb_rf + 2*ctxc1rb_rf_s2) / 3; RMS ctxc1rb_rf vs ctxc1rb_rf_s2: holdout nan s, OOF folds [], ranking 18.25 s
+
+==> logs/v75/final4m/armc_sel.log <==
+ranking: 250,758 of 670,790 rows from ctxc1rb_rf3 -> ctxc1sel_rf3.parquet
+=== B2. four-month chain on ctxc1sel_rf3 (control chain ro and its id deltas: run_v64_final4m.sh)  2026-10-13 16:32:28
+    (exists: data/submissions/final4m/stack_lgb_catcorr_v3_ctxc1sel_rf3_adsbq_partial_fb.parquet)
+    (exists: data/submissions/final4m/smart-jigsaw_v27ctxc1sel_rf3.parquet)
+    (exists: data/submissions/final4m/chain_ctxc1sel_rf3.parquet)
+    (exists: data/submissions/final4m/chain_ctxc1sel_rf3_win.parquet)
+    (exists: data/submissions/final4m/chain_ctxc1sel_rf3_final.parquet)
+    (exists: cache/v75/final4m/id_ctxc1sel_rf3/comb_delta_all_id.parquet)
+    (exists: cache/v75/final4m/id_ctxc1sel_rf3/nb_delta_ro_id.parquet)
+=== B3. delta vs chain ro, assembly on f4m_e (LIRF frozen), day recipe -> f4m_v68  2026-10-13 16:32:28
+delta RMS 49.80, mean +0.918
+=== B4. post-stages as v69 -> v75  2026-10-13 16:32:50
+=== B5. blind_v7 = Jan/Jul from smart-jigsaw_v75, Feb/Jun from f4m_v75  2026-10-13 16:33:09
+| ---  | --- | ---   | ---   | ---  |
+| str  | i8  | u32   | f64   | f64  |
+|------|-----|-------|-------|------|
+| EDDF | 1   | 15667 | 31.5  | 0.3  |
+| EDDF | 7   | 20650 | 21.5  | 0.3  |
+| EDDM | 1   | 10953 | 29.1  | -0.0 |
+| EDDM | 7   | 15013 | 20.5  | -0.0 |
+| EGLL | 1   | 19283 | 26.9  | -0.2 |
+| EGLL | 7   | 20557 | 21.8  | 0.1  |
+| EHAM | 1   | 16232 | 42.0  | -0.5 |
+| EHAM | 7   | 21950 | 20.0  | -0.0 |
+| LEBL | 1   | 12201 | 17.7  | -0.1 |
+| LEBL | 7   | 17879 | 27.5  | -0.0 |
+| LEMD | 1   | 16802 | 24.7  | -0.0 |
+| LEMD | 7   | 20152 | 17.8  | -0.1 |
+| LFPG | 1   | 18129 | 32.4  | 0.2  |
+| LFPG | 7   | 21743 | 20.5  | 0.2  |
+| LIRF | 1   | 11061 | 68.5  | -5.0 |
+| LIRF | 7   | 15838 | 106.1 | -7.0 |
+| LSZH | 1   | 9995  | 32.6  | -0.1 |
+| LSZH | 7   | 13155 | 25.0  | -0.1 |
+| LTFM | 1   | 22396 | 37.3  | 0.3  |
+| LTFM | 7   | 25185 | 23.6  | 0.2  |
+output: 670,790 rows, range [0, 111648], median 943, mean 1015.9; Jan/Jul rows identical to smart-jigsaw_v75.parquet: True
+wrote data\submissions\final4m\blind_v7.parquet  md5 6ce6152ca956b5b271235de937496969
+6ce6152ca956b5b271235de937496969 *data/submissions/final4m/blind_v7.parquet
+=== done  2026-10-13 16:33:10

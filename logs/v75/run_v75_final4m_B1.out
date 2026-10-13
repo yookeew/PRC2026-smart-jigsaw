@@ -1,0 +1,10 @@
+=== B1. four-month members, merge, sel  2026-10-13 12:21:26
+==> logs/v75/final4m/merge_r.log <==
+ctxc1r_rf3 = (1*ctxc1r_rf + 2*ctxc1r_rf_s2) / 3; RMS ctxc1r_rf vs ctxc1r_rf_s2: holdout nan s, OOF folds [], ranking 16.44 s
+
+==> logs/v75/final4m/merge_rb.log <==
+ctxc1rb_rf3 = (1*ctxc1rb_rf + 2*ctxc1rb_rf_s2) / 3; RMS ctxc1rb_rf vs ctxc1rb_rf_s2: holdout nan s, OOF folds [], ranking 18.25 s
+
+==> logs/v75/final4m/armc_sel.log <==
+ranking: 250,758 of 670,790 rows from ctxc1rb_rf3 -> ctxc1sel_rf3.parquet
+=== B1 only: done  2026-10-13 16:14:35

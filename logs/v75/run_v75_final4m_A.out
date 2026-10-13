@@ -1,0 +1,5 @@
+=== A0/A1 skipped: ctxc1sel_rf3 holdout, OOF and ranking files present (copied from the machine that built v68)  2026-10-13 16:14:47
+=== A2. live-scope chain on ctxc1sel_rf3  2026-10-13 16:14:47
+    (exists: data/submissions/chain_ctxc1sel_rf3_win.parquet)
+    (exists: data/submissions/chain_ctxc1sel_rf3_final.parquet)
+=== A3. delta vs chain ro, assembly on v54, day recipe -> v68 rebuild  2026-10-13 16:19:54
