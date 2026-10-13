@@ -1,0 +1,38 @@
+stack weights: {'lgb': np.float64(1.0128), 'catcorr': np.float64(0.0)}
+thin-day rule: 115 days kept, 7 dropped
+shape: (7, 5)
+| day        | status   | bad_members | points | med        |
+| ---        | ---      | ---         | ---    | ---        |
+| str        | str      | i64         | i64    | f64        |
+|------------|----------|-------------|--------|------------|
+| 2025-08-10 | tolerant | 1           | 211018 | 1.572131e6 |
+| 2025-10-04 | ok       | 0           | 0      | 1672691.5  |
+| 2025-10-07 | tolerant | 1           | 206056 | 1672691.5  |
+| 2025-11-19 | tolerant | 1           | 142500 | 1.549465e6 |
+| 2025-11-22 | tolerant | 1           | 247284 | 1.549465e6 |
+| 2025-12-10 | tolerant | 1           | 671427 | 1586008.5  |
+| 2025-12-28 | tolerant | 1           | 251232 | 1586008.5  |
+OOF-month ADS-B rows: 660,242 on 115 days (['2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12']); OOF stack weights [1.011 0.   ]
+ctl: best_iter 2628, rows (927045, 19)
+C:\Users\yuqiw\prc2025\src\post\v50_comb_delta.py:89: DeprecationWarning: the default behavior of `how='horizontal'` for `concat` is deprecated and will require equal heights in the next breaking release. Use `how='horizontal_extend'` to keep the current behavior.
+(Deprecated in version 1.42.1)
+  X = pl.concat([X, df.select([pl.col(c).cast(pl.Float64) for c in extra])], how="horizontal")
+all_id: best_iter 3937, rows (927045, 37)
+shape: (10, 4)
+┌──────────┬───────┬───────────┬───────────┐
+│ ADEP_mvt ┆ n     ┆ rms       ┆ mean      │
+│ ---      ┆ ---   ┆ ---       ┆ ---       │
+│ str      ┆ u32   ┆ f64       ┆ f64       │
+╞══════════╪═══════╪═══════════╪═══════════╡
+│ EDDF     ┆ 37591 ┆ 15.048406 ┆ 0.408412  │
+│ EDDM     ┆ 50074 ┆ 22.890642 ┆ -0.400425 │
+│ EGLL     ┆ 66516 ┆ 30.022314 ┆ -0.893824 │
+│ EHAM     ┆ 75046 ┆ 35.417535 ┆ 1.58613   │
+│ LEBL     ┆ 53223 ┆ 20.137915 ┆ 0.084752  │
+│ LEMD     ┆ 57278 ┆ 23.043126 ┆ 0.386265  │
+│ LFPG     ┆ 8767  ┆ 10.295405 ┆ -0.613613 │
+│ LIRF     ┆ 0     ┆ 0.0       ┆ 0.0       │
+│ LSZH     ┆ 40684 ┆ 18.054394 ┆ 1.034399  │
+│ LTFM     ┆ 119   ┆ 1.195505  ┆ -0.01775  │
+└──────────┴───────┴───────────┴───────────┘
+delta RMS over all rows 20.90, served 389298

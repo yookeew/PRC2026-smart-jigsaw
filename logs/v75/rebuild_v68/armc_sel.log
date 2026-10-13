@@ -1,0 +1,2 @@
+holdout / OOF selection skipped: ctxc1r_rf3 / ctxc1rb_rf3 have no holdout inputs (production-only rebuild)
+ranking: 127,729 of 344,841 rows from ctxc1rb_rf3 -> ctxc1sel_rf3.parquet

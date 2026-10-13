@@ -1,0 +1,12 @@
+=== A0/A1 skipped: ctxc1sel_rf3 holdout, OOF and ranking files present (copied from the machine that built v68)  2026-10-13 16:33:14
+=== A2. live-scope chain on ctxc1sel_rf3  2026-10-13 16:33:14
+    (exists: data/submissions/stack_lgb_catcorr_v3_ctxc1sel_rf3_adsbq_partial_fb.parquet)
+    (exists: data/submissions/smart-jigsaw_v27ctxc1sel_rf3.parquet)
+    (exists: data/submissions/chain_ctxc1sel_rf3.parquet)
+    (exists: data/submissions/chain_ctxc1sel_rf3_win.parquet)
+    (exists: data/submissions/chain_ctxc1sel_rf3_final.parquet)
+    (exists: cache/v75/jj/id_ctxc1sel_rf3/comb_delta_all_id.parquet)
+    (exists: cache/v75/jj/id_ctxc1sel_rf3/nb_delta_ro_id.parquet)
+=== A3. delta vs chain ro, assembly on v54, day recipe -> v68 rebuild  2026-10-13 16:33:14
+v68 rebuild vs uploaded v68: identical False; rows differing 63; RMS 0.021 s; max |d| 4; RMS over the file as a board effect ~0.0000 s (upper bound)
+=== done  2026-10-13 16:33:33

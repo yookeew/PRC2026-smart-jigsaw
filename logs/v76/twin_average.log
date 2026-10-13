@@ -1,0 +1,20 @@
+scope rows 313,042 of 344,841; build - live on scope: RMS 25.47, mean +0.11
+change on scope rows: RMS 12.74, mean +0.053, max |change| 740; rows moved by the window 5
+expected gain at equal quality: 0.314 s
+shape: (9, 4)
+┌──────────┬───────┬───────┬────────┐
+│ ADEP_mvt ┆ n     ┆ rms   ┆ mean   │
+│ ---      ┆ ---   ┆ ---   ┆ ---    │
+│ str      ┆ u32   ┆ f64   ┆ f64    │
+╞══════════╪═══════╪═══════╪════════╡
+│ EDDF     ┆ 35896 ┆ 12.97 ┆ 0.135  │
+│ EDDM     ┆ 25728 ┆ 12.14 ┆ -0.029 │
+│ EGLL     ┆ 39592 ┆ 12.14 ┆ -0.027 │
+│ EHAM     ┆ 36976 ┆ 12.65 ┆ 0.105  │
+│ LEBL     ┆ 29639 ┆ 11.82 ┆ -0.044 │
+│ LEMD     ┆ 36718 ┆ 10.49 ┆ -0.021 │
+│ LFPG     ┆ 39140 ┆ 12.74 ┆ 0.124  │
+│ LSZH     ┆ 22491 ┆ 13.33 ┆ 0.1    │
+│ LTFM     ┆ 46862 ┆ 15.09 ┆ 0.098  │
+└──────────┴───────┴───────┴────────┘
+wrote data\submissions\smart-jigsaw_v76.parquet  md5 9b818fb96911e546ebc591a81830bec8
