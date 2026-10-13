@@ -16,8 +16,8 @@ winget install astral-sh.uv
 ### 2. Clone the repo and sync the environment
 
 ```powershell
-git clone <this repo>
-cd prc2025
+git clone https://github.com/yookeew/smart-jigsaw.git
+cd smart-jigsaw
 uv sync
 .\.venv\Scripts\Activate.ps1
 ```
@@ -27,12 +27,14 @@ and `uv.lock`. **You do not need to separately install Python 3.11** — if uv
 doesn't find a matching interpreter on your system, it downloads one
 automatically and creates `.venv` from it. This also installs every
 dependency (pyopensky, traffic, polars, pyarrow, lightgbm, scikit-learn,
-networkx, jupyter) at the exact locked versions.
+networkx, jupyter) at the exact locked versions. CatBoost is not in the
+local environment: its fits run on Google Colab, which installs it
+(see [notebooks/colab_train.py](notebooks/colab_train.py)).
 
 ### 3. Get your own OpenSky/challenge credentials
 
 You need your own OSN account login and, separately, the MinIO/S3
-`access_key` + `secret_key` for the `competition-data` bucket (from the
+`access_key` + `secret_key` for the `prc-2026-datasets` bucket (from the
 challenge organizers — this is the same thing as "S3 credentials", MinIO is
 just the S3-compatible server OpenSky runs). These are per-person, not
 shared — each person needs their own.
@@ -72,22 +74,20 @@ leave blank.)
 python -m src.ingest.fetch_challenge_data
 ```
 
-Downloads every object in the `competition-data` bucket, routed into
+Downloads every object in the `prc-2026-datasets` bucket, routed into
 `data/raw/` (monthly training files) and `data/ranking/` (`ranking.parquet`,
-`submitting.parquet`). Both are gitignored — this step is per-machine, not
-committed. Safe to re-run: it skips files already present.
+`submitting.parquet`). `final_ranking.parquet` and `final_submitting.parquet`
+land in `data/raw/`; move them to `data/ranking/`, where the pipeline expects
+them (see [REPRODUCE.md](REPRODUCE.md), step 1.1). Both folders are
+gitignored — this step is per-machine, not committed. Safe to re-run: it
+skips files already present.
 
 ## Reproducing our submission
 
-See [REPRODUCE.md](REPRODUCE.md). Its sections 0–8 rebuild v30
-(leaderboard RMSE 261.40) from the raw data, step by step. Section 9 maps
-the stages after v30 to the final submissions and gives the driver
-scripts:
-- **v76** on the live board (RMSE 234.2695);
-- `smart-jigsaw_final.parquet` on the four-month blind board.
-[PROGRESS.md](PROGRESS.md) is the full experiment log, and
-`reports/*_preregistration.md` holds the pre-registered tests behind every
-adopted change.
+[REPRODUCE.md](REPRODUCE.md) rebuilds our final files from the raw data,
+step by step. [DESIGN.md](DESIGN.md) describes the model, and
+[PROGRESS.md](PROGRESS.md) is the full experiment log. Every adopted change
+has a pre-registered test in `reports/*_preregistration.md`.
 
 ## Licence
 
@@ -109,11 +109,16 @@ own (below).
   [data/external/LICENSE](data/external/LICENSE).
 - **METAR** observations: NOAA/NWS (public domain), retrieved via the Iowa
   Environmental Mesonet, Iowa State University.
-- **EUROCONTROL Aviation Intelligence Unit** ATFM datasets: free to copy
-  with attribution, non-commercial use only. Fetched and tested but not
-  used by the final submission. See
+- **EUROCONTROL Aviation Intelligence Unit** daily all-causes pre-departure
+  delay (used by the final submission's day-level stages) and three ATFM
+  datasets (fetched and tested, not used): free to copy with attribution,
+  non-commercial use only; cleared by the organisers for this challenge. See
   [external-data/LICENSE](external-data/LICENSE).
+- **OPDI flight events** (EUROCONTROL PRC/PRU, Open Performance Data
+  Initiative, based on OpenSky Network data): airport ground events, used at
+  LSZH and EDDF. Free to use with attribution.
 
 Per-dataset URLs, access dates and fetch scripts are in
-[DATA_SOURCES.md](DATA_SOURCES.md). No OpenSky Network trajectory data is
-used.
+[DATA_SOURCES.md](DATA_SOURCES.md). We do not query OpenSky Network
+trajectory or state-vector data ourselves; the only OpenSky-derived inputs
+are the challenge data and the organisers' published OPDI events.

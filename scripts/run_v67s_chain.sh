@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Production chain (as run_v66_chain.sh) for PRC_LGB=$1; logs to logs/v67s/chain_$1_*.log; identity deltas in cache/v67s/id_$1 (used by run_v67s.sh)
+# Production chain (as scripts/run_v66_chain.sh) for PRC_LGB=$1; logs to logs/v67s/chain_$1_*.log; identity deltas in cache/v67s/id_$1 (used by scripts/run_v67s.sh)
 set -euo pipefail
 export PYTHONIOENCODING=utf-8 POLARS_UNKNOWN_EXTENSION_TYPE_BEHAVIOR=load_as_storage PRC_LGB=$1
 PY=.venv/Scripts/python.exe; S=data/submissions; L=logs/v67s; N=$1

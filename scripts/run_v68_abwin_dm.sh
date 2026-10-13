@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Gate of reports/ctx_abwin_dm_preregistration.md:  bash run_v68_abwin_dm.sh hy|l2
+# Gate of reports/ctx_abwin_dm_preregistration.md:  bash scripts/run_v68_abwin_dm.sh hy|l2
 #   hy: Huber gate passed -> members CTX_HUBER=1000 CTX_ABWIN_DM=1 (_rh2hud), hybrid ctxc1sel_rh2hdy vs control ctxc1sel_rh2hy
 #   l2: otherwise          -> members CTX_ABWIN_DM=1 (_rh2d), ctxc1sel_rh2d vs control ctxc1sel_rh2
 set -euo pipefail

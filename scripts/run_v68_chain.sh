@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Production chain (run_v65_chain.sh steps; logs in logs/v68, identity deltas in cache/v68/id_$1) for PRC_LGB=$1.
+# Production chain (scripts/run_v65_chain.sh steps; logs in logs/v68, identity deltas in cache/v68/id_$1) for PRC_LGB=$1.
 set -euo pipefail
 export PYTHONIOENCODING=utf-8 POLARS_UNKNOWN_EXTENSION_TYPE_BEHAVIOR=load_as_storage PRC_LGB=$1 PRC_SCOPE=jj
 PY=.venv/Scripts/python.exe; S=data/submissions; L=logs/v68; N=$1

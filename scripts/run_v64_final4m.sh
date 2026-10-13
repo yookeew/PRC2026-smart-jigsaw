@@ -5,7 +5,7 @@
 # src/post/day_alloc_build.py; blind_v5 = Jan/Jul from smart-jigsaw_v64, Feb/Jun from this build.
 # Holdout / OOF inputs of the new members are scope-independent and already exist (cache/eval, cache/oof).
 #
-# Run from the repo root:  bash run_v64_final4m.sh
+# Run from the repo root:  bash scripts/run_v64_final4m.sh
 set -euo pipefail
 export PRC_SCOPE=final4m PYTHONIOENCODING=utf-8 POLARS_UNKNOWN_EXTENSION_TYPE_BEHAVIOR=load_as_storage
 PY=.venv/Scripts/python.exe

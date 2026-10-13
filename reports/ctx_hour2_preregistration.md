@@ -61,7 +61,7 @@ As v64: production fits (`ctx_armc.py prod` for both members, then `sel`); produ
 (`cache/v65/run_chain.sh`) with identity-arm deltas; delta = (chain_rh2 + id deltas) − (chain_ctxc1sel_ro + id deltas)
 (`src/post/v64_delta.py`, the control chain that v64 was built against); p = v54 + delta (`FREEZE_LIRF=1
 v50_assemble.py`); then v63's recipe (`day_alloc_build.py`: OPDI deltas, G2 at 8 airports, LSZH / LIRF rows from v62).
-**v65. Keep iff board < 237.4538.** Blind board: the same on the four-month chain (`run_v65_final4m.sh`) once the
+**v65. Keep iff board < 237.4538.** Blind board: the same on the four-month chain (`scripts/run_v65_final4m.sh`) once the
 four-month files are on this machine (or run on the other machine).
 
 ## Outcome (2026-10-11; `logs/v65/ctx_hour2_gate_early.log`, `logs/v65/ctx_hour2_drift_early.log`)

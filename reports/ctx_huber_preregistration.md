@@ -53,7 +53,7 @@ rows, EHAM storm rows), and Huber is worse there, so the hybrid keeps L2 for the
 ## Build if it passes both
 
 Production members (`ctx_armc.py prod`, tag `_rh2hu`), `sel`, hybrid with the existing production `ctxc1sel_rh2`;
-production chain (`run_v66_chain.sh` steps) for `ctxc1sel_rh2hy`; full build B(rh2hy) as B(rh2) was built for v67
+production chain (`scripts/run_v66_chain.sh` steps) for `ctxc1sel_rh2hy`; full build B(rh2hy) as B(rh2) was built for v67
 (`v64_delta.py`, `FREEZE_LIRF=1 v50_assemble.py`, `day_alloc_build.py`, LSZH / LIRF rows from v65).
 **v68 = v66 + (B(rh2hy) − B(rh2))**, LOBT window, clip at 0, round; LIRF and LSZH rows unchanged. B(rh2) is
 `cache/v66/B_rh2.parquet` (built for v67, same machine). **Keep iff board < v66's score (236.8…).**

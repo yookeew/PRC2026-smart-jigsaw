@@ -83,7 +83,7 @@ The two worst rows:
 Both are missing not just `AOBT_3_flt` but the *entire* NM flight match
 (`AIRCRAFT_OPERATOR_flt` is null) — these aren't "AOBT_3 individually
 missing," they're movements with no NM flight-list counterpart at all,
-exactly the "movement/flight reconciliation limitations" CLAUDE.md's Note 2
+exactly the "movement/flight reconciliation limitations" the challenge description's Note 2
 warns about. `sched_takeoff_offset` (small, 29-34 min) is unremarkable —
 nothing about the takeoff timing signals anything unusual; the anomaly is
 entirely in the actual off-block time, which is 15-23 hours *before*

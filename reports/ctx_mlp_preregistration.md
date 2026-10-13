@@ -43,7 +43,7 @@ The MLP alone is worse than the trees (body +2.2 to +3.7); error correlation wit
 ## Build if it passes
 
 Production members: tree (`ctx_armc.py prod`, r and rb, tag `_rh2`, then `sel`), MLP (`CTX_MLP=1 ... prod`), blend.
-Production chain (`run_v65_chain.sh` steps) for the picked treatment and for `ctxc1sel_rh2`; full builds B(·) = v63's day
+Production chain (`scripts/run_v65_chain.sh` steps) for the picked treatment and for `ctxc1sel_rh2`; full builds B(·) = v63's day
 recipe on v54 + delta (`v64_delta.py`, `FREEZE_LIRF=1 v50_assemble.py`, `day_alloc_build.py`; LSZH / LIRF rows from
 v65, which equal v62's). **v67 = v66 + (B(treatment) − B(ctxc1sel_rh2))**, then clip at 0 and round; LIRF and LSZH rows
 unchanged. Keep iff board < v66's score (236.8…).

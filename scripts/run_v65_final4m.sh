@@ -3,10 +3,10 @@
 # Same delta method as the live board: delta = (chain on ctxc1sel_rh2 + identity deltas) - (chain on ctxc1sel_ro + identity
 # deltas); p = f4m_e + delta (LIRF and NM-line rows frozen); then v63's recipe (OPDI deltas + G2) via
 # src/post/day_alloc_build.py; blind_v6 = Jan/Jul from smart-jigsaw_v65, Feb/Jun from this build.
-# Reuses run_v64_final4m.sh's control chain (ctxc1sel_ro) and identity deltas when they exist (it runs them otherwise).
+# Reuses scripts/run_v64_final4m.sh's control chain (ctxc1sel_ro) and identity deltas when they exist (it runs them otherwise).
 # Holdout / OOF inputs of the new members are scope-independent and already exist (cache/eval, cache/oof).
 #
-# Run from the repo root:  bash run_v65_final4m.sh
+# Run from the repo root:  bash scripts/run_v65_final4m.sh
 set -euo pipefail
 export PRC_SCOPE=final4m PYTHONIOENCODING=utf-8 POLARS_UNKNOWN_EXTENSION_TYPE_BEHAVIOR=load_as_storage
 PY=.venv/Scripts/python.exe

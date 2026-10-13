@@ -10,7 +10,7 @@
 #              cache/eval/final4m/cat_mixed_f4m_rank.parquet
 # Output: data/submissions/final4m/f4m_full.parquet (all four months), then src/post/final4m_compose.py builds the upload.
 #
-# Run from the repo root:  bash run_final4m.sh
+# Run from the repo root:  bash scripts/run_final4m.sh
 set -euo pipefail
 export PRC_SCOPE=final4m PYTHONIOENCODING=utf-8 POLARS_UNKNOWN_EXTENSION_TYPE_BEHAVIOR=load_as_storage
 PY=.venv/Scripts/python.exe

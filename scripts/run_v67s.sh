@@ -2,7 +2,7 @@
 # v67 candidate (reports/ctx_seedavg_rf_preregistration.md): v66's two corrector members refitted with LightGBM seeds 43, 44,
 # averaged 1:2 with v66's own seed-42 fits -> ctxc1sel_rf3; gate vs v66's ctxc1sel_rf; if PASS, production chain, delta vs
 # chain_ctxc1sel_ro, assembly on v54, v63's day recipe -> smart-jigsaw_v67. Nothing is built if the gate fails.
-# Run from the repo root:  bash run_v67s.sh
+# Run from the repo root:  bash scripts/run_v67s.sh
 set -euo pipefail
 export PYTHONIOENCODING=utf-8 POLARS_UNKNOWN_EXTENSION_TYPE_BEHAVIOR=load_as_storage
 PY=.venv/Scripts/python.exe; L=logs/v67s; S=data/submissions; C=cache/v67s
@@ -32,7 +32,7 @@ step "7. gate"
 CTL=rf CTL_DIR=cache/v66 TAG=rf3 GATE_DIR=$C BOARD=236.8136 $PY -u tests/ctx_hour_gate.py > $L/ctx_seedavg_gate.log 2>&1
 cat $L/ctx_seedavg_gate.log
 if ! grep -q "DECISION: PASS" $L/ctx_seedavg_gate.log; then step "gate FAIL: nothing built"; exit 0; fi
-step "8. production chain"; bash run_v67s_chain.sh ctxc1sel_rf3
+step "8. production chain"; bash scripts/run_v67s_chain.sh ctxc1sel_rf3
 step "9. delta, assembly, day recipe"
 $PY -u src/post/v64_delta.py $C/delta_rf3.parquet ctxc1sel_rf3 $C > $L/delta.log 2>&1
 FREEZE_LIRF=1 $PY -u src/post/v50_assemble.py $S/smart-jigsaw_v54.parquet $C/p67.parquet $C/delta_rf3.parquet > $L/assemble.log 2>&1

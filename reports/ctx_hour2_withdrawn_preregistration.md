@@ -46,7 +46,7 @@ As v64 (§135): production fits of both members and `sel` here; production chain
 ctxc1sel_rohb (the control chain must reproduce the other machine's `chain_ctxc1sel_rohb_final`); identity-arm deltas on
 both; delta = (new + id) − (control + id), set to 0 at LIRF, LSZH, EGLL and NM-line rows; p = v64's pre-day-stage file +
 delta; then v63's recipe (`src/post/day_alloc_build.py`). **v65. Keep iff board < 237.4538.**
-Blind board: the same on the four-month chain (`run_v64_final4m.sh` pattern), Feb/Jun from it, Jan/Jul = v65.
+Blind board: the same on the four-month chain (`scripts/run_v64_final4m.sh` pattern), Feb/Jun from it, Jan/Jul = v65.
 
 ## Outcome (2026-10-11): WITHDRAWN before the gate; nothing fitted to completion, nothing built
 
