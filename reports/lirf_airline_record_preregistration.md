@@ -108,3 +108,26 @@ disabled for that row only, or simply set that one row on top of v72; nothing el
 
 - **Board: v72 = 234.5516 (−0.941 vs v71 = 235.493). Kept; new best.** Inside the projected range (central −0.64, 5–95% −1.06 … +0.19).
 - ITY8015 stays scheduled for the next upload (2026-10-13): v73 = v72 + that row; keep iff board < 234.5516.
+- **Board (2026-10-13): v73 = v72 + ITY8015 = 235.2757 (+0.724). Rejected by its keep rule (< 234.5516); v72 stays.** The 4 h support
+  rule that left ITY8015 out of v72 was fixed before any board result and is unchanged; nothing is refit from this score (§82).
+
+## v74 (written 2026-10-13, before upload)
+
+Base: v72 (234.5516). Script: `ALR_V74=1 src/post/lirf_airline_record.py smart-jigsaw_v72.parquet smart-jigsaw_v74.parquet`.
+Analysis in PROGRESS.md §160. ITY8015 is frozen at its v72 value.
+
+| rule | rows | 2025 evidence |
+|---|---|---|
+| E: record n ≥ 8, ≤ 0.2 / ≥ 0.8 (null flight excluded; guard skips UAL, KMM) | 24 (AEZ 8 up) | LOMO −394e6, 12/12 months; holdout Jul −138e6; past-only gap ≥ 4 −110e6 |
+| R: L3 cap, months 6–10, q2 ≥ 0.3, rows not moved by v72 / E | 41 | June–October each better; July ratio −1.8 (LOMO) / −3.0 (holdout) |
+| D: departures 0–60 min early → 600 s | 5 | 11 of 13 labels 591–612 s (others 351, 1,131) |
+
+- **Disclosed choices made after seeing 2025 results:** the 0.2 / 0.8 and n ≥ 8 thresholds; the months 6–10 window; excluding null
+  flight numbers; the −60 min lower edge of D (outside it, three 2025 rows ≥ 6 h early sit at 1,200–1,700 s).
+- **Stop rules:** 70 rows exactly; only LIRF NM-unmatched rows; values within [600, max(offc, 600)]; the frozen row is unchanged.
+- **Build:** md5 5b18d6a07ce0c4c9ec708bf984a67864; 70 rows; Σd² 4.62e7.
+- **Projection:** −0.34 … −0.41 s if the records persist; −0.20 … −0.27 midway; −0.06 … −0.13 if the records carry nothing.
+- **Upload rule: keep iff board < 234.5516.**
+- **Board (2026-10-13): v74 = 234.6769 (+0.125 vs 234.5516). Rejected; v72 stays.** Outside the projected range (best case
+  −0.41, worst projected −0.06). Nothing is attributed to the three parts and no part is re-uploaded (§82). The blind file does not
+  use `ALR_V74`.

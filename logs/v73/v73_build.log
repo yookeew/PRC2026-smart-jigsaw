@@ -1,0 +1,18 @@
+C:\Users\yuqiw\AppData\Local\Temp\claude\c--Users-yuqiw-prc2025\58a29bb3-61f0-439e-aa7d-42556e0f1ffc\scratchpad\l3\build_v73.py:5: UserWarning: Extension type 'arrow.r.vctrs' is not registered; loading as its storage type.
+
+To avoid this warning, register the extension type or set environment variable 'POLARS_UNKNOWN_EXTENSION_TYPE_BEHAVIOR' to 'load_as_storage' or 'load_as_extension'.
+
+In Polars 2.0, the default behavior will change to 'load_as_extension'.
+  rk = pl.read_parquet('data/ranking/ranking.parquet').filter(pl.col('MVT_ID_mvt').cast(pl.Int64) == ID)
+shape: (1, 7)
+┌────────────┬──────────┬──────────┬───────────┬─────────────────┬─────────────────┬───────────────┐
+│ FLIGHT_mvt ┆ ADEP_mvt ┆ ADES_mvt ┆ PHASE_mvt ┆ SCHED_TIME_UTC_ ┆ MVT_TIME_UTC_mv ┆ FLIGHT_ID_mvt │
+│ ---        ┆ ---      ┆ ---      ┆ ---       ┆ mvt             ┆ t               ┆ ---           │
+│ str        ┆ str      ┆ str      ┆ str       ┆ ---             ┆ ---             ┆ f64           │
+│            ┆          ┆          ┆           ┆ datetime[μs,    ┆ datetime[μs,    ┆               │
+│            ┆          ┆          ┆           ┆ UTC]            ┆ UTC]            ┆               │
+╞════════════╪══════════╪══════════╪═══════════╪═════════════════╪═════════════════╪═══════════════╡
+│ ITY8015    ┆ LIRF     ┆ LIRN     ┆ DEP       ┆ 2026-07-24      ┆ 2026-07-24      ┆ null          │
+│            ┆          ┆          ┆           ┆ 15:40:00 UTC    ┆ 20:48:58 UTC    ┆               │
+└────────────┴──────────┴──────────┴───────────┴─────────────────┴─────────────────┴───────────────┘
+rows changed vs v72: 1 | ITY8015 16231 -> 7463 | md5 8c8b99e727c2539d131cd694d5d74761

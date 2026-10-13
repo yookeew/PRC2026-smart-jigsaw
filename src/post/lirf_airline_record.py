@@ -18,6 +18,19 @@ Rows change only if
     moved from its rate in the same 2025 months by more than 0.15 and more than 3 standard errors (>= 20 such arrivals in 2026).
     On the live board KMM fails (0.79 -> 0.33).
 
+V74 mode (ALR_V74=1, PROGRESS.md §160; run on v72's output, so the v72 rows above no longer equal the chain and stay as they are):
+  E   the same rule with n >= 8 and record <= 0.2 / >= 0.8 (null flight numbers are not an airline);
+  R   v48-scope rows not moved by E or v72, months 6-10, q2 >= 0.3: L3's capped non-echo branch (lowers only), floor 600
+      (q2 offc + (1 - q2) min(max(0.25 P_ne + 0.75 C_LATE, 0), ub); 2025 June-October better in every month);
+  D   NM-unmatched departures 0-60 min before schedule: 600 s (2025: 11 of 13 labels 591-612 s, the others 351 and 1,131);
+  ITY8015 (MVT_ID 213150756) is frozen at its v72 value (§159).
+  Board: v74 = 234.6769, REJECTED (§160). V74 mode stays off.
+
+L2-loose mode (ALR_L2LOOSE=1, PROGRESS.md §161; run on v72's output): v71's shifted-block hedge (L2, lirf_hedge_repair.py) for every
+well-formed row, not only airlines with >= 2 shifted 2025 rows. NM-unmatched, 0 < T - S < 1 h, no twin, flight number well formed
+with ADES != LIRF (ADES = LIRF is a key failure, §158; L2 counted those rows as well formed, which put its pooled shift rate at 0.67
+instead of 0.93). Value: psh (tzo + M_SH) + (1 - psh) (PE_TM off + (1 - PE_TM) M_N), psh = (s + 2 P0T) / (n + 2), constants from 2025.
+
 Run:  .venv/Scripts/python.exe -u src/post/lirf_airline_record.py IN.parquet OUT.parquet [P0.parquet]
       P0 default: data/submissions/smart-jigsaw_v42.parquet (live board) / data/submissions/final4m/f4m_a.parquet (final4m)
       PRC_SCOPE=final4m ... (four-month template; src/scope.py)
@@ -37,11 +50,20 @@ import scope  # noqa: E402
 import post.lirf_signals as L  # noqa: E402
 from post.lirf_hedge2 import add_rate, airline_late, design2, fit2, frame25, rate_table, treat, with_loo_rate  # noqa: E402
 from post.lirf_twin_bounds import WIN, bounds, twin_frame  # noqa: E402
-from post.lirf_hedge_repair import twins_norm  # noqa: E402
+from post.lirf_hedge_repair import K_PRIOR, S_MIN, TZO, twins_norm  # noqa: E402
 
 N_MIN, R_LO, N_COMBO, F_FLOOR, Z_ARR, D_ARR, N_ARR = 12, 0.1, 5, 600.0, 3.0, 0.15, 20
 OFF_SUPPORT, Q2_AGREE = 4 * 3600, 0.2               # 2025 low-echo records end below 4 h late; beyond, act only if q2 <= 0.2 agrees
 EXPECT_LIVE = 54                                    # rows changed on the live board (scratch analysis, §158)
+V74 = os.environ.get("ALR_V74", "0") == "1"
+if V74:
+    N_MIN, R_LO = 8, 0.2
+EXPECT_V74 = 70                                     # rows changed on the live board in V74 mode (dry run, §160: E 24, R 41, D 5)
+R_MONTHS, R_Q2, A_PNE, C_LATE = (6, 7, 8, 9, 10), 0.3, 0.25, 1097.0
+D_LO = -3600.0
+FROZEN = {213150756}                                # ITY8015 (§159)
+L2LOOSE = os.environ.get("ALR_L2LOOSE", "0") == "1"
+EXPECT_L2LOOSE = 3                                  # rows changed on the live board in L2-loose mode (§161)
 FL = pl.col("FLIGHT_mvt")
 FMT = (pl.when(FL.is_null() | (pl.col("ADES_mvt") == "LIRF")).then(pl.lit("key"))
        .when((FL.str.slice(1, 2) == FL.str.slice(3, 2)) | (FL.str.slice(2, 1) == FL.str.slice(3, 1))).then(pl.lit("key"))
@@ -51,6 +73,28 @@ FMT = (pl.when(FL.is_null() | (pl.col("ADES_mvt") == "LIRF")).then(pl.lit("key")
 def lg(p):
     p = np.clip(p, 1e-3, 1 - 1e-3)
     return np.log(p / (1 - p))
+
+
+def l2_2025() -> dict:
+    """2025 LIRF NM-unmatched non-twin departures 0 < off < 1 h: L2's label classes and constants, ADES = LIRF counted as a key failure."""
+    src = str(L.RAW / "training_*.parquet")
+    twn = set(twins_norm(src)["MVT_ID_mvt"].to_list())
+    y, off = pl.col("y"), pl.col("off")
+    z = (pl.scan_parquet(src).filter((pl.col("PHASE_mvt") == "DEP") & (pl.col("ADEP_mvt") == "LIRF") & pl.col("FLIGHT_ID_mvt").is_null())
+         .select(L.I64, "FLIGHT_mvt", "ADES_mvt", off=(pl.col("MVT_TIME_UTC_mvt") - pl.col("SCHED_TIME_UTC_mvt")).dt.total_seconds().cast(pl.Float64),
+                 y=pl.col("TAXITIME_SEC_mvt").cast(pl.Float64)).collect()
+         .filter((off > 0) & (off < 3600) & ~pl.col("MVT_ID_mvt").is_in(list(twn)))
+         .with_columns(fmt=FMT, al=FL.str.slice(0, 3))
+         .with_columns(cls=pl.when((y - off).abs() < 60).then(pl.lit("echo"))
+                       .when((y - 3600).is_between(240, 2700) | (y - 7200).is_between(240, 2700)).then(pl.lit("sh"))
+                       .when(y <= 2700).then(pl.lit("normal")).otherwise(pl.lit("other"))))
+    tim = z.filter((pl.col("fmt") == "time") & (pl.col("cls") != "other"))
+    sh = z.filter(pl.col("cls") == "sh")
+    return dict(P0T=float((tim["cls"] == "sh").mean()), PE_TM=float((tim.filter(pl.col("cls") != "sh")["cls"] == "echo").mean()),
+                M_N=float(z.filter(pl.col("cls") == "normal")["y"].mean()),
+                M_SH=float(np.median((sh["y"] - np.where(sh["y"] > 6000, 7200, 3600)).to_numpy())),
+                rec=tim.group_by("al").agg(n=pl.len(), s=(pl.col("cls") == "sh").sum()),
+                table=z.group_by("fmt", "cls").len().sort("fmt", "cls"))
 
 
 def record_2025() -> dict:
@@ -97,7 +141,7 @@ def main(in_f, out_f, p0_f) -> None:
           f"logit(record) {clf.coef_[0][1]:.3f}, intercept {clf.intercept_[0]:.3f}; late-branch labels {len(late)} (mean {late.mean():.0f})")
     assert 0.6 <= clf.coef_[0][0] <= 1.2 and 0.5 <= clf.coef_[0][1] <= 1.0 and 1000 <= late.mean() <= 1300
     rec = st["rec"].with_columns(r=(pl.col("e") + 1) / (pl.col("n") + 2))
-    dec = rec.filter((pl.col("n") >= N_MIN) & ((pl.col("r") <= R_LO) | (pl.col("r") >= 1 - R_LO)))
+    dec = rec.filter(pl.col("al").is_not_null() & (pl.col("n") >= N_MIN) & ((pl.col("r") <= R_LO) | (pl.col("r") >= 1 - R_LO)))
     # persistence guard on the arrival echo
     months = sorted(pl.scan_parquet(rk).select(pl.col("MVT_TIME_UTC_mvt").dt.month().unique()).collect().to_series().to_list())
     arr = (arrival_echo(str(L.RAW / "training_*.parquet"), months).rename({"na": "na25", "ea": "ea25"})
@@ -121,7 +165,7 @@ def main(in_f, out_f, p0_f) -> None:
     inp = sub.select(L.I64, v=pl.col("TAXITIME_SEC_mvt").cast(pl.Float64))
     P0 = pl.read_parquet(p0_f).select(L.I64, P0=pl.col("TAXITIME_SEC_mvt").cast(pl.Float64))
     a = (pl.read_parquet(rk).filter((pl.col("PHASE_mvt") == "DEP") & (pl.col("ADEP_mvt") == "LIRF") & pl.col("FLIGHT_ID_mvt").is_null())
-         .select(L.I64, "FLIGHT_mvt", "ADES_mvt", mo=pl.col("MVT_TIME_UTC_mvt").dt.month(),
+         .select(L.I64, "FLIGHT_mvt", "ADES_mvt", mo=pl.col("MVT_TIME_UTC_mvt").dt.month(), tzo=TZO,
                  off=(pl.col("MVT_TIME_UTC_mvt") - pl.col("SCHED_TIME_UTC_mvt")).dt.total_seconds().cast(pl.Float64))
          .with_columns(fmt=FMT, al=FL.str.slice(0, 3)).join(inp, on="MVT_ID_mvt").join(P0, on="MVT_ID_mvt"))
     d = (L.frame(rk).join(L.p_2026(), on="MVT_ID_mvt", how="left").join(airline_late(rk).select("MVT_ID_mvt", "al"), on="MVT_ID_mvt", how="left")
@@ -131,10 +175,14 @@ def main(in_f, out_f, p0_f) -> None:
     d = d.with_columns(twin_ex=pl.col("MVT_ID_mvt").is_in(tw_ex["MVT_ID_mvt"].to_list()))
     v45, _, _ = L.apply(d, d["P0"].to_numpy(), clf45)
     v48, k48 = treat(d, v45, clf45, clf2, d["twin_ex"].to_numpy())
-    q2 = np.full(d.height, np.nan)
+    q2 = np.full(d.height, np.nan); q45 = np.full(d.height, np.nan)
     if k48.any():
-        q2[k48] = clf2.predict_proba(design2(d.filter(pl.Series(k48))))[:, 1]
-    rep = d.select("MVT_ID_mvt").with_columns(v45=pl.Series(v45), v48=pl.Series(v48), k48=pl.Series(k48), q2=pl.Series(q2))
+        zk = d.filter(pl.Series(k48))
+        q2[k48] = clf2.predict_proba(design2(zk))[:, 1]
+        q45[k48] = clf45.predict_proba(L.design(zk))[:, 1]
+    with np.errstate(divide="ignore", invalid="ignore"):
+        pne = (v45 - q45 * np.clip(d["off"].to_numpy(), 0, L.WIDE)) / (1 - q45)
+    rep = d.select("MVT_ID_mvt").with_columns(v45=pl.Series(v45), v48=pl.Series(v48), k48=pl.Series(k48), q2=pl.Series(q2), pne=pl.Series(pne))
     a = a.join(rep, on="MVT_ID_mvt", how="left").with_columns(pl.col("k48").fill_null(False), v45=pl.coalesce("v45", "P0"))
     tw_ex = tw_ex.join(a.select("MVT_ID_mvt", "v45"), on="MVT_ID_mvt", how="left")
     q47 = bounds(tw_ex["v45"].to_numpy(), tw_ex["p"].to_numpy(), tw_ex["off"].to_numpy(), tw_ex["tl"].to_numpy())
@@ -154,25 +202,54 @@ def main(in_f, out_f, p0_f) -> None:
     off = a["off"].to_numpy(); offc = np.clip(off, 0, L.WIDE); ub = np.maximum(off - WIN, 0)
     with np.errstate(invalid="ignore"):
         lo_ok = np.isin(al, lo_al) & (fmt == "time") & ((off < OFF_SUPPORT) | (q2a <= Q2_AGREE))
-    act = scope48 & guard & (lo_ok | np.isin(al, hi_al))
+    frozen = a["MVT_ID_mvt"].is_in(list(FROZEN)).to_numpy()
+    act = scope48 & guard & (lo_ok | np.isin(al, hi_al)) & ~frozen
     pi = np.full(a.height, np.nan)
-    pi[act] = clf.predict_proba(np.column_stack([lg(q2a[act]), lg((e_[act] + 1) / (n_[act] + 2))]))[:, 1]
+    if act.any():
+        pi[act] = clf.predict_proba(np.column_stack([lg(q2a[act]), lg((e_[act] + 1) / (n_[act] + 2))]))[:, 1]
     m_ub = np.array([late[late <= u].mean() if (late <= u).sum() >= 20 else late[:20].mean() for u in ub])
     new = np.where(act, np.maximum(pi * offc + (1 - pi) * m_ub, F_FLOOR), v)
+    tag = np.where(act, "E" if V74 else "ALR", "")
+    if V74:
+        pne_a, mo = a["pne"].to_numpy(), a["mo"].to_numpy()
+        with np.errstate(invalid="ignore"):
+            cap = q2a * offc + (1 - q2a) * np.minimum(np.maximum(A_PNE * pne_a + (1 - A_PNE) * C_LATE, 0), ub)
+            r_ok = scope48 & guard & ~act & ~frozen & np.isin(mo, R_MONTHS) & (q2a >= R_Q2) & (np.nan_to_num(cap, nan=1e12) < v - 0.5)
+        new = np.where(r_ok, np.maximum(cap, F_FLOOR), new); tag = np.where(r_ok, "R", tag)
+        d_ok = (off >= D_LO) & (off < 0) & ~frozen & (np.abs(v - F_FLOOR) > 0.5)
+        new = np.where(d_ok, F_FLOOR, new); tag = np.where(d_ok, "D", tag)
+        act = act | r_ok | d_ok
+    if L2LOOSE:
+        st2 = l2_2025()
+        print(f"L2-loose 2025 constants: P0T {st2['P0T']:.3f}, PE_TM {st2['PE_TM']:.3f}, M_N {st2['M_N']:.0f}, M_SH {st2['M_SH']:.0f}")
+        print(st2["table"].pivot(on="cls", index="fmt", values="len").fill_null(0))
+        assert 0.85 <= st2["P0T"] <= 0.98 and 700 <= st2["M_SH"] <= 1000 and 800 <= st2["M_N"] <= 1100
+        r2 = a.select("al").join(st2["rec"], on="al", how="left").with_columns(pl.col("n", "s").fill_null(0))
+        n2, s2 = r2["n"].to_numpy(), r2["s"].to_numpy()
+        psh = (s2 + K_PRIOR * st2["P0T"]) / (n2 + K_PRIOR)
+        hsh = psh * (a["tzo"].to_numpy() + st2["M_SH"]) + (1 - psh) * (st2["PE_TM"] * off + (1 - st2["PE_TM"]) * st2["M_N"])
+        l_ok = (off > 0) & (off < 3600) & ~istw & (fmt == "time") & (s2 < S_MIN) & (np.abs(v - chain) <= 1.0) & ~frozen & ~act
+        new = np.where(l_ok, hsh, new); tag = np.where(l_ok, "L2loose", tag)
+        act = act | l_ok
     res = (a.select("MVT_ID_mvt", "FLIGHT_mvt", "mo", "off", "fmt").with_columns(q2=pl.Series(q2a), pi=pl.Series(pi), v=pl.Series(v), new=pl.Series(np.round(new)),
-                                                                                 act=pl.Series(act))
+                                                                                 act=pl.Series(act), tag=pl.Series(tag))
            .with_columns(d=pl.col("new") - pl.col("v")))
     ch = res.filter(pl.col("act") & (pl.col("d").abs() > 0.5))
     pl.Config.set_tbl_rows(80)
-    print(ch.sort("d").select("FLIGHT_mvt", "mo", "fmt", "off", "q2", "pi", "v", "new", "d"))
+    print(ch.sort("tag", "d").select("tag", "FLIGHT_mvt", "mo", "fmt", "off", "q2", "pi", "v", "new", "d"))
+    print(ch.group_by("tag").agg(rows=pl.len(), energy=(pl.col("d") ** 2).sum()).sort("tag"))
     # stop rules
     energy = float((ch["d"] ** 2).sum())
     print(f"rows active {int(act.sum())}, changed {ch.height} (Jan {ch.filter(pl.col('mo') == 1).height}, Jul {ch.filter(pl.col('mo') == 7).height}, "
           f"other months {ch.filter(~pl.col('mo').is_in([1, 7])).height}); sum d^2 {energy:.3g}; RMS over the file {np.sqrt(energy / tpl.height):.2f} s")
     nv, ov = ch["new"].to_numpy(), ch["off"].to_numpy()
-    assert np.all(nv >= F_FLOOR) and np.all(nv <= np.maximum(np.clip(ov, 0, L.WIDE), F_FLOOR) + 1), "stop rule: value outside [600, offc]"
+    shf = (ch["tag"] == "L2loose").to_numpy()
+    assert np.all(nv >= F_FLOOR) and np.all((nv <= np.maximum(np.clip(ov, 0, L.WIDE), F_FLOOR) + 1) | shf), "stop rule: value outside [600, offc]"
+    assert np.all(nv[shf] <= 7200 + 2700), "stop rule: shifted-mode value above tzo + 2,700"
+    assert not ch["MVT_ID_mvt"].is_in(list(FROZEN)).any(), "stop rule: a frozen row changed"
     if not scope.FINAL:
-        assert ch.height == EXPECT_LIVE, f"stop rule: rows changed {ch.height} != {EXPECT_LIVE}"
+        exp = EXPECT_V74 if V74 else (EXPECT_L2LOOSE if L2LOOSE else EXPECT_LIVE)
+        assert exp is None or ch.height == exp, f"stop rule: rows changed {ch.height} != {exp}"
         assert energy <= 2.0e8, f"stop rule: sum d^2 {energy:.3g}"
     upd = ch.select(pl.col("MVT_ID_mvt").alias("_id"), "new")
     o = (sub.with_columns(_id=L.I64).join(upd, on="_id", how="left")
