@@ -112,7 +112,7 @@ training DEP rows: 2,085,047
 
 Note: AOBT_3_flt is the actual off-block time from the flown trajectory.
 If it is present for ranking DEP rows AND tracks BLOCK_TIME_UTC_mvt within minutes,
-the target is directly recoverable — build it as a toggleable feature block (per CLAUDE.md).
+the target is directly recoverable — build it as a toggleable feature block (per our original plan).
 
 ## 4b. Leak strength — naive taxi = MVT_TIME_UTC_mvt - AOBT_3_flt (training)
 
@@ -169,7 +169,7 @@ shape: (10, 2)
 │ LSZH     ┆ 9995  │
 └──────────┴───────┘
 
-Note: CLAUDE.md lists 11 airports but LTAI (Antalya) has NO departures in
+Note: the challenge description lists 11 airports but LTAI (Antalya) has NO departures in
 training or ranking — arrivals only. The DEP prediction target covers 10 airports.
 
 ## 7. Submission template alignment
