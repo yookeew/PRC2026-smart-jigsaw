@@ -7330,3 +7330,123 @@ which held 43% of the change energy. ITY8015 on its own: π 0.21–0.50 vs break
   Day total: v68 236.6730 → v72 234.5516 (−2.12). Per the no-probing rule, nothing about individual rows is read from the score.
 - **Tomorrow (2026-10-13): v73 = v72 + ITY8015** (MVT_ID 213150756, 16,231 → 7,463), as decided; keep iff board < 234.5516.
   The blind file gets the ALR step too (`PRC_SCOPE=final4m src/post/lirf_airline_record.py`, after the v71 stage). Next free version: **v73**.
+
+## 159. v73 = v72 + ITY8015 -- built, board pending (2026-10-13)
+
+As decided in §158. `logs/v73/v73_build.log` (scratch builder `l3/build_v73.py` in the session scratchpad).
+- One row changed vs v72: ITY8015 (MVT_ID 213150756; LIRF → LIRN, 2026-07-24, off 18,538 s, NM-unmatched) 16,231 → **7,463**, the
+  airline-record lever's own value (π 0.365; §158 had held it back by the 4 h support rule). v72's value was checked to be 16,231.
+- `data/submissions/smart-jigsaw_v73.parquet`, md5 **8c8b99e727c2539d131cd694d5d74761**: 344,841 rows, template ID order, same schema,
+  no nulls.
+- Expected ≈ −0.5 s (π 0.21–0.50 against break-even 0.62); a single-row outcome, about +0.6 s if it is an echo, about −1.1 s if not.
+- **Keep iff board < 234.5516.** Next free version: **v74**.
+- **Board (2026-10-13): v73 = 235.2757 (+0.724 vs v72 = 234.5516). Rejected; v72 stays best.**
+- **Why ITY8015 is not in the final files:**
+  - **The rule decided it.** The keep rule written before the upload (keep iff < 234.5516) failed. Nothing else was used.
+  - **The method is unchanged.** v72's rule already excluded ITY8015 by a criterion fixed before any board result: beyond 4 h of
+    delay the 2025 record has no low-echo rows, and q2 disagreed. That rule stands as built.
+  - **No-probing (§82).** No parameter is refit from this score: not π, not the combination, not the 4 h support rule.
+- **No more single-row uploads.** Because v73 differs from v72 on one row only, its score is in effect information about that one
+  label. We keep it only as a keep/reject verdict. From here on we do not upload one-row changes; a change must rest on a rule
+  validated on 2025 that moves many rows.
+- **Blind file:** built with v72's rule (support rule on), so ITY8015 stays at its chain value there; Jan/Jul come from the live v72.
+  Next free version: **v74**.
+
+## 160. v74 = v72 + three small LIRF NM-unmatched rules (record extension, July-only L3, early departures) -- built, board pending (2026-10-13)
+
+Pre-registration: `reports/lirf_airline_record_preregistration.md` (section "v74"), written before any v74 upload. Code:
+`src/post/lirf_airline_record.py` with `ALR_V74=1` (default mode unchanged: rebuilding v72 from v71 gives an identical file).
+Scratch screens in the session scratchpad (`g5/x1`–`x11`).
+
+**Screened and dropped this round:**
+- Looser record thresholds that reach mixed airlines (RYR 0.36, WMT 0.48, WZZ 0.72): 2025 LOMO mixed (WMT +46e6, WZZ +102e6),
+  past-only gap ≥ 4 months +140e6. Most of their 2026 "gain" comes from the m(ub) branch, which is L3's failed upward direction.
+- Twin rows: every 2025 and 2026 twin row is already T1 or forced (T2); there is no echo-possible twin class left.
+- Arrival signals (inbound echo, airline-day and airport-day arrival echo share): already in the stack (§63–§67); the airport-day
+  share improves the record logistic's LOMO log-loss only 0.3488 → 0.3451.
+- Found during the check: at a 0.8 threshold the null flight number (21/25 echo) would count as an "airline". It is excluded.
+
+**v74 rules** (applied to v72; rows that v72 moved fail the chain guard and stay as they are; ITY8015 frozen, §159):
+- **E: airline record, n ≥ 8 and record ≤ 0.2 / ≥ 0.8** (same π, value and guards as v72).
+  - 2025, rows added over v72: LOMO −394e6 (12/12 months); holdout Jan −0.7e6, Jul −138e6; past-only gap ≥ 1 −284e6, ≥ 4 −110e6.
+  - Persistence guard skips UAL (arrival echo 0.16 → 0.37) and KMM.
+  - 24 live rows. AEZ (Aeroitalia, 37/44 echo; H1 22/25, H2 15/19; arrival echo 0.14 → 0.15) carries 29e6 of the 33e6 energy
+    (8 rows up). EJU / TVF / TAP / EIN / AAL / DLH rows move down.
+- **R: L3 restricted to months 6–10, q2 ≥ 0.3, rows not moved by v72 or E.** In 2025 June–October each month is better (LOMO July
+  ratio −1.8, holdout July −3.0); the winter months that sank full L3 are excluded. 41 live rows (all July), energy 9.9e6, lowers only.
+- **D: NM-unmatched departures 0–60 min before schedule → 600 s.** 2025: 11 of 13 labels are 591–612 s (the others 351, 1,131). 5 live rows
+  (v72 412–1,941).
+
+**Build:**
+- `smart-jigsaw_v74.parquet`, md5 **5b18d6a07ce0c4c9ec708bf984a67864**: 70 rows changed vs v72 (Jan 7, Jul 63; E 24, R 41, D 5),
+  Σd² 4.62e7. Identical to the dry run; stop rules pass (`logs/v74/v74_build.log`).
+
+**Projection:**
+
+| E rows' truth | total |
+|---|---|
+| AEZ / record persists (π) | −0.34 … −0.41 s |
+| midway | −0.20 … −0.27 s |
+| record carries nothing (q2) | −0.06 … −0.13 s |
+
+- Components: E −0.21 (sd 0.20) / −0.07 / +0.07; R −0.11 … −0.18 (2025 ratios); D −0.02.
+- **Keep iff board < 234.5516.**
+
+**Blind:** the same mode with `PRC_SCOPE=final4m` after the v72 ALR stage. Dry run on the ALR blind dry run: 35 Feb/Jun rows change
+(E 18 incl. Jan/Jul, R 13, D 10 in total). Jan/Jul then come from the live file through `final4m_compose.py`. Next free version: **v75**.
+- **Board (2026-10-13): v74 = 234.6769 (+0.125 vs v72 = 234.5516). Rejected by its keep rule; v72 stays best.**
+  - The result is outside every projected scenario: even "the records carry nothing" projected −0.06 … −0.13 s. Our projections
+    for LIRF echo changes are too confident.
+  - The upload was combined, so per the no-probing rule (§82) nothing is attributed to E, R or D, and no subset is uploaded to find
+    out.
+  - `ALR_V74` stays off: the blind file uses v72's rule only. Next free version: **v75**.
+
+## 161. v75 = v72 + L2 for every well-formed row (loose L2) -- built, board pending (2026-10-13)
+
+Code: `src/post/lirf_airline_record.py` with `ALR_L2LOOSE=1`. The default mode still rebuilds v72 exactly. Nothing from the rejected
+v74 is included. Scratch: `g5/y1`–`y4`.
+
+**Why L2 left rows behind.**
+- v71's L2 (shifted block times, §155) moves well-formed LIRF NM-unmatched rows 0–1 h late only for airlines with ≥ 2 shifted 2025
+  rows. Its pooled shift rate for well-formed rows was 0.67.
+- That rate counted ADES = LIRF rows as well formed. §158 later showed those are key failures, and they are mostly echoes.
+- Counted as key failures, the 2025 well-formed rows are 28 shifted, 2 echo, 0 normal, plus 5 "other" (all far above the chain
+  value). P0T = 0.933.
+- Mechanism (as L2): the block is logged in local time, so the label = taxi + 1 h in winter, + 2 h in summer.
+
+**2025 leave-one-month-out** (rows of airlines with < 2 shifted rows in the other months; constants out of month):
+- 15 rows, 13 better, −8.0e8 vs the stack proxy Pb (−8.7e8 vs a constant 1,500 s), over 9 months.
+- The two worse rows are ITY160 (echo) and UAL885 (3,891 s, an ambiguous +1 h in September).
+
+**Also checked and dropped this round:**
+- **LIRF ≥ 6 h band:**
+  - below 50,000 s, 2025 is 43/44 echo, and v72's hedges are already priced at about 0.95;
+  - above 50,000 s, echo vs "+24 h" is about 50/50, and v72 already sits near the midpoint.
+- **Non-LIRF twin window:** already failed (§140).
+
+**v75 = v72 + 3 rows** (L2's formula, psh = (s + 2·0.933)/(n + 2), value psh·(tzo + 838) + (1 − psh)·off):
+
+| row | v72 → v75 (s) |
+|---|---|
+| CTN381 (Jan; 2025 CTN381 was shifted) | 1,526 → 4,272 |
+| DAL183 (Jul) | 2,039 → 7,738 |
+| MSR794 (Jul; MSR792 shifted in 2025) | 1,512 → 7,736 |
+
+- `smart-jigsaw_v75.parquet`, md5 **027b245e7a54c99dc753040fb8317f4c**: 3 rows changed, Σd² 7.88e7; identical to the dry run
+  (`logs/v75/v75_build.log`).
+
+**Projection:**
+- Labels resampled from the 35 2025 well-formed rows: **−0.56 s** (sd 0.21, worse in 1.4%).
+- If the shift share is 0.8: −0.34. If it is 0.7: −0.25 (worse in 15%).
+- Per row:
+  - MSR794: −0.26 if shifted, +0.26 if echo;
+  - DAL183: −0.22 / +0.10 (echo) / +0.28 (normal);
+  - CTN381: −0.05 / +0.07.
+- **Caveat:** only 3 rows change, so the score says something about those labels. The change comes from a rule fixed on 2025 (L2
+  plus §158's key definition), not from choosing rows. Per §82 nothing is refit from the result.
+- **Keep iff board < 234.5516.** Blind: run the same mode after the v72 stage (Feb/Jun rows). Next free version: **v76**.
+- **Board (2026-10-13): v75 = 234.5098 (−0.042 vs v72 = 234.5516). Kept; new best.**
+  - Below the projection (−0.56; the 0.7-shift-rate case was −0.25). Per §82 nothing about the three rows is read from the score
+    or refit.
+  - **Jan/Jul frozen at v75** (team decision): the blind file's Jan/Jul rows come from v75 through `final4m_compose.py`, and the blind
+    Feb/Jun rows get the same L2-loose step after the v72 ALR stage. Next free version: **v76**.
