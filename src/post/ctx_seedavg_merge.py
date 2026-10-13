@@ -7,6 +7,9 @@ The holdout file keeps A's chain columns with `pred` replaced; ranking rows are 
 output and rounded as ctx_armc.py prod does. Writes cache/eval/<OUT>_holdout_ev.parquet, cache/oof/<OUT>/fold=*.parquet,
 data/submissions/<OUT>.parquet and cache/eval/armc_rank_<OUT>.parquet.
 
+Holdout / OOF are merged only when both members have them (they are scope-independent and only the gate reads them);
+otherwise only the ranking rows are merged. PRC_SCOPE=final4m: ranking rows of the four-month template (src/scope.py).
+
 Run:  .venv/Scripts/python.exe src/post/ctx_seedavg_merge.py A W_A B W_B OUT
 """
 import os
@@ -18,7 +21,11 @@ import numpy as np
 import polars as pl
 
 ROOT = Path(__file__).resolve().parents[2]
-EVAL, OOF, SUB = ROOT / "cache" / "eval", ROOT / "cache" / "oof", ROOT / "data" / "submissions"
+sys.path.insert(0, str(ROOT / "src"))
+import scope  # noqa: E402
+
+EVAL, OOF = ROOT / "cache" / "eval", ROOT / "cache" / "oof"
+SUB, EVAL_RK = scope.out_dir(ROOT / "data" / "submissions"), scope.out_dir(EVAL)
 A, WA, B, WB, OUT = sys.argv[1], float(sys.argv[2]), sys.argv[3], float(sys.argv[4]), sys.argv[5]
 
 
@@ -33,21 +40,24 @@ def avg(fa: pl.DataFrame, fb: pl.DataFrame, col: str) -> tuple[pl.DataFrame, flo
     return x.with_columns(pl.Series(col, m)).drop("_id", "_b"), float(np.sqrt(np.mean((a_ - b_) ** 2)))
 
 
-h, r_h = avg(pl.read_parquet(EVAL / f"{A}_holdout_ev.parquet"), pl.read_parquet(EVAL / f"{B}_holdout_ev.parquet"), "pred")
-h.write_parquet(EVAL / f"{OUT}_holdout_ev.parquet")
-d = OOF / OUT
-d.mkdir(parents=True, exist_ok=True)
-for f in d.glob("*.parquet"):
-    f.unlink()
-folds = sorted(p.name for p in (OOF / A).glob("fold=*.parquet"))
-assert len(folds) == 5 and folds == sorted(p.name for p in (OOF / B).glob("fold=*.parquet"))
-r_o = []
-for fn in folds:
-    o, r = avg(pl.read_parquet(OOF / A / fn), pl.read_parquet(OOF / B / fn), "pred")
-    o.write_parquet(d / fn)
-    r_o.append(r)
-rk, r_r = avg(pl.read_parquet(EVAL / f"armc_rank_{A}.parquet"), pl.read_parquet(EVAL / f"armc_rank_{B}.parquet"), "out")
-rk.write_parquet(EVAL / f"armc_rank_{OUT}.parquet")
+r_h, r_o = float("nan"), []
+if not scope.FINAL and all((EVAL / f"{m}_holdout_ev.parquet").exists() and (OOF / m).is_dir() for m in (A, B)):
+    h, r_h = avg(pl.read_parquet(EVAL / f"{A}_holdout_ev.parquet"), pl.read_parquet(EVAL / f"{B}_holdout_ev.parquet"), "pred")
+    h.write_parquet(EVAL / f"{OUT}_holdout_ev.parquet")
+    d = OOF / OUT
+    d.mkdir(parents=True, exist_ok=True)
+    for f in d.glob("*.parquet"):
+        f.unlink()
+    folds = sorted(p.name for p in (OOF / A).glob("fold=*.parquet"))
+    assert len(folds) == 5 and folds == sorted(p.name for p in (OOF / B).glob("fold=*.parquet"))
+    for fn in folds:
+        o, r = avg(pl.read_parquet(OOF / A / fn), pl.read_parquet(OOF / B / fn), "pred")
+        o.write_parquet(d / fn)
+        r_o.append(r)
+else:
+    print("holdout / OOF not merged (four-month scope, or a member has no holdout / OOF inputs): ranking rows only")
+rk, r_r = avg(pl.read_parquet(EVAL_RK / f"armc_rank_{A}.parquet"), pl.read_parquet(EVAL_RK / f"armc_rank_{B}.parquet"), "out")
+rk.write_parquet(EVAL_RK / f"armc_rank_{OUT}.parquet")
 tpl = pl.read_parquet(SUB / f"{A}.parquet").select("MVT_ID_mvt")
 sub = tpl.join(rk.select(pl.col("MVT_ID_mvt").cast(tpl["MVT_ID_mvt"].dtype),
                          TAXITIME_SEC_mvt=pl.col("out").round().cast(pl.Int32)), on="MVT_ID_mvt", how="left")

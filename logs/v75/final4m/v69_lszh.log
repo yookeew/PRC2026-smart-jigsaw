@@ -1,0 +1,9 @@
+input f4m_v68.parquet: LSZH rows 44,908, on solved days 44,908; month medians before m1 -45.2, m2 -14.8, m6 -9.9, m7 -20.5
+  m1: rows 9,995, changed 9,995, mean +48.46, RMS 50.25
+  m2: rows 9,374, changed 9,373, mean +14.09, RMS 15.89
+  m6: rows 12,384, changed 12,384, mean +8.94, RMS 11.57
+  m7: rows 13,155, changed 13,155, mean +21.82, RMS 23.10
+all rows: RMS 7.36, max |d| 95
+month medians after m1 -0.2, m2 -0.2, m6 +0.1, m7 +0.0
+LOBT-window violations: 0 (LSZH 0)
+wrote cache/v75/final4m/f4m_v69.parquet

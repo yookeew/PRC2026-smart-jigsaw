@@ -278,8 +278,10 @@ def sel() -> None:
     import ctx_adsb_stable_test as ST
     r, rb = f"ctx{ARM}r{SUFFIX}", f"ctx{ARM}rb{SUFFIX}"
     apt = ST._airports()
-    if not scope.FINAL:
+    if not scope.FINAL and all((EVAL / f"{m}_holdout_ev.parquet").exists() for m in (r, rb)):
         sel_holdout_oof(r, rb, apt)
+    elif not scope.FINAL:
+        print(f"holdout / OOF selection skipped: {r} / {rb} have no holdout inputs (production-only rebuild)")
     if (SUB / f"{r}.parquet").exists() and (SUB / f"{rb}.parquet").exists():
         rk, n = ST._select(pl.read_parquet(SUB / f"{r}.parquet"), pl.read_parquet(SUB / f"{rb}.parquet"), "TAXITIME_SEC_mvt", apt)
         rk.write_parquet(SUB / f"{SEL}.parquet")

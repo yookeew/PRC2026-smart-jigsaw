@@ -1,0 +1,12 @@
+rows in scope 96; non-LIRF rows outside scope where the line stage moved the chain: 0
+  EDDF: rows  17, mean before  1344.4, after  1152.4, mean change   -191.9
+  EDDM: rows   2, mean before  1682.0, after   706.5, mean change   -975.5
+  EGLL: rows   6, mean before  2069.7, after  1328.8, mean change   -740.8
+  EHAM: rows  47, mean before  1709.6, after  1105.4, mean change   -604.2
+  LEBL: rows   8, mean before  1458.2, after   914.1, mean change   -544.1
+  LEMD: rows   1, mean before  1541.0, after  1371.0, mean change   -170.0
+  LFPG: rows   5, mean before  1449.6, after  1088.4, mean change   -361.2
+  LSZH: rows   7, mean before  1636.1, after   773.3, mean change   -862.9
+  LTFM: rows   3, mean before  5247.7, after  1114.0, mean change  -4133.7
+rows changed 96, sum d^2 1.04e+08, RMS over all rows 12.48
+wrote cache/v75/final4m/f4m_v70.parquet

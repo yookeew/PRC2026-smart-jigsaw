@@ -79,10 +79,12 @@ committed. Safe to re-run: it skips files already present.
 
 ## Reproducing our submission
 
-See [REPRODUCE.md](REPRODUCE.md). It currently rebuilds v30 (leaderboard
-RMSE 261.40) from the raw data, step by step; the stages added after v30
-are documented in [PROGRESS.md](PROGRESS.md) and will be added to
-REPRODUCE.md.
+See [REPRODUCE.md](REPRODUCE.md). Its sections 0–8 rebuild v30
+(leaderboard RMSE 261.40) from the raw data, step by step. Section 9 maps
+the stages after v30 to the final submissions and gives the driver
+scripts:
+- **v76** on the live board (RMSE 234.2695);
+- `smart-jigsaw_final.parquet` on the four-month blind board.
 [PROGRESS.md](PROGRESS.md) is the full experiment log, and
 `reports/*_preregistration.md` holds the pre-registered tests behind every
 adopted change.

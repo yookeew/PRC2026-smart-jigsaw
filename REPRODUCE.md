@@ -1,7 +1,10 @@
 # Reproducing this project
 
-This rebuilds our best submission, **v30** (leaderboard RMSE 261.40), from
-the raw challenge data. The design is in [DESIGN.md](DESIGN.md). The
+Sections 0–8 rebuild **v30** (leaderboard RMSE 261.40) from the raw
+challenge data, step by step. Section 9 maps the stages from v30 to the
+final submissions: **v76** on the live board (234.2695) and
+`smart-jigsaw_final.parquet` on the blind board. It also gives the
+four-month driver scripts that run the whole recipe. The design is in [DESIGN.md](DESIGN.md). The
 experiment log, including every rejected idea, is in
 [PROGRESS.md](PROGRESS.md). Every adopted change has a pre-registration in
 `reports/*_preregistration.md`.
@@ -274,6 +277,48 @@ production build uses exactly the same functions as the validated gate.
 Upload with `python -m src.post.upload <file>` (credentials in `.env`, see
 `.env.example`).
 
+## 9. From v30 to the final submissions (v76 live, `smart-jigsaw_final` blind)
+
+Final files (`data/submissions/` is gitignored; checked by `tests/v76_checks.py`, log `logs/v76/v76_checks.log`):
+
+| board | file | md5 | score |
+|---|---|---|---|
+| live (Jan + Jul 2026) | `smart-jigsaw_v76.parquet` | `9b818fb96911e546ebc591a81830bec8` | 234.2695 |
+| blind (Jan + Feb + Jun + Jul 2026) | `final4m/smart-jigsaw_final.parquet` (= `blind_v8`) | `08adc51280d01f1521e27e72f06ce21c` | not shown |
+
+The stages after v30, in order, with their PROGRESS.md sections. Each has a pre-registration in `reports/`.
+- **Chain:** the LOBT window (`lobt_window.py`); the context corrector with NM-unmatched rows in training
+  (`ctx_armc.py`, §88); NM long-delay lines (`nm_lines*.py`, §76); stand re-occupation and identity deltas
+  (`v50_*`, §123–§124).
+- **LIRF NM-unmatched hedges:** `lirf_signals.py`, `lirf_twin_bounds.py`, `lirf_hedge2.py` (§113–§117); v49's fixes
+  (`v49_bundle.py`).
+- **Day level:** EUROCONTROL daily-sum reconciliation (`pru_daily_recon.py`, §125); v62's recipe with OPDI deltas
+  (`final4m_v62.py`, §128–§131); the learned allocation G2 (`day_alloc_build.py`, §133).
+- **Corrector blocks 11–13, averaged over three seeds** (`ctxc1sel_rf3`, §135, §143, §152, §154).
+- **Post-stages:** `lszh_dayclose.py` (§149); `lirf_count_dates.py` and `nm_lines_remove.py` (§150);
+  `lirf_hedge_repair.py` (§156); `lirf_airline_record.py`, then with `ALR_L2LOOSE=1` (§158, §161).
+- **Average of two independent builds** on Jan / Jul (`twin_average.py`, §163).
+
+**The four-month build runs the whole recipe from scratch** on `final_ranking.parquet` (`PRC_SCOPE=final4m`, §132,
+§162). It is the reproduction path:
+
+1. Features, ADS-B detections, LightGBM and CatBoost for the scope: see the header of `run_final4m.sh` (§0–§4 with
+   `PRC_SCOPE=final4m`; CatBoost from the Colab cell "CatBoost for the four-month pipeline").
+2. `bash run_final4m.sh` → `final4m/f4m_e.parquet` (chain, identity deltas, LIRF hedges, v49's fixes) and `f4m_full.parquet`.
+3. The OPDI deltas on that chain (`PRC_SCOPE=final4m PRC_LGB=ctxc1sel_ro`, `v52_comb_delta.py`, `v52_nb_delta.py`), then
+   `PRC_SCOPE=final4m python src/post/final4m_v62.py data/submissions/final4m/f4m_e.parquet data/submissions/final4m/f4m_full.parquet data/submissions/final4m/f4m_v62.parquet`.
+4. `bash run_v75_final4m.sh B` → `final4m/f4m_v75.parquet`. It needs the corrector's holdout and OOF inputs, made once by
+   the script's `inputs` step.
+5. `python src/post/twin_average.py data/submissions/smart-jigsaw_v75.parquet data/submissions/final4m/f4m_v75.parquet data/submissions/smart-jigsaw_v76.parquet`.
+6. `PRC_SCOPE=final4m python src/post/final4m_compose.py data/submissions/smart-jigsaw_v76.parquet data/submissions/final4m/f4m_v75.parquet data/submissions/final4m/blind_v8.parquet`,
+   then copy it to `final4m/smart-jigsaw_final.parquet`. Check it with `tests/blind_qa.py` and `tests/v76_checks.py`.
+
+**The live v75** came from the teammate's machine. `run_v75_final4m.sh A` rebuilds its v68 from their corrector files
+(63 of 344,841 rows differ, max 4 s), and the post-stages v68 → v75 replay byte for byte (§162).
+
+A rebuild matches these files only up to refit noise. LightGBM is deterministic only on the same machine and thread
+count, and GPU CatBoost differs by 25–33 s RMS from run to run. Two independent builds differ by ≈ 25 s RMS per row (§163).
+
 ## Leaderboard history
 
 | version | change | RMSE |
@@ -289,7 +334,10 @@ Upload with `python -m src.post.upload <file>` (credentials in `.env`, see
 | v25 | combiner restricted to rows with ADS-B information | 264.39 |
 | v26 | combiner retrained with Sep–Dec 2025 ADS-B | 262.70 |
 | v27 | combiner retrained with all of 2025's ADS-B sample | 262.13 |
-| **v30** | + within-day neighbour-state corrector on rows without ADS-B | **261.40** |
+| v30 | + within-day neighbour-state corrector on rows without ADS-B | 261.40 |
+| v31–v74 | see PROGRESS.md (stages listed in section 9) | |
+| v75 | + LIRF airline echo record with loose shifted blocks | 234.5098 |
+| **v76** | + average of two independent builds on Jan / Jul (final live submission) | **234.2695** |
 
 Rejected submissions:
 - v18, v20 and v22: PROGRESS.md §46 and §55;

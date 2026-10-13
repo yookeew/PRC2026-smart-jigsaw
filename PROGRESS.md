@@ -7450,3 +7450,198 @@ v74 is included. Scratch: `g5/y1`–`y4`.
     or refit.
   - **Jan/Jul frozen at v75** (team decision): the blind file's Jan/Jul rows come from v75 through `final4m_compose.py`, and the blind
     Feb/Jun rows get the same L2-loose step after the v72 ALR stage. Next free version: **v76**.
+
+## 162. Blind board: reproduction check of the live chain and the four-month port of v65–v75 -- blind_v7 built and uploaded (2026-10-13)
+
+Organiser note (relayed by the team): the final phase ranks on the four months, unless a team's rank on the two months only
+(Feb / Jun) is far from its four-month rank, which could indicate special treatment. So Feb / Jun must get exactly the
+stages Jan / Jul have, by the same code. `blind_v5_lszh` (the newest blind file) carries only v64 + LSZH; it lacks v65–v75.
+
+**What the live v75 is** (md5 lineage checked):
+- **v68 corrector.** The live `smart-jigsaw_v68` (md5 4cbe2902…) is §154's three-seed corrector `ctxc1sel_rf3`: blocks 11–13,
+  members r / rb, seed 42 and seeds 43+44 averaged 1:2.
+  - Built as v54 + (chain rf3 + id deltas − chain ro + id deltas), then the FREEZE_LIRF assembly and v63's day recipe.
+  - v65 (rh2) and v66 (rf) are superseded: every corrector build is a delta against the same control chain `ro`. So the blind file
+    needs only rf3, not each step.
+- **Post-stages:** v69 `lszh_dayclose 0.75` → v70 `lirf_count_dates` + `nm_lines_remove` → v71 `lirf_hedge_repair` → v72
+  `lirf_airline_record` → v75 the same with `ALR_L2LOOSE=1`.
+
+**Post-stage replay on this machine, from the uploaded v68:** v69, v70, v71, v72 and v75 are **byte-identical** to the uploaded
+files (v75 md5 027b245e…).
+- One finding: v70's `nm_lines_remove` used the **rh2** chain's before / after-line files (`chain_ctxc1sel_rh2_win/_final`). With
+  the `ro` chain, 70 rows differ (up to 494 s).
+- For the blind Feb / Jun rows the four-month rf3 chain is used (the corrector actually in the build; there is no four-month rh2
+  chain).
+
+**Corrector artefacts:** the rf / rf3 fits were made on the teammate's machine and are not here (`final4m/` itself is). The
+`sel` step needs only the members' production outputs (fixed per-airport list in `ctx_adsb_stable_test._airports`), not the
+holdout / OOF inputs. `ctx_seedavg_merge.py` is now scope-aware and merges ranking rows only when holdout / OOF are absent.
+
+**`run_v75_final4m.sh`:**
+- **Part A** rebuilds the live v68 from fresh production fits (rf seed 42, rf seeds 43+44, merge, sel, chain, delta, assembly,
+  day recipe) and compares it with the upload. This is the reproduction check for the corrector half.
+- **Part B** runs the same on the four-month frame, then the v69–v75 post-stages. `blind_v7` = Jan / Jul from `smart-jigsaw_v75`,
+  Feb / Jun from `f4m_v75`.
+- Logs `logs/v75/`.
+
+**Result (2026-10-13): `blind_v7` built and checked.**
+- **Teammate's files** (copied in, md5s in `logs/v75/teammate_files.md5`, backup `cache/v75/teammate/`):
+  `ctxc1sel_rf3_holdout_ev.parquet`, `cache/oof/ctxc1sel_rf3/`, `ctxc1sel_rf3.parquet`, `chain_ctxc1sel_rf3_win/_final.parquet`.
+  The holdout / OOF inputs are needed after all: the chain's stack, combiner and neighbour stages fit on the corrector's holdout +
+  OOF predictions, not only `sel`.
+- **Reproduction:**
+  - From the teammate's `ctxc1sel_rf3`, our stack → combiner → neighbour → LOBT window is **byte-identical** to their `_win` file.
+  - The v68 rebuild (their corrector, our id deltas, assembly, day stage) differs from the upload on 63 of 344,841 rows (max 4 s,
+    RMS 0.02 s).
+  - Post-stages v68 → v75: byte-identical (above).
+  - Our own corrector refits differ from theirs by seed-sized noise. For example `r` seed 42: best_iter 1,164 vs 1,536, mean shift
+    −6.1 vs −6.4 s; between-seed RMS 21.4 vs 21.2 s. LightGBM `deterministic` holds only on the same machine and threads.
+- **Fixes made for the four-month run:**
+  - `ctx_seedavg_merge.py`: scope-aware, merges ranking rows only when holdout / OOF are absent;
+  - `ctx_armc.py sel`: skips the holdout / OOF selection when the members have none;
+  - `lirf_hedge_repair.py` stop rule 4 (Σd² ≤ 1.5e8): now per row (× template rows / 344,841). The four-month chain moves Jan/Jul
+    and Feb/Jun rows: 168 rows, 2.56e8 vs bound 2.92e8;
+  - run script: the live day stage's "v62" input is upload v57 (team v62 under §142's numbering; it supplies only LSZH / LIRF rows,
+    identical to v68's there; `smart-jigsaw_v62` is not on this machine).
+- **Four-month build:**
+  - corrector: `ctxc1sel_rf3`, our refit (seed 42 + seeds 43,44, 1:2) on the four-month ranking rows; `sel` takes 250,758 of
+    670,790 rows from `rb` (live: 127,729 of 344,841);
+  - delta vs chain `ro`: RMS 49.8 (live 55.1);
+  - post-stages on the four months:
+    - LSZH medians ≈ 0;
+    - count moves 13;
+    - NM-line removal 96 (rf3 four-month chain);
+    - hedge repair 168;
+    - ALR 92 (Feb/Jun 37);
+    - L2-loose 6 (Feb/Jun 3).
+- **`data/submissions/final4m/blind_v7.parquet`, md5 6ce6152ca956b5b271235de937496969:**
+  - 670,790 rows, IDs = `final_submitting`, no nulls / negatives;
+  - **Jan/Jul identical to `smart-jigsaw_v75`** (344,841 / 344,841);
+  - Feb/Jun vs `blind_v5_lszh`: RMS 35.3 s, mean ≈ 0 (LIRF 71.5, LTFM 47.4, others 22–30).
+- **QA** (`tests/blind_qa.py`, `logs/v75/blind_v7_qa.log`): Feb/Jun look like Jan/Jul on every label-free check.
+  - LIRF late rows, prediction / delay: Jan 0.73, Feb 0.63, Jun 0.44, Jul 0.44.
+  - LOBT-window violations: Feb/Jun 0. The 1 / 4 on Jan/Jul are the release dither on live rows.
+  - Prediction quantiles: Feb ≈ Jun ≈ Jul; January's tail is the January storms.
+- **`blind_v7` replaces `blind_v5_lszh` as the blind-board file** (upload as `<team>_final.parquet`). Logs `logs/v75/`.
+
+**Explored while the build ran (all dead, analysis only):**
+- q2 calibration by LIRF key type: calibrated in every type.
+- Holdout bias by market segment / flight type / wake / rule / region / aircraft family (corrector rf3, non-LIRF): every
+  cross-month correction worse (+0.28 … +0.73).
+- Shifted blocks in the 1–6 h band: about 5% even for shift airlines.
+- LTFM NM-unmatched "near-echoes": real snow-day long taxis (Feb 2025), already covered by the day stage.
+- LIRF NM-matched stale LOBT: v75 is already at the expected value for T − LOBT 2–3 h; only 1.5–2 h runs ~350 s low on 25 rows
+  (≈ −0.02 s).
+- Cap at d = T − SOBT (a public repository's idea): when the model predicts > d + 15 min, the label is above it 86% of the time;
+  a cap would cost 8×.
+- **Upload name:** `data/submissions/final4m/smart-jigsaw_final.parquet` is a byte copy of `blind_v7` (md5 6ce6152c…). Checked
+  against `final_submitting`: same ID set and order, same columns and dtypes (Float64 / Int32), no nulls.
+  - Organiser rule: re-uploading overwrites the previous version, so the file in the bucket at the deadline counts.
+  - The blind board gives no Feb/Jun feedback. Any overwrite must rest on its own checks (`tests/blind_qa.py`; both halves by the
+    same code). Plan: upload `blind_v7` now as the safety net; overwrite only with a fully checked successor, well before
+    10:00 UTC on 2026-10-14.
+- **Uploaded 2026-10-13:** `smart-jigsaw_final.parquet` (= `blind_v7`), bucket status "Succeeded", 670,790 pairs used. The
+  blind board shows no score.
+
+## 163. Two independent builds averaged on Jan / Jul -- v76 = 234.2695, kept (new best); final blind file = blind_v8; code freeze (2026-10-13)
+
+`reports/twin_build_average_preregistration.md` (written before upload), `src/post/twin_average.py`, logs `logs/v76/`.
+Scratch scripts in the session scratchpad (`twin_diff*.py`, `proxy_cmp.py`, `egll_stage.py`, `cat_avg.py`, `lirf_*.py`).
+
+**Lever.** Jan / Jul 2026 now has two full builds of the same recipe: the live `smart-jigsaw_v75` and the four-month
+build's Jan / Jul rows (`final4m/f4m_v75`; this machine's LightGBM refit, CatBoost Colab rerun, our corrector seeds, final
+release). Their difference is refit noise:
+- per stage, RMS: LightGBM 20.0, CatBoost 32.8, corrector-v2 35.8, context corrector 25.3, chain 27.0, v75 36.5;
+- NM-matched rows at the nine non-LIRF airports: RMS 21–30 per airport, |mean| ≤ 0.3, airport-day means 2.1 s RMS (the day
+  stage pins both).
+
+For any p, q: MSE((p + q)/2) = (MSE(p) + MSE(q))/2 − E[(p − q)²]/4. With RMS(p − q) = 25.47 s on 313,042 rows, the
+average gains **−0.314 s** at equal quality and loses only if the four-month rows are worse by more than ≈ 324 s² per row
+(≈ 0.6 s).
+- **Equal quality, evidence:**
+  - CatBoost GPU reruns on the 2025 holdout: 273.03 / 273.41 / 273.01.
+  - Label-free proxy T − AOBT_3 (2026, NM-matched, 60–3,600 s, 311,547 rows): MSE(four-month) − MSE(live) = −30 ± 74 s².
+    The average's proxy RMSE is 324.08 vs 324.34 / 324.30.
+  - Airport × month proxy gaps go both ways (EGLL Jul four-month worse 1,267 ± 400; LTFM Jan better 1,734 ± 557; LFPG
+    better). They start at the corrector seeds and pass through every later stage unchanged. No per-airport selection.
+- **v76** = v75 with NM-matched rows at the nine non-LIRF airports set to rint((v75 + f4m_v75)/2), then the live LOBT window
+  (5 rows moved). LIRF and all NM-unmatched rows are byte-identical to v75.
+  - Change RMS 12.74 s, mean +0.05 s, max 740 s. Every stop rule passes.
+  - `data/submissions/smart-jigsaw_v76.parquet`, md5 9b818fb96911e546ebc591a81830bec8.
+  - **Keep iff board < 234.5098.**
+- **`final4m/blind_v8.parquet`** (md5 08adc51280d01f1521e27e72f06ce21c): Jan / Jul = v76, Feb / Jun = `f4m_v75` unchanged.
+  `tests/blind_qa.py` clean (`logs/v76/blind_v8_qa.log`).
+  - Not uploaded. Feb / Jun has one build only: a second four-month build needs new base fits (LightGBM ≈ 80 min,
+    CatBoost on Colab) and the chain. Overwriting the blind file is a team decision, and only if v76 is kept.
+
+**Finding: LIRF NM-unmatched rows follow different recipes in the two builds.** On Jan / Jul rows 1–6 h late (322), the
+four-month build sits 465 s below the live one (RMS 845); for ≥ 6 h rows the two are equal.
+- Live LIRF NM-unmatched rows have been copied forward unchanged since v41 (team rule since v42). They carry the legacy
+  `ctxsel` corrector: 5,548 mean on these rows at corrector level, 4,377 after v41's chain.
+- The v45 / v47 / v48 hedges and v70–v75 were applied on that base.
+- The four-month build runs the same hedges on the current chain (`ro` / `rf3`, Arm C corrector: 4,150 at corrector level,
+  3,811 after the chain).
+- So `blind_v7`'s Feb / Jun LIRF NM-unmatched rows carry the Arm C base. The board has never scored that base on these rows.
+- 2025 labels, corrector level, LIRF NM-unmatched 1–6 h (holdout + OOF, 1,312 rows):
+  - `rf3` beats `ctxsel` in 9 of 12 months (1–3 h: RMSE 2,290 vs 2,656; 3–6 h: 7,874 vs 8,016);
+  - `ctxsel` over-predicts the 1–3 h band by 1,210 s on average (Arm C: +200).
+- Every 2025 holdout chain copies v42's LIRF NM-unmatched values, so no chain-level comparison exists yet.
+- **Pre-upload verification of v76 (2026-10-13, 17:20–17:40; the team's last live upload):**
+  - Inputs:
+    - v75 is the board-scored file (md5 027b245e…).
+    - `f4m_v75` (md5 af5dcb99…) is the build behind the uploaded blind file: `blind_v7`'s Feb/Jun rows equal it on all 325,949
+      rows, and its Jan/Jul rows equal v75 on all 344,841.
+  - Same movement under the same ID in both releases: all 344,841 live departures exist in `final_ranking`. ADEP, ADES,
+    FLIGHT, FLIGHT_ID, SCHED, STAND, RUNWAY, type, LOBT, AOBT_3 and CALLSIGN are identical on every row; T differs by ≤ 12 s
+    (the dither).
+  - An independent recompute in pandas reproduces v76 byte for byte.
+  - Format:
+    - columns, ID set and row order equal `submitting.parquet` and v75;
+    - Int32 like v75 (the template stores float64; v75 was accepted with Int32);
+    - no nulls or duplicates, range [18, 111,648].
+  - **Second proxy, ADS-B pushback (dwell / appear tiers):** at first v75 looked better by 328 ± 65 s². That was an artefact of 301 rows
+    whose detections differ between the releases: there each build follows its own detection, ±65,000 s² by frame. On the
+    94,593 rows with identical detections, in the mid frame (T averaged over the two releases, so no dither bias), the
+    average ties v75 (+8 ± 15 s²) and the four-month build alone is slightly worse (−67 ± 30).
+  - **AOBT_3 proxy, mid frame, split by tracking** (MSE(v75) − MSE(average), positive = average better):
+    - all 311,541 rows +186 ± 37 s² (≈ 0.36 s);
+    - untracked 216,321 rows +285 ± 48 (Jan +476 ± 88, Jul +117 ± 46; diff RMS 27.7 s);
+    - tracked, identical detections, 94,523 rows −60 ± 45 (diff RMS 13.3 s);
+    - detections differ, 697 rows +3,000 ± 3,900 (diff RMS 169 s).
+  - Reading: the gain comes from rows without ADS-B, in both months. Tracked rows are neutral within noise. The
+    pre-registered scope is kept, with no proxy-based trimming.
+  - The live board counts each team's best submission, so v76 cannot lower our live standing. Its verdict decides
+    whether `blind_v8` replaces `blind_v7`.
+  - **Second round of checks (17:40–17:48):**
+    - Clustered by airport-day (558 clusters), the AOBT_3 mid-frame gain is 186 ± 56 s²/row (z 3.3). Bootstrap over
+      airport-days: 95% CI [82, 300] s²/row (≈ [0.16, 0.59] s); P(average worse) 0.0005. The average is better in 15 of 18
+      airport × month cells; the three exceptions are EGLL ×2 and LSZH July.
+    - Release frame: the four-month build moves with its release's takeoff dither, slope 1.16 s/s on (T_final − T_live).
+      That is 5% of the difference variance. If the live label carries k × the live dither (k ≤ 2, as for arrival taxi-in),
+      the cost to the four-month rows is ≤ 2·1.16·k·12 ≤ 56 s²/row, so the average still gains ≥ 134 s²/row (≈ 0.26 s).
+    - A frame-aligned variant (q − 1.16 (T_final − T_live)) was considered and not built. Against v76 it gains +20 / +6 s²/row
+      if k = 2 / 1 and loses 16 if k = 0, so it is not reliably better, and it leans on the dither mechanism.
+- **Board (2026-10-13): v76 = 234.2695 (−0.240 vs v75 = 234.5098). KEPT; new best.** The gain is inside the projected range
+  (identity −0.31 s; proxy 95% CI −0.16 to −0.59 s), on its low side. The bucket used 344,841 pairs. This was the team's last
+  live upload.
+- `tests/v76_checks.py` (log `logs/v76/v76_checks.log`) reruns every check above from the files and reproduces each number:
+  md5s, lineage, release identity, the pandas recompute, format, both proxies with the clustered standard error, the
+  bootstrap and the frame slope.
+
+**Final blind file (decided 2026-10-13, upload on the morning of 2026-10-14, before 10:00 UTC):**
+- `data/submissions/final4m/smart-jigsaw_final.parquet` = `blind_v8`, **md5 08adc51280d01f1521e27e72f06ce21c**.
+  - Jan / Jul (344,841 rows) = v76.
+  - Feb / Jun (325,949 rows) = `f4m_v75`, byte-identical to the Feb / Jun rows of the uploaded `blind_v7`.
+  - 670,790 rows; IDs and row order = `final_submitting.parquet`; Float64 / Int32; no nulls or duplicates; range [0, 111,648].
+- The `blind_v7` upload of 2026-10-13 stays in the bucket until it is overwritten (`final4m/blind_v7.parquet`, md5 6ce6152c…).
+- What Jan / Jul has and Feb / Jun lacks: the two-build average. Feb / Jun has one build. A second one needs new base fits
+  (LightGBM ≈ 80 min, CatBoost on Colab), the corrector seeds and the chain, and is not made. Every other stage is the
+  same code on both halves (§162).
+- Open finding, not acted on (§163 above): LIRF NM-unmatched rows rest on the legacy corrector in Jan / Jul and on the
+  current one in Feb / Jun.
+  - On the 2025 holdout, before the hedges, the current chain's values are better on rows 1–6 h late (scratch gate run with
+    `tests/v50_chain_gate.py`'s chain, `ctxc1sel_rf3`, unfrozen):
+    - January 2,412 vs 2,632 RMSE (49 rows); July 3,081 vs 3,436 (305 rows).
+    - The legacy values after the v45–v48 hedges: 2,004 / 3,014.
+  - The current chain with the hedges was not scored before the freeze.
+- **Code freeze 2026-10-13 evening (team decision).** Nothing after this section changes a submission file.

@@ -1,0 +1,7 @@
+stack weights (OOF months): [0.577 0.428]
+training rows 2,084,469 of 2,084,967 (BASE 2,062,591; NM-unmatched added 21,878); features 101
+NM-unmatched ranking rows served: 8,927; unseen null pattern: BASE 0.885 -> ctxc1r_rf_s2 0.080
+  seeds [43, 44]: best_iter [1458, 991]; RMS between seed fits 19.80
+corrector (ensemble2): global best_iter 1458
+ranking: RMS change vs stack 101.8 s; mean -7.7 s
+wrote ctxc1r_rf_s2.parquet and armc_rank_ctxc1r_rf_s2.parquet
