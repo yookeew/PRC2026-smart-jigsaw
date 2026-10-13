@@ -58,7 +58,7 @@ ranking rows (`tests/ctx_flow_drift.py`). If (a)–(e) pass and only (f) fails, 
 ## Build if it passes
 
 As v65: production fits (`ctx_armc.py prod` for both members, then `sel`); production chain for `ctxc1sel_rf`
-(`run_v66_chain.sh`) with identity-arm deltas; delta = (chain_rf + id deltas) − (chain_ctxc1sel_ro + id deltas)
+(`scripts/run_v66_chain.sh`) with identity-arm deltas; delta = (chain_rf + id deltas) − (chain_ctxc1sel_ro + id deltas)
 (`src/post/v64_delta.py`, the control chain v64 and v65 were built against); p = v54 + delta (`FREEZE_LIRF=1
 v50_assemble.py`); then v63's recipe (`day_alloc_build.py`: OPDI deltas, G2 at 8 airports, LSZH / LIRF rows from v62).
 **v66. Keep iff board < 237.0694.** The four-month version is built on the last day with the rest (user's plan).

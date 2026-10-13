@@ -6159,14 +6159,14 @@ seeing results is a disclosed post-hoc decision, like the override.
   - Dominated LIRF rows: unchanged.
   - Order differs from history: v49 used to run before the identity deltas and the new corrector. In the four-month chain it runs after them, so its offsets are measured on the final base.
 - **v52 (LSZH, OPDI): left out.** Its code is not in this branch. LSZH keeps v55's treatment otherwise: v49's level fix, and LSZH skipped in the day stage.
-- **Driver:** `run_final4m.sh` runs steps 1–10 (echo probabilities from the saved LightGBM, corrector_v2, re-occupation/identity features, the two context-corrector members + sel, the chain, the identity deltas, assembly, LIRF hedges, v49, the day stage) → `data/submissions/final4m/f4m_full.parquet`. Finished steps are skipped on re-run, so any ADS-B-dependent output must be deleted by hand before ADS-B days are added. `src/post/final4m_compose.py` then takes Jan/Jul from v55 and Feb/Jun from the build, checks the result against `final_submitting.parquet`, and prints the rebuilt-vs-v55 Jan/Jul comparison.
+- **Driver:** `scripts/run_final4m.sh` runs steps 1–10 (echo probabilities from the saved LightGBM, corrector_v2, re-occupation/identity features, the two context-corrector members + sel, the chain, the identity deltas, assembly, LIRF hedges, v49, the day stage) → `data/submissions/final4m/f4m_full.parquet`. Finished steps are skipped on re-run, so any ADS-B-dependent output must be deleted by hand before ADS-B days are added. `src/post/final4m_compose.py` then takes Jan/Jul from v55 and Feb/Jun from the build, checks the result against `final_submitting.parquet`, and prints the rebuilt-vs-v55 Jan/Jul comparison.
 - **ADS-B re-fetch:** the Colab run read five of the six days in full (1.44–1.83M points, min hours 22–24). The copies on this machine are still the old reads; they are waiting on Drive sync. 2026-06-11 stays thin at source (305k points, 8 airports) and stays out of the store.
 - **LightGBM base for the four months (done 2026-10-09 23:3x, `logs/final4m/lgb_mixed_nb_prod.log`, 80 min):** saved to `models/lgb_mixed_nb/`; `data/submissions/final4m/lgb_mixed_nb.parquet` has 670,790 rows, IDs = `final_submitting`, no nulls, range 0–109,979 s, median 945.
   - Jan/Jul vs the live board's `lgb_mixed_nb` (other machine, first release): RMS 20.0 s, mean −0.08, median |d| 5 s. That is refit noise plus dither plus the Feb/Jun neighbours; the level is unchanged.
   - `predict_saved` from the saved files reproduces the refit's output exactly (`lgb_mixed_nb_saved.parquet`, identical).
   - Echo probabilities (`cache/eval/final4m/lgb_mixed_nb_rank.parquet`) vs `lgb_direct_nolirf_nb`'s on Jan/Jul: corr 0.9984, mean |d| 0.0014, max |d| 0.29. That confirms it is the same classifier up to refit/dither.
 - **Jan/Jul 2026 ADS-B detections from the final release** (v1, v3, v4, positions → `<cache>/final4m/`, `logs/final4m/*_jj26.log`; base folders untouched, 62 days each). Each `final4m/` folder now holds 114 days (62 Jan/Jul + 52 Feb/Jun). Against the first-release detections on the same 344,841 departures: matched rate 0.5709 → 0.5710, same tier on 99.8%, pushback time identical on 99.5% of rows that have one in both. The dither barely touches detection.
-- **Four-month chain run (`run_final4m.sh`, started 2026-10-10 00:22, `logs/final4m/run_final4m.log`).**
+- **Four-month chain run (`scripts/run_final4m.sh`, started 2026-10-10 00:22, `logs/final4m/run_final4m.log`).**
   - CatBoost from Colab (`cat_mixed_f4m`): holdout 336.6 (rerun 337.05). Jan/Jul vs the live board's `cat_mixed`: RMS 32.8, mean +0.39; holdout vs the rerun: RMS 25.1 (GPU noise, REPRODUCE §4).
   - Corrector v2 (fitted fresh here; 15-leaf trees, 4 min): mean |shift| 33.9 s (other machine's build 36.8); Jan/Jul vs the other machine's `catcorr_mixed`: RMS 35.8, mean −0.04.
   - Context-corrector members: same training rows and features as the live-board fits (2,084,469 rows; 53 / 70), but early stopping picks fewer rounds (r 958 vs 1,288; rb 1,041 vs 1,447). The likely cause is the category codes (stand prefix, operator), which are numbered over 2025 + the scope's 2026 rows, so Feb/Jun's extra values renumber them. On Jan/Jul the four-month corrector's correction (output − stack) correlates 0.978 with the live board's (RMS 125.9 vs 130.3; difference RMS 27.0), while the stack itself moved 20.1 s RMS. That is treated as refit variation; nothing changed.
@@ -6309,7 +6309,7 @@ leave-one-out, trimmed y ≤ 5 h, 8 airports):
 `reports/ctx_hour_preregistration.md` (written first; amendment A1 added before any gate number),
 `reports/lirf_matched_unfreeze_preregistration.md`. Code: block 11 in `tests/context_corrector_test.py` (`CTX_HOUR=1`, inputs from
 `src/post/hour_feats.py`), `tests/ctx_hour_gate.py`, `tests/lirf_matched_gate.py`, `src/post/v64_delta.py`, `cache/v64/run_chain.sh`,
-`run_v64_final4m.sh` (blind board, waiting for the four-month files). Logs `logs/v64/`.
+`scripts/run_v64_final4m.sh` (blind board, waiting for the four-month files). Logs `logs/v64/`.
 
 **Why.** §134: after G2 the day-level error is gone on 2025 but the airport-day × hour error is not (−2.41 s oracle on the
 holdout chain, LTFM-led), and label-free hour-window inputs carry it only inside a host model.
@@ -6348,7 +6348,7 @@ LSZH / LIRF rows from v62), delta = (chain_rohb + identity deltas) − (chain_ro
 (frozen since v48). Replacing them with `chain_ctxc1sel_rohb`'s: pooled trimmed −0.080 (bar −0.10), June +0.07 at corrector
 level (bar < 0). Not built; LIRF stays frozen.
 
-**Blind board.** `run_v64_final4m.sh` repeats the delta method on the four-month chain and composes `blind_v5`
+**Blind board.** `scripts/run_v64_final4m.sh` repeats the delta method on the four-month chain and composes `blind_v5`
 (Jan/Jul = v64, Feb/Jun = `f4m_v64`). It needs the four-month files from the other machine (it stops at the first
 missing one). The new members' holdout / OOF files are scope-independent and already here. Next free version: **v65**.
 
@@ -6534,9 +6534,9 @@ fetched to scratch only; same publisher as the daily sums): mean taxi-out = (ref
 
 **Board: v64 (build numbering; our upload `smart-jigsaw_v59`, md5 6f482bdb…) = 237.4538 (−0.86 vs v63). Kept; new best.**
 Our upload numbers vs build numbers: v58 = v63, v59 = v64. Copied to `data/submissions/smart-jigsaw_v64.parquet` (same md5)
-for `run_v64_final4m.sh`. Next free build version: **v65**.
+for `scripts/run_v64_final4m.sh`. Next free build version: **v65**.
 
-**Blind board: `blind_v5`** (`run_v64_final4m.sh`, logs `logs/v64/final4m/`, `logs/v64/run_v64_final4m.out`) with the
+**Blind board: `blind_v5`** (`scripts/run_v64_final4m.sh`, logs `logs/v64/final4m/`, `logs/v64/run_v64_final4m.out`) with the
 other machine's holdout / OOF files of `ctxc1r_roh`, `ctxc1rb_rohb`, `ctxc1sel_rohb` (copied in; `ctxc1r_rohb` = copy of `ctxc1r_roh`).
 - Control chain rerun reproduces the existing four-month `chain_ctxc1sel_ro_final` byte for byte (md5 a4011f35…).
 - Four-month delta RMS 41.9, mean +0.58 (live v64 vs v63: 39.0 / +0.46). After v63's recipe: 560,325 rows changed vs f4m_v62.
@@ -6601,7 +6601,7 @@ March is worse in every variant. 2026 reach: Jan 78 scope-like rows, 59 with a 2
 Projection ≈ −0.65 (Jan) − 0.2 (Jul) ≈ −0.85 s, wide.
 
 *Numbering: from here on our upload numbers. Upload v59 = the other machine's "v64" (§135); the file `smart-jigsaw_v64.parquet`
-is a byte copy of v59 kept for `run_v64_final4m.sh`.*
+is a byte copy of v59 kept for `scripts/run_v64_final4m.sh`.*
 
 **Upload v60** = v59 + round 4 (`lirf_hedge4.py smart-jigsaw_v47 smart-jigsaw_v48 smart-jigsaw_v64 smart-jigsaw_v60`,
 `logs/v60_lirf_hedge4_build.log`):
@@ -6626,7 +6626,7 @@ builds v63 / v64). The uploads now skip ahead so both match again: **v60 (§141)
 the next upload was v65. Upload numbers and build numbers are the same from v65 on.** Uploads v61–v64 do not exist.
 Mapping for the record: upload v58 = build v63 (238.3173), upload v59 = build v64 (237.4538), upload v60 = LIRF round 4
 (§141, rejected, never had a build number). `data/submissions/smart-jigsaw_v64.parquet` is a byte copy of upload v59
-(for `run_v64_final4m.sh`). My withdrawn CTX_HOUR2 run (§140) was never a v65: its logs moved from `logs/v65/` to
+(for `scripts/run_v64_final4m.sh`). My withdrawn CTX_HOUR2 run (§140) was never a v65: its logs moved from `logs/v65/` to
 `logs/ctx_hour2/`, and §141's build log is now `logs/v60_lirf_hedge4_build.log`.
 
 **Board: v65 (built on the other machine) = 237.0694 (−0.38 vs v64 = 237.4538). Kept; new best.**
@@ -6636,7 +6636,7 @@ Mapping for the record: upload v58 = build v63 (238.3173), upload v59 = build v6
   per airport RMS LTFM 60.1, LFPG 35.8, EDDF 34.4, EGLL 30.1, EHAM 27.9, LEMD 27.0, EDDM 26.2, LEBL 24.8. NM-matched rows
   RMS 42 (Jan) / 28 (Jul), NM-unmatched 146 / 78. The same footprint as v64 (a corrector-level change through the day stage).
 - **Blind board:** `blind_v5` carries v64, not v65. When v65's code is pushed, its Feb/Jun part needs the same four-month
-  treatment (as `run_v64_final4m.sh` did for v64), then Jan/Jul = v65. Until then `blind_v5` stays the blind-board file.
+  treatment (as `scripts/run_v64_final4m.sh` did for v64), then Jan/Jul = v65. Until then `blind_v5` stays the blind-board file.
 - Next upload: **v66**.
 
 ## 143. Runway / multi-scale window block (block 12) in the context corrector -- gate PASS; v65 built, board pending. G2 refit and LIRF retry fail (2026-10-11)
@@ -6648,7 +6648,7 @@ Mapping for the record: upload v58 = build v63 (238.3173), upload v59 = build v6
 block 12 in `tests/context_corrector_test.py` (`CTX_HOUR2=1`), `tests/ctx_hour2_drift.py`, `tests/day_alloc_refit.py`,
 `tests/ctx_hour_gate.py` / `tests/lirf_matched_gate.py` / `src/post/v64_delta.py` (env / argv switches, defaults unchanged),
 `tests/v57_dsm.py` / `tests/v61_learned_dayshift.py` (`PRC_G2_HO` / `PRC_G2_OOF` / `PRC_G2_LAM`, defaults unchanged),
-`run_v65.sh`, `run_v65_chain.sh`, `run_v65_final4m.sh` (blind board, waiting for the four-month files). Logs `logs/v65/`.
+`scripts/run_v65.sh`, `scripts/run_v65_chain.sh`, `scripts/run_v65_final4m.sh` (blind board, waiting for the four-month files). Logs `logs/v65/`.
 
 **Where the error left after v64 sits** (non-LIRF holdout chain `gate_rohb`, trimmed, leave-one-out group means shrunk
 n/(n+3)): airport-day −1.66, × hour −4.50, × 30 min −4.80, **× 30 min × runway −6.62**, × hour × stand prefix −2.17,
@@ -6692,8 +6692,8 @@ rh2 frame full −0.048 (bar −0.05), body +0.043; rohb frame −0.006 / +0.045
 trimmed −0.216, Jan / Jul both better, full −0.178, body −0.233; but OOF June +0.87 (and May +0.62, Sep +2.10). June also
 failed the first attempt. LIRF stays frozen.
 
-**Blind board.** `run_v65_final4m.sh` repeats the delta method on the four-month chain and composes `blind_v6`
-(Jan/Jul = v65, Feb/Jun = `f4m_v65`); it reuses `run_v64_final4m.sh`'s control chain. Both need the four-month files from
+**Blind board.** `scripts/run_v65_final4m.sh` repeats the delta method on the four-month chain and composes `blind_v6`
+(Jan/Jul = v65, Feb/Jun = `f4m_v65`); it reuses `scripts/run_v64_final4m.sh`'s control chain. Both need the four-month files from
 the other machine. Fallback without them: `final4m_compose.py smart-jigsaw_v65.parquet blind_v4.parquet OUT` (Jan/Jul
 from v65, Feb/Jun from blind_v4). Next free version: **v66**.
 
@@ -6757,7 +6757,7 @@ so their ±0.3 s moves give the refit-noise floor.
 
 `reports/ctx_mlp_preregistration.md` (written before any Jan / Jul number; screens disclosed). Code: `src/models/ctx_mlp.py`,
 `CTX_MLP=1` in `src/post/ctx_armc.py` (default off), `src/post/ctx_mlp_blend.py`, `tests/ctx_mlp_drift.py`,
-`src/post/v67_build.py`, `run_v66_ctl.sh`, `run_v66_mlp_gate.sh`, `run_v66_mlp_seq.sh`, `run_v66_chain.sh`,
+`src/post/v67_build.py`, `run_v66_ctl.sh`, `run_v66_mlp_gate.sh`, `run_v66_mlp_seq.sh`, `scripts/run_v66_chain.sh`,
 `run_v67_build.sh`. Logs `logs/v66/`. Our decision: a neural-network member is tried despite DESIGN.md's "no neural
 networks"; PyTorch 2.14.1 CPU wheel installed in `.venv` (not yet declared in `pyproject.toml`).
 
@@ -6861,7 +6861,7 @@ non-LIRF NM-unmatched 7%. One board second needs ≈ −2% SSE in the ordinary p
 **Gated candidates (pre-registered before their numbers):**
 1. `reports/ctx_huber_preregistration.md`: Huber α = 1,000 corrector members, used on NM-matched rows, L2 on NM-unmatched
    rows (`CTX_HUBER`, `src/post/ctx_huber_hybrid.py`, output-spread stop `tests/ctx_huber_drift.py`; driver
-   `run_v68_huber_gate.sh`, logs `logs/v68/`). Screens: hybrid trimmed −0.41 / −0.70 on rh2 inputs, +0.10 on the older roh
+   `scripts/run_v68_huber_gate.sh`, logs `logs/v68/`). Screens: hybrid trimmed −0.41 / −0.70 on rh2 inputs, +0.10 on the older roh
    inputs. **Gate FAIL** (`logs/v68/ctx_huber_gate.log`): holdout chain trimmed +0.236, full +0.161, body −1.157, July
    trimmed +0.351; LIRF trimmed +1.91 (body −6.64), non-LIRF trimmed −0.136; OOF −0.415 (9 / 10 months). Huber lowers real
    tails (LIRF, July); the corrector-level screens (member r, no post-stages) did not show it. Not built.
@@ -6870,7 +6870,7 @@ non-LIRF NM-unmatched 7%. One board second needs ≈ −2% SSE in the ordinary p
 3. `reports/ctx_abwin_dm_preregistration.md`: block 13 reformulated (`CTX_ABWIN_DM`): tier means demeaned within
    airport-day, no count, EDDM / EHAM / LEBL only (EDDF and LSZH out on label-free spread, `tests/ctx_abwin_dm_drift.py`).
    Screens: non-LIRF trimmed −0.48 / −0.19, all four months better (EDDM / EHAM / LEBL rows alone −0.31 / −0.08). L2 branch
-   (`run_v68_abwin_dm.sh l2`, control `ctxc1sel_rh2`): **gate FAIL** -- holdout trimmed −0.033 (Jan +0.229 / Jul −0.186),
+   (`scripts/run_v68_abwin_dm.sh l2`, control `ctxc1sel_rh2`): **gate FAIL** -- holdout trimmed −0.033 (Jan +0.229 / Jul −0.186),
    EHAM +0.60, LEBL −0.83; OOF −0.080, June +0.30, 6 / 10 months. Not built.
 
 ## 149. v68 = new best (built on the other machine); why LIRF changes miss; LSZH level from the daily sums -- v69 built, board pending (2026-10-12)
@@ -7018,14 +7018,14 @@ Paired residual screen (LightGBM on y − corrector, control = pred, airport, T 
 
 **Proposed next (not started):** pre-register block 13 (`CTX_FLOW=1`, r + rb members on top of block 12), gate as §143
 with Feb and Jun OOF required, delta against byte copies of the production `ctxc1sel_rh2`, LIRF frozen; build v66 and the
-four-month port. Before that, the blind board still lacks v64 and v65 (`run_v64_final4m.sh`, `run_v65_final4m.sh` need the
+four-month port. Before that, the blind board still lacks v64 and v65 (`scripts/run_v64_final4m.sh`, `scripts/run_v65_final4m.sh` need the
 other machine's `final4m/` folders).
 
 ## 152. Flow-state block (block 13) in the context corrector -- gate PASS; v66 built, board pending (2026-10-11)
 
 `reports/ctx_flow_preregistration.md` (written first; amendment A1 before any gate number). Code: `src/post/flow_feats.py`,
 block 13 in `tests/context_corrector_test.py` (`CTX_FLOW=1`), `tests/ctx_flow_drift.py`, `tests/ctx_hour_gate.py`
-(`CTL_DIR` switch, default unchanged), `run_v66.sh`, `run_v66_chain.sh`. Logs `logs/v66/`.
+(`CTL_DIR` switch, default unchanged), `scripts/run_v66.sh`, `scripts/run_v66_chain.sh`. Logs `logs/v66/`.
 
 - **Inputs (21, label-free, §151):** destination flow from the other nine airports (±60 min) and from our own airport
   (±90 min), region flow (same two-letter ADES prefix, different ADES, ±60 min, same / other origins) — each count, median
@@ -7054,7 +7054,7 @@ block 13 in `tests/context_corrector_test.py` (`CTX_FLOW=1`), `tests/ctx_flow_dr
 - vs v65: 284,290 rows changed, RMS 24.9 s, mean +0.09, max |Δ| 683; LIRF and LSZH identical. Per airport RMS: LTFM 35.1,
   LFPG 30.1, EDDF 27.4, EGLL 26.5, EHAM 24.8, LEMD 21.7, EDDM 21.0, LEBL 19.7.
 - `data/submissions/smart-jigsaw_v66.parquet`, md5 27cdb451694f6bbd1a384dbbea19f367. **Keep iff board < 237.0694.**
-- Four-month version: on the last day with the rest (`run_v65_final4m.sh` pattern, tag `_rf`). Next free version: **v67**.
+- Four-month version: on the last day with the rest (`scripts/run_v65_final4m.sh` pattern, tag `_rf`). Next free version: **v67**.
 
 **LIRF NM-matched unfreeze, third attempt on `ctxc1sel_rf`: FAIL** (`reports/lirf_matched_unfreeze_rf_preregistration.md`,
 bar tightened to −0.20). Holdout pooled trimmed −0.047, Jul +0.015; OOF now 9/10 months better (June −0.72), but the
@@ -7072,7 +7072,7 @@ residual harness, base `ctxc1sel_rf`, trimmed 215.36 at corrector level):
 ## 153. Runway stoppage / discharge block (block 14) -- gate FAIL, nothing built; XGBoost corrector and LIRF flow-echo scoping (2026-10-11)
 
 `reports/ctx_stop_preregistration.md` (A1: NaN → null in `st_ar_*` before any fit; inputs unchanged). Code: `src/post/stop_feats.py`,
-block 14 in `tests/context_corrector_test.py` (`CTX_STOP=1`), `tests/ctx_stop_drift.py`, `run_v67.sh`, `run_v67_chain.sh`.
+block 14 in `tests/context_corrector_test.py` (`CTX_STOP=1`), `tests/ctx_stop_drift.py`, `scripts/run_v67.sh`, `scripts/run_v67_chain.sh`.
 Logs `logs/v67/`. Built on top of v66 (board pending at the time) — from now on only one candidate per round.
 
 - **Inputs (9):** the longest gap between consecutive takeoffs on the same runway / at the airport, and between landings,
@@ -7096,7 +7096,7 @@ new best is 236.81 from v66, small gain of ~-0.2
 ## 154. New-signal screens on v66's corrector all small; v66's corrector averaged over three seeds (`ctxc1sel_rf3`) -- gate PASS; v67 built, board pending (2026-10-12)
 
 `reports/ctx_seedavg_rf_preregistration.md` (written first). Code: `tests/flow_screen/dir_screen.py`, `tests/flow_screen/lc_screen.py`,
-`src/post/order_feats.py` (block-15 candidate, not wired in), `src/post/ctx_seedavg_merge.py`, `run_v67s.sh`, `run_v67s_chain.sh`.
+`src/post/order_feats.py` (block-15 candidate, not wired in), `src/post/ctx_seedavg_merge.py`, `scripts/run_v67s.sh`, `scripts/run_v67s_chain.sh`.
 Logs `logs/dir_screen.log`, `logs/lc_screen.log`, `logs/run_v67s.log`, `logs/v67s/`.
 
 **Error budget, v66's holdout chain** (`cache/v66/gate_rf/chain_all`, trimmed 239.95): by departure lateness T − SOBT
@@ -7126,7 +7126,7 @@ mean, `PRC_CTX_SEEDS=43,44`), averaged 1:2 with v66's own seed-42 fits (holdout,
 Build path checked first: v66 rebuilt from its own chain with `v64_delta.py` → `v50_assemble.py` → `day_alloc_build.py`
 is identical to the uploaded file.
 
-**Run status note (2026-10-12 01:00).** `bash run_v67s.sh` started 00:26 (log `logs/run_v67s.log`). The laptop was on battery
+**Run status note (2026-10-12 01:00).** `bash scripts/run_v67s.sh` started 00:26 (log `logs/run_v67s.log`). The laptop was on battery
 (71%, CPU at 1.5 GHz): one corrector fit took ≈ 14.5 min instead of ≈ 4 min on AC (seed-43/44 holdout fit: best_iter 1,850 /
 1,578, RMS between the two seed fits 21.0 s). Windows' critical-battery action is Hibernate (4%), so if the battery ran out the
 run is frozen, not lost: plug in, wake the laptop, and it continues by itself (about 75 min of fits remain on AC at worst).
@@ -7477,7 +7477,7 @@ files (v75 md5 027b245e…).
 `sel` step needs only the members' production outputs (fixed per-airport list in `ctx_adsb_stable_test._airports`), not the
 holdout / OOF inputs. `ctx_seedavg_merge.py` is now scope-aware and merges ranking rows only when holdout / OOF are absent.
 
-**`run_v75_final4m.sh`:**
+**`scripts/run_v75_final4m.sh`:**
 - **Part A** rebuilds the live v68 from fresh production fits (rf seed 42, rf seeds 43+44, merge, sel, chain, delta, assembly,
   day recipe) and compares it with the upload. This is the reproduction check for the corrector half.
 - **Part B** runs the same on the four-month frame, then the v69–v75 post-stages. `blind_v7` = Jan / Jul from `smart-jigsaw_v75`,

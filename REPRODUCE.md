@@ -418,11 +418,11 @@ are reused. Outputs go to `final4m/` subfolders.
 2. Colab: the cell "CatBoost for the four-month pipeline" in
    [notebooks/colab_train.py](notebooks/colab_train.py) writes
    `data/submissions/final4m/cat_mixed_f4m.parquet` and `cache/eval/final4m/cat_mixed_f4m_rank.parquet`.
-3. `bash run_final4m.sh`. This runs the corrector, `ctxc1sel_ro`, the chain and the step 8 stages up to
+3. `bash scripts/run_final4m.sh`. This runs the corrector, `ctxc1sel_ro`, the chain and the step 8 stages up to
    v55's recipe, and writes `data/submissions/final4m/f4m_e.parquet`.
 4. `PRC_SCOPE=final4m $PY src/post/final4m_v62.py` writes `final4m/f4m_v62.parquet`, the four-month
    counterpart of v62.
-5. Final corrector and G2: follow `run_v64_final4m.sh` with `ctxc1sel_rf3` in place of
+5. Final corrector and G2: follow `scripts/run_v64_final4m.sh` with `ctxc1sel_rf3` in place of
    `ctxc1sel_rohb`. Before that, run `ctx_armc.py prod` for both members and both seed settings, and
    `ctx_seedavg_merge.py`, with `PRC_SCOPE=final4m`.
 6. With `PRC_SCOPE=final4m`, run the v69–v75 commands of step 8 on that file, in the same order. For

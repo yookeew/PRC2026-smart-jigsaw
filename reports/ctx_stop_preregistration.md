@@ -40,7 +40,7 @@ Control = v66's production corrector `ctxc1sel_rf` (holdout chain `cache/v66/gat
 
 ## Build if it passes
 
-As v66: production fits, `sel`, production chain (`run_v67_chain.sh`), delta = (chain_rs + id deltas) − (chain_ctxc1sel_ro
+As v66: production fits, `sel`, production chain (`scripts/run_v67_chain.sh`), delta = (chain_rs + id deltas) − (chain_ctxc1sel_ro
 + id deltas), p = v54 + delta (`FREEZE_LIRF=1`), v63's day recipe → **v67**. Keep iff board < the best at that time
 (v66's score if v66 is kept, else 237.0694).
 

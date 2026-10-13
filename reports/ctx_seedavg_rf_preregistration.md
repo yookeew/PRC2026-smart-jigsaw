@@ -46,7 +46,7 @@ Also reported: RMS between the seed-42 fit and the seed-43/44 mean (holdout, ran
 
 ## Build if it passes
 
-As v66: production chain for `ctxc1sel_rf3` (`run_v67s_chain.sh`, identity-arm deltas in `cache/v67s/id_ctxc1sel_rf3`);
+As v66: production chain for `ctxc1sel_rf3` (`scripts/run_v67s_chain.sh`, identity-arm deltas in `cache/v67s/id_ctxc1sel_rf3`);
 delta = (chain_rf3 + id deltas) − (chain_ctxc1sel_ro + id deltas) (`src/post/v64_delta.py`); p = v54 + delta (`FREEZE_LIRF=1
 v50_assemble.py`); then v63's recipe (`day_alloc_build.py`: OPDI deltas, G2 at 8 airports, LSZH / LIRF rows from v62).
 **v67** (`data/submissions/smart-jigsaw_v67.parquet`). **Keep iff board < 236.8136.** If the gate fails, nothing is built and

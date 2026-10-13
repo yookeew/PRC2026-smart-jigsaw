@@ -12,7 +12,7 @@
 # check for the corrector half. The post-stages v68 -> v75 were replayed byte for byte (§162).
 # Part B runs the same steps on the four-month frame; blind_v7 = Jan/Jul from smart-jigsaw_v75, Feb/Jun from f4m_v75.
 #
-# Run from the repo root:  bash run_v75_final4m.sh [A|B|B1|all]   (B1: four-month production fits only)   (default all; every step is skipped when its output exists)
+# Run from the repo root:  bash scripts/run_v75_final4m.sh [A|B|B1|all]   (B1: four-month production fits only)   (default all; every step is skipped when its output exists)
 set -euo pipefail
 export PYTHONIOENCODING=utf-8 POLARS_UNKNOWN_EXTENSION_TYPE_BEHAVIOR=load_as_storage
 PY=.venv/Scripts/python.exe
@@ -90,7 +90,7 @@ if [ "$PART" = B ] || [ "$PART" = B1 ] || [ "$PART" = all ]; then
     step "B1. four-month members, merge, sel";  members "$S" "$L"
     [ "$PART" = B1 ] && { step "B1 only: done"; exit 0; }
     for f in cache/eval/ctxc1sel_rf3_holdout_ev.parquet cache/oof/ctxc1sel_rf3; do [ -e "$f" ] || { echo "missing $f (run part A, or copy it)"; exit 1; }; done
-    step "B2. four-month chain on ctxc1sel_rf3 (control chain ro and its id deltas: run_v64_final4m.sh)"
+    step "B2. four-month chain on ctxc1sel_rf3 (control chain ro and its id deltas: scripts/run_v64_final4m.sh)"
     chain ctxc1sel_rf3 "$S" "$L" "$C/id_ctxc1sel_rf3" cache/v50/final4m/reocc_feats6.parquet
     step "B3. delta vs chain ro, assembly on f4m_e (LIRF frozen), day recipe -> f4m_v68"
     $PY -u - "$S" "$C" <<'EOF' > "$L/delta.log" 2>&1

@@ -3,7 +3,7 @@
 This document explains how our taxi-out model for the 2026 PRC / OpenSky Network Data Challenge
 is put together, and the reasoning behind its main choices. Instructions for rebuilding the
 submission are in [REPRODUCE.md](REPRODUCE.md). The full experiment log, including all the
-things that didn't work, is in [PROGRESS.md](PROGRESS.md).
+faield attempts, is in [PROGRESS.md](PROGRESS.md).
 
 ## Problem
 
@@ -50,25 +50,7 @@ Every later stage that adds inputs sticks to the same rule: it can only use thin
 exist for the 2026 rows.
 
 ## Architecture
-
-```
-features ──► base models (LightGBM, CatBoost) ──► OOF corrector on CatBoost
-                                │
-                                ▼
-          stack + context corrector (out-of-fold, two members, 3 seeds)
-                                │
-                                ▼
-   observation stages: ADS-B pushback, ADS-B combiner, OPDI, neighbour state
-                                │
-                                ▼
-        physical bounds (LOBT window) and NM-unmatched long-delay rules
-                                │
-                                ▼
-          day-level reconciliation with published daily delay sums
-                                │
-                                ▼
-            recording-artefact stages (LIRF echoes, NM-unmatched rows)
-```
+![alt text](image.png)
 
 ### 1. Features
 
@@ -108,7 +90,7 @@ none of them use labels. The main groups are:
 ### 3. Correctors
 
 - **CatBoost corrector.** A small LightGBM (with Huber loss) learns the mistakes CatBoost tends
-  to make. It's trained on out-of-fold predictions, meaning predictions CatBoost made for months
+  to make. Its trained on out-of-fold predictions, meaning predictions CatBoost made for months
   it wasn't trained on.
 - **Stack.** LightGBM and the corrected CatBoost are combined with non-negative weights.
 - **Context corrector** (`src/post/ctx_armc.py`). Another LightGBM, this time on the stack's
@@ -133,9 +115,8 @@ none of them use labels. The main groups are:
     plus 50 positions inferred from ADS-B for stands the Gateway doesn't have.
   - A second model then combines the detected pushback with the model's prediction, on rows
     where ADS-B data is available.
-  - It's trained on the 2025 holdout plus a sample of ADS-B days from every other month.
-- **OPDI ground events** (EUROCONTROL). These are used at LSZH, where coverage is good, and at
-  EDDF. At EDDF their clock is off, so they are only used after subtracting each day's average.
+  - We trained it on the 2025 holdout plus a sample of ADS-B days from every other month.
+- **OPDI ground events** (from EUROCONTROL). These are used at LSZH and at EDDF, where coverage are good. At EDDF their clock is off, so they are only used after subtracting each day's average.
 - **Neighbour-state corrector.** For rows without ADS-B, this looks at the errors on nearby
   flights that can be observed. Its average correction per airport and UTC day is subtracted,
   so it only moves errors around within a day.
@@ -195,13 +176,12 @@ The rule for each case is fitted on 2025 and checked one month at a time.
 (LIRF's echoes and long delays). Predicting taxi time directly works better where taxi time is
 mostly about physically getting to the runway. On the holdout, predicting taxi directly beat
 predicting delay at 8 of the 10 airports, but did clearly worse at LIRF. The mixed model was as
-good as the better of the two at every airport. One catch: a feature can help one target and
+good as the better of the two at every airport. HOwever, a feature can help one target and
 hurt the other, so we tested every change with the mixed target, since that's the one submitted.
 
 **Every second-stage model is trained out-of-fold.** A corrector trained on the base model's
-predictions for data it has already seen learns from errors that are smaller than the ones it
-will see on 2026. So every second-stage model is trained on predictions the base model made for
-months it was not trained on:
+predictions for data it has already seen underestimate errors. So every second-stage model is trained on predictions the base model made for
+months it was not trained on, including:
 
 - the CatBoost corrector;
 - the context corrector;
@@ -231,8 +211,8 @@ airport-specific ADS-B behaviour from the patchy 2025 data didn't carry over wel
 - every new input is checked for differences between 2025 and 2026 before it is accepted.
 
 **A few labels drive most of the RMSE.** Some labels are hours long, because of date mistakes,
-echoes or genuinely bad days. A handful of those can decide which of two models looks better on
-the holdout. So:
+echoes or simply just bad days. A handful of those can decide which of two models looks better on
+the holdout. Therefore:
 
 - changes are judged on a fixed trimmed score (labels up to 5 h) and on the "body" rows
   (NM-matched, up to 1 h), with the full RMSE kept as a safety check;
@@ -244,16 +224,16 @@ rows make up a big part of the squared error, and no model of real taxiing could
 Treating them as quirks of how the data was recorded, with rules fitted on 2025 and checked on
 months they weren't fitted on, helped more than making the models bigger.
 
-**Add changes on top instead of rebuilding.** Refitting is noisy: two CatBoost GPU runs can
+**Add changes on top instead of rebuilding.** Refitting is non-deterministic as two CatBoost GPU runs can
 differ by about 27 s RMS. So each new stage is built as the difference between a run with the
 change and a run without it, fitted in the same process, and that difference is added to the
-previous best file. Rows where a change didn't carry over to 2026 keep their old values. In
-particular, LIRF NM-matched rows were frozen after the earlier LIRF fixes. Averaging the
-corrector over three seeds is for the same reason: it makes each of these differences less
+previous best file. For rows where a change didn't carry over to 2026, we kept their old values. In
+particular, LIRF NM-matched rows were frozen after the earlier LIRF fixes. Hence, averaging the
+corrector over three seeds is for the same reason, it makes each of these differences less
 noisy.
 
-**Stand linking is useful for features, not for limits.** Matching each departure to its inbound
-aircraft should give a window for the off-block: after the inbound arrived at the stand, and
+**Stand linking is useful for features, not for limits.** We found out that matching each departure to its inbound
+aircraft should give a window for the off-block, after the inbound arrived at the stand, and
 before the next aircraft did. The window does hold (only 0.1% of high-confidence matches fall
 outside it), but it's typically about 14 times wider than the spread of taxi times, so it
 doesn't narrow anything down. The matching was kept for the rotation features, like inbound
@@ -271,33 +251,19 @@ values, weights or scales.
   are the same seasons as the ranking period.
 - **No random k-fold:** flights close together share the same traffic conditions, so random
   folds would let that information leak.
-- **Holdout built on its own:** the holdout features are built from just those two months, so
+- **Holdout is built on its own** the holdout features are built from just those two months, so
   the gap in the ranking data's timeline (and any features that reach across it) behaves the
   same way in validation.
-- **February and June check:** stages that affect the February and June rows of the final
-  ranking were also checked on Feb/Jun 2025, out of fold.
 - **Uncertainty:** a paired bootstrap that resamples whole (airport, day) groups
   (`tests/_harness.py`).
 
-## Not built
-
-- **Reference (unimpeded) model:** a model using only stand, runway, aircraft type, wake
-  category and configuration (no traffic or takeoff-time inputs), fitted to quiet periods or to
-  a low quantile. It would give `excess = observed − unimpeded`, the quantity needed for the
-  fuel and CO2 analysis the challenge talks about.
-- **Uncertainty ranges** (quantile predictions).
-- **OSM taxi route distance:** this only depends on (airport, stand, runway), which the model
-  already knows. Adding stand and runway geometry as features didn't help.
-
 ## Compute and conventions
 
-- We worked on two laptops with the same spec: Intel Core Ultra 7 155H (16 cores / 22 threads),
-  32 GB RAM, Windows 11, with integrated Intel Arc graphics (not used for training). GPU work
-  (CatBoost) ran on free-tier Google Colab (NVIDIA T4). Features were built with Polars, and
-  LightGBM ran on CPU. The final model has no neural networks (an MLP corrector was tried and
-  dropped, see PROGRESS.md §146).
+- We worked on two laptops with the same spec: Intel Core Ultra 7 155H (16 cores / 22 threads) + 
+  32 GB RAM + Windows 11 + integrated Intel Arc graphics  and NVIDIA Blackwell Pro 1000 (not used for training). GPU work (CatBoost) ran on free-tier Google Colab (NVIDIA T4). The features were built with Polars, and
+  LightGBM ran on CPU. 
 - Seeds are fixed, and LightGBM runs with `deterministic=true` and `force_row_wise=true`.
-- Fetch scripts and small derived tables are in the repo. Caches stay local and can be rebuilt
+- The fetch scripts and some small derived tables are in the repo, whereas caches stay local and can be rebuilt
   from source.
 - Every external source has a row in [DATA_SOURCES.md](DATA_SOURCES.md): name, URL, licence,
   date accessed, the artefact derived from it, and the script that fetches it.
