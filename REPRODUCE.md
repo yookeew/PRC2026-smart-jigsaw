@@ -42,9 +42,14 @@ $PY -m src.ingest.fetch_challenge_data
 ```
 
 `fetch_challenge_data` needs the challenge S3 credentials (see [README.md](README.md)). It writes the
-monthly training files to `data/raw/`, and `ranking.parquet`, `submitting.parquet`,
-`final_ranking.parquet` and `final_submitting.parquet` to `data/ranking/`. Keep all four ranking
-files: some live-board stages read `final_ranking.parquet` too.
+monthly training files, `final_ranking.parquet` and `final_submitting.parquet` to `data/raw/`, and
+`ranking.parquet` and `submitting.parquet` to `data/ranking/`. Move the two `final_*` files into
+`data/ranking/`: every script expects all four ranking files there, and some live-board stages read
+`final_ranking.parquet` too.
+
+```bash
+mv data/raw/final_ranking.parquet data/raw/final_submitting.parquet data/ranking/
+```
 
 ### 1.2 External data
 
@@ -152,7 +157,7 @@ EOF
    - the `src/` tree;
    - `cache/features/{train2025,holdout_gap2025,ranking,labels2025}.parquet`;
    - `data/ranking/submitting.parquet`.
-2. In a T4 runtime:
+2. In a T4 runtime (setup as in [notebooks/colab_train.py](notebooks/colab_train.py)), run:
 
    ```python
    !pip -q install polars==1.44.1 lightgbm==4.7.0 catboost

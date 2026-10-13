@@ -34,7 +34,7 @@ local environment: its fits run on Google Colab, which installs it
 ### 3. Get your own OpenSky/challenge credentials
 
 You need your own OSN account login and, separately, the MinIO/S3
-`access_key` + `secret_key` for the `competition-data` bucket (from the
+`access_key` + `secret_key` for the `prc-2026-datasets` bucket (from the
 challenge organizers — this is the same thing as "S3 credentials", MinIO is
 just the S3-compatible server OpenSky runs). These are per-person, not
 shared — each person needs their own.
@@ -74,10 +74,13 @@ leave blank.)
 python -m src.ingest.fetch_challenge_data
 ```
 
-Downloads every object in the `competition-data` bucket, routed into
+Downloads every object in the `prc-2026-datasets` bucket, routed into
 `data/raw/` (monthly training files) and `data/ranking/` (`ranking.parquet`,
-`submitting.parquet`). Both are gitignored — this step is per-machine, not
-committed. Safe to re-run: it skips files already present.
+`submitting.parquet`). `final_ranking.parquet` and `final_submitting.parquet`
+land in `data/raw/`; move them to `data/ranking/`, where the pipeline expects
+them (see [REPRODUCE.md](REPRODUCE.md), step 1.1). Both folders are
+gitignored — this step is per-machine, not committed. Safe to re-run: it
+skips files already present.
 
 ## Reproducing our submission
 

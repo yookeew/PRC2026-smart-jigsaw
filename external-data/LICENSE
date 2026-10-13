@@ -1,26 +1,54 @@
-EUROCONTROL Aviation Intelligence Unit — Data Licence
-======================================================
+Licences for the data in external-data/
+=======================================
 
-The following files in this directory are published by EUROCONTROL's
-Aviation Intelligence Unit (https://ansperformance.eu) and are reused here
-under its terms, not under this project's own code licence:
+The data in this directory is NOT covered by this project's code licence
+(GNU GPL v3, see /LICENSE). None of it is committed: it is fetched by the
+scripts named below. Each source keeps its own terms. Per-source details
+(URLs, access dates, what each file feeds) are in /DATA_SOURCES.md.
 
-- atfm_slot_adherence_2025.csv, atfm_slot_adherence_2026.csv
-- apt_dly_2025.csv.bz2, apt_dly_2026.csv.bz2
-- airport_traffic_2025.csv, airport_traffic_2026.csv
+1. EUROCONTROL Aviation Intelligence Unit
+   --------------------------------------
+   Files:
+   - all_pre_departure_delays_2025.csv, all_pre_departure_delays_2026.csv
+     (used by the final submission's day-level stages)
+   - atfm_slot_adherence_2025.csv, atfm_slot_adherence_2026.csv
+   - apt_dly_2025.csv.bz2, apt_dly_2026.csv.bz2
+   - airport_traffic_2025.csv, airport_traffic_2026.csv
+     (the three ATFM tables were tested and are not used by the final submission)
+   Publisher: EUROCONTROL's Aviation Intelligence Unit (https://ansperformance.eu).
+   Terms (per the publisher): free to copy and redistribute with attribution;
+   non-commercial use only. The terms apply to these files and any table
+   derived from them, not to this project's source code.
+   Attribution: "Contains data from EUROCONTROL's Aviation Intelligence Unit"
+   (https://ansperformance.eu).
+   Use for the PRC 2026 Data Challenge was confirmed by the challenge admins
+   (Discord, 2026-09-17; reconfirmed 2026-10-09 for ranking-period aggregates).
+   Fetched by: src/ingest/fetch_atfm_data.py
 
-Terms (per the publisher): free to copy and redistribute with attribution;
-non-commercial use only.
+2. metar/
+   ------
+   Hourly METAR reports for the 10 challenge departure airports, retrieved
+   from the Iowa Environmental Mesonet (IEM), Iowa State University
+   (https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py). The underlying
+   observations are NOAA/NWS data, a US federal government work in the public
+   domain (17 U.S.C. §105). IEM states no further licence or attribution terms
+   for this endpoint; no account or API key is needed.
+   Fetched by: src/ingest/fetch_metar_data.py
 
-This licence applies only to the data files listed above (and any table
-derived from them), not to this project's own source code, which is
-covered separately under the GPLv3 terms required by the challenge rules
-(see CLAUDE.md). Keeping the two licences in separate files makes clear
-that the non-commercial restriction attaches to this data, not to the code
-that reads it.
+3. adsb/, adsb-fetch/, adsb-restofyear/, adsb-final2026/
+   -----------------------------------------------------
+   Day extracts of adsb.lol ADS-B/MLAT tracks around the challenge airports
+   (https://github.com/adsblol/globe_history_2025 and globe_history_2026).
+   Licence: Open Database License (ODbL) v1.0 for the database; feeder
+   contributions CC0. Any redistribution of these extracts or of tables
+   derived from them stays under the ODbL.
+   Attribution: "Contains data from adsb.lol contributors, made available
+   under the ODbL."
+   Fetched by: src/ingest/fetch_adsb.py
 
-Attribution: "Contains data from EUROCONTROL's Aviation Intelligence Unit"
-(https://ansperformance.eu).
-
-Use of this data for the PRC 2026 Data Challenge was confirmed permitted by
-challenge admins via Discord ruling, 2026-09-17.
+4. ourairports/
+   ------------
+   OurAirports airport coordinates
+   (https://davidmegginson.github.io/ourairports-data/airports.csv), public
+   domain. Used only by an exploratory screen; not used by the final
+   submission.
