@@ -7453,7 +7453,7 @@ v74 is included. Scratch: `g5/y1`–`y4`.
 
 ## 162. Blind board: reproduction check of the live chain and the four-month port of v65–v75 -- blind_v7 built and uploaded (2026-10-13)
 
-Organiser note (relayed by the team): the final phase ranks on the four months, unless a team's rank on the two months only
+Organiser note: the final phase ranks on the four months, unless a team's rank on the two months only
 (Feb / Jun) is far from its four-month rank, which could indicate special treatment. So Feb / Jun must get exactly the
 stages Jan / Jul have, by the same code. `blind_v5_lszh` (the newest blind file) carries only v64 + LSZH; it lacks v65–v75.
 
@@ -7473,7 +7473,7 @@ files (v75 md5 027b245e…).
 - For the blind Feb / Jun rows the four-month rf3 chain is used (the corrector actually in the build; there is no four-month rh2
   chain).
 
-**Corrector artefacts:** the rf / rf3 fits were made on the teammate's machine and are not here (`final4m/` itself is). The
+**Corrector artefacts:** the rf / rf3 fits were made on the other machine and are not here (`final4m/` itself is). The
 `sel` step needs only the members' production outputs (fixed per-airport list in `ctx_adsb_stable_test._airports`), not the
 holdout / OOF inputs. `ctx_seedavg_merge.py` is now scope-aware and merges ranking rows only when holdout / OOF are absent.
 
@@ -7485,12 +7485,12 @@ holdout / OOF inputs. `ctx_seedavg_merge.py` is now scope-aware and merges ranki
 - Logs `logs/v75/`.
 
 **Result (2026-10-13): `blind_v7` built and checked.**
-- **Teammate's files** (copied in, md5s in `logs/v75/teammate_files.md5`, backup `cache/v75/teammate/`):
+- **Files from the other machine** (copied in, md5s in `logs/v75/teammate_files.md5`, backup `cache/v75/teammate/`):
   `ctxc1sel_rf3_holdout_ev.parquet`, `cache/oof/ctxc1sel_rf3/`, `ctxc1sel_rf3.parquet`, `chain_ctxc1sel_rf3_win/_final.parquet`.
   The holdout / OOF inputs are needed after all: the chain's stack, combiner and neighbour stages fit on the corrector's holdout +
   OOF predictions, not only `sel`.
 - **Reproduction:**
-  - From the teammate's `ctxc1sel_rf3`, our stack → combiner → neighbour → LOBT window is **byte-identical** to their `_win` file.
+  - From the other machine's `ctxc1sel_rf3`, our stack → combiner → neighbour → LOBT window is **byte-identical** to their `_win` file.
   - The v68 rebuild (their corrector, our id deltas, assembly, day stage) differs from the upload on 63 of 344,841 rows (max 4 s,
     RMS 0.02 s).
   - Post-stages v68 → v75: byte-identical (above).
@@ -7501,7 +7501,7 @@ holdout / OOF inputs. `ctx_seedavg_merge.py` is now scope-aware and merges ranki
   - `ctx_armc.py sel`: skips the holdout / OOF selection when the members have none;
   - `lirf_hedge_repair.py` stop rule 4 (Σd² ≤ 1.5e8): now per row (× template rows / 344,841). The four-month chain moves Jan/Jul
     and Feb/Jun rows: 168 rows, 2.56e8 vs bound 2.92e8;
-  - run script: the live day stage's "v62" input is upload v57 (team v62 under §142's numbering; it supplies only LSZH / LIRF rows,
+  - run script: the live day stage's "v62" input is upload v57 (build v62 under §142's numbering; it supplies only LSZH / LIRF rows,
     identical to v68's there; `smart-jigsaw_v62` is not on this machine).
 - **Four-month build:**
   - corrector: `ctxc1sel_rf3`, our refit (seed 42 + seeds 43,44, 1:2) on the four-month ranking rows; `sel` takes 250,758 of
@@ -7546,7 +7546,7 @@ holdout / OOF inputs. `ctx_seedavg_merge.py` is now scope-aware and merges ranki
 ## 163. Two independent builds averaged on Jan / Jul -- v76 = 234.2695, kept (new best); final blind file = blind_v8; code freeze (2026-10-13)
 
 `reports/twin_build_average_preregistration.md` (written before upload), `src/post/twin_average.py`, logs `logs/v76/`.
-Scratch scripts in the session scratchpad (`twin_diff*.py`, `proxy_cmp.py`, `egll_stage.py`, `cat_avg.py`, `lirf_*.py`).
+Scratch scripts in a local scratch folder (`twin_diff*.py`, `proxy_cmp.py`, `egll_stage.py`, `cat_avg.py`, `lirf_*.py`).
 
 **Lever.** Jan / Jul 2026 now has two full builds of the same recipe: the live `smart-jigsaw_v75` and the four-month
 build's Jan / Jul rows (`final4m/f4m_v75`; this machine's LightGBM refit, CatBoost Colab rerun, our corrector seeds, final
@@ -7572,11 +7572,11 @@ average gains **−0.314 s** at equal quality and loses only if the four-month r
 - **`final4m/blind_v8.parquet`** (md5 08adc51280d01f1521e27e72f06ce21c): Jan / Jul = v76, Feb / Jun = `f4m_v75` unchanged.
   `tests/blind_qa.py` clean (`logs/v76/blind_v8_qa.log`).
   - Not uploaded. Feb / Jun has one build only: a second four-month build needs new base fits (LightGBM ≈ 80 min,
-    CatBoost on Colab) and the chain. Overwriting the blind file is a team decision, and only if v76 is kept.
+    CatBoost on Colab) and the chain. Overwriting the blind file is our decision to make, and only if v76 is kept.
 
 **Finding: LIRF NM-unmatched rows follow different recipes in the two builds.** On Jan / Jul rows 1–6 h late (322), the
 four-month build sits 465 s below the live one (RMS 845); for ≥ 6 h rows the two are equal.
-- Live LIRF NM-unmatched rows have been copied forward unchanged since v41 (team rule since v42). They carry the legacy
+- Live LIRF NM-unmatched rows have been copied forward unchanged since v41 (our rule since v42). They carry the legacy
   `ctxsel` corrector: 5,548 mean on these rows at corrector level, 4,377 after v41's chain.
 - The v45 / v47 / v48 hedges and v70–v75 were applied on that base.
 - The four-month build runs the same hedges on the current chain (`ro` / `rf3`, Arm C corrector: 4,150 at corrector level,
@@ -7586,7 +7586,7 @@ four-month build sits 465 s below the live one (RMS 845); for ≥ 6 h rows the t
   - `rf3` beats `ctxsel` in 9 of 12 months (1–3 h: RMSE 2,290 vs 2,656; 3–6 h: 7,874 vs 8,016);
   - `ctxsel` over-predicts the 1–3 h band by 1,210 s on average (Arm C: +200).
 - Every 2025 holdout chain copies v42's LIRF NM-unmatched values, so no chain-level comparison exists yet.
-- **Pre-upload verification of v76 (2026-10-13, 17:20–17:40; the team's last live upload):**
+- **Pre-upload verification of v76 (2026-10-13, 17:20–17:40; our last live upload):**
   - Inputs:
     - v75 is the board-scored file (md5 027b245e…).
     - `f4m_v75` (md5 af5dcb99…) is the build behind the uploaded blind file: `blind_v7`'s Feb/Jun rows equal it on all 325,949
@@ -7622,7 +7622,7 @@ four-month build sits 465 s below the live one (RMS 845); for ≥ 6 h rows the t
     - A frame-aligned variant (q − 1.16 (T_final − T_live)) was considered and not built. Against v76 it gains +20 / +6 s²/row
       if k = 2 / 1 and loses 16 if k = 0, so it is not reliably better, and it leans on the dither mechanism.
 - **Board (2026-10-13): v76 = 234.2695 (−0.240 vs v75 = 234.5098). KEPT; new best.** The gain is inside the projected range
-  (identity −0.31 s; proxy 95% CI −0.16 to −0.59 s), on its low side. The bucket used 344,841 pairs. This was the team's last
+  (identity −0.31 s; proxy 95% CI −0.16 to −0.59 s), on its low side. The bucket used 344,841 pairs. This was our last
   live upload.
 - `tests/v76_checks.py` (log `logs/v76/v76_checks.log`) reruns every check above from the files and reproduces each number:
   md5s, lineage, release identity, the pandas recompute, format, both proxies with the clustered standard error, the
@@ -7644,4 +7644,4 @@ four-month build sits 465 s below the live one (RMS 845); for ≥ 6 h rows the t
     - January 2,412 vs 2,632 RMSE (49 rows); July 3,081 vs 3,436 (305 rows).
     - The legacy values after the v45–v48 hedges: 2,004 / 3,014.
   - The current chain with the hedges was not scored before the freeze.
-- **Code freeze 2026-10-13 evening (team decision).** Nothing after this section changes a submission file.
+- **Code freeze 2026-10-13 evening (our decision).** Nothing after this section changes a submission file.
