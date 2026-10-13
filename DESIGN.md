@@ -69,23 +69,48 @@ at every airport; the high-confidence tier covers 92.4% of departures.
 - weather (METAR);
 - categorical and calendar features.
 
-**External data** (see [DATA_SOURCES.md](DATA_SOURCES.md)): ADS-B surface
-tracks from adsb.lol, used to detect pushback (`src/link/adsb_pushback.py`);
-stand and runway positions from the X-Plane Scenery Gateway; METAR
-observations.
+**External data** (see [DATA_SOURCES.md](DATA_SOURCES.md)):
+- ADS-B surface tracks from adsb.lol, used to detect pushback
+  (`src/link/adsb_pushback.py`);
+- stand and runway positions from the X-Plane Scenery Gateway;
+- METAR observations;
+- OPDI airport ground events (EUROCONTROL), at LSZH and EDDF;
+- EUROCONTROL's published daily pre-departure delay per airport.
 
 **Stage 3 — models.**
-- LightGBM and CatBoost base models, stacked with non-negative weights
-  fitted across folds.
-- A second-stage corrector trained on out-of-fold base predictions.
-- Post-stages that use ADS-B pushback detections, stand re-occupation and
-  neighbouring flights' errors. See PROGRESS.md for each stage's evidence.
+- **Base models.** LightGBM (with 13 label-free neighbour features) and
+  CatBoost, both on the "mixed" target: pushback delay at LIRF, taxi-out
+  directly elsewhere. Each also has an echo classifier for records whose
+  block time repeats the schedule. CatBoost gets an out-of-fold corrector,
+  and the two are stacked with non-negative weights.
+- **Context corrector.** A LightGBM on the stack's residual, trained on
+  month-wise out-of-fold predictions. Its input blocks are:
+  stand prefix, out-of-month cell statistics, NM consistency, planned-time
+  distances, runway state, stand re-occupation, the hour window,
+  runway / multi-scale windows and flow state. It has two members (one with
+  ADS-B inputs) combined per airport, and is averaged over three seeds.
+- **ADS-B stages.** Observed pushbacks (blend, partial-track estimate,
+  learned combiner) on rows with ADS-B information, and a within-day
+  neighbour-state corrector on rows without it.
+- **Physical bounds.** The off-block time is clipped to the LOBT window
+  (|BLOCK − LOBT| ≤ 3,606 s in every 2025 row).
+- **Day-level stages.** Per airport and day, predictions are reconciled
+  with EUROCONTROL's published daily delay sums. A learned slope model
+  decides how much of each day's gap each flight takes.
 
 **Ranking-specific stages.** Some post-stages target the ranking period or
-data-recording artefacts (notably Rome-Fiumicino records where block time
-equals scheduled time) rather than taxi-out itself. PROGRESS.md's reader's
-guide lists them; they should not be read as part of a general taxi-out
-model.
+data-recording artefacts rather than taxi-out itself:
+- Rome-Fiumicino records where the block time equals the scheduled time;
+- NM-unmatched long-delay rows;
+- airline echo records;
+- the daily-sum reconciliation.
+
+PROGRESS.md's reader's guide lists them. They should not be read as part of
+a general taxi-out model.
+
+The build is incremental: each adopted change was gated on the holdout and
+applied to the previous best file. [REPRODUCE.md](REPRODUCE.md) gives the
+order.
 
 ## Evaluation
 
@@ -117,8 +142,9 @@ model already sees, and the screen bounded its gain near zero
 - Developed on two laptops with the same specification: Intel Core Ultra 7
   155H (16 cores / 22 threads), 32 GB RAM, Windows 11, integrated Intel Arc
   graphics (not used for training). GPU work (CatBoost) ran on free-tier
-  Google Colab (NVIDIA T4). Polars for features, LightGBM on CPU. No neural
-  networks.
+  Google Colab (NVIDIA T4). Polars for features, LightGBM on CPU. The
+  final model has no neural networks (an MLP corrector member was tried and
+  rejected, PROGRESS.md §146).
 - Fixed seeds; LightGBM with `deterministic=true` and `force_row_wise=true`.
 - Fetch scripts and small derived tables are committed; caches are local
   and rebuildable from source.

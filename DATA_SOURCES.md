@@ -4,23 +4,25 @@ Every external dataset used in this project, its licence, and how it was
 fetched. Per the challenge rules, all external data must be openly
 accessible/usable and documented here.
 
-## Used by the final submission (v25)
+## Used by the final submission
 
-| Source | Licence | Role in v25 |
+| Source | Licence | Role |
 |---|---|---|
 | PRC/OSN challenge data | Challenge terms | training labels, all features |
-| METAR (NOAA/NWS via Iowa Environmental Mesonet) | Public domain | weather features (family 7) |
-| ADS-B surface tracks (adsb.lol) | ODbL 1.0 | pushback detection, partial-track estimate, combiner inputs |
+| METAR (NOAA/NWS via Iowa Environmental Mesonet) | Public domain | weather features |
+| ADS-B surface tracks (adsb.lol) | ODbL 1.0 | pushback detection, partial-track estimate, combiner and corrector inputs |
 | Stand and runway positions (X-Plane Scenery Gateway) | GPLv2 | own-stand coordinates for the ADS-B detector |
 | Inferred stand positions (derived from adsb.lol) | ODbL 1.0 | coordinates for 50 stands missing from the Gateway table |
+| EUROCONTROL all-causes pre-departure delay (daily, per airport) | EUROCONTROL terms (attribution, non-commercial); organiser-cleared | day-level reconciliation, LSZH day level, LIRF day counts |
+| OPDI flight events (EUROCONTROL PRC/PRU, based on OpenSky Network data) | OPDI open data (attribution) | ground-event inputs at LSZH and EDDF |
 
-**Fetched and tested, but not used by v25:** the three EUROCONTROL ATFM
-datasets. They were rejected in PROGRESS.md §20: the daily granularity
-caps any gain at ~2 s. They stay documented because the code that reads
-them is in the repo.
+**Fetched and tested, but not used:** the three EUROCONTROL ATFM datasets (slot adherence,
+arrival ATFM delay, airport traffic). They were rejected in PROGRESS.md §20 (daily
+granularity caps any gain at ~2 s), and their feature family is off by default
+(`build_features(atfm=False)`). They stay documented because the code that reads them is in the repo.
 
-No OpenSky Network trajectory or state-vector data is used anywhere. The
-only OpenSky-hosted data is the challenge dataset itself.
+We do not query OpenSky Network trajectory or state-vector data ourselves. The only
+OpenSky-derived inputs are the challenge dataset and the organisers' published OPDI events.
 
 ## All sources
 
