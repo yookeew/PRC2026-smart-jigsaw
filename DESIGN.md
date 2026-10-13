@@ -1,50 +1,53 @@
 # Design
 
-This document describes the architecture of our taxi-out model for the 2026 PRC / OpenSky
-Network Data Challenge and the reasoning behind its main decisions. How to rebuild the
-submission is in [REPRODUCE.md](REPRODUCE.md). The full experiment log, including everything we
-rejected, is in [PROGRESS.md](PROGRESS.md).
+This document explains how our taxi-out model for the 2026 PRC / OpenSky Network Data Challenge
+is put together, and the reasoning behind its main choices. Instructions for rebuilding the
+submission are in [REPRODUCE.md](REPRODUCE.md). The full experiment log, including all the
+things that didn't work, is in [PROGRESS.md](PROGRESS.md).
 
 ## Problem
 
-Predict `TAXITIME_SEC_mvt` (taxi-out, in seconds) for departures, scored by RMSE.
+Predict `TAXITIME_SEC_mvt` (taxi-out time, in seconds) for departures, scored by RMSE.
 
 - **Training data:** every movement (arrivals and departures) at 11 European airports in 2025.
 - **Ranking data:** January and July 2026, plus February and June 2026 for the final ranking.
-  `BLOCK_TIME_UTC_mvt` and `TAXITIME_SEC_mvt` are blanked on departures.
-- **Airports scored:** 10. Antalya (LTAI) has no departures in either set.
+  On departures, `BLOCK_TIME_UTC_mvt` and `TAXITIME_SEC_mvt` have been removed.
 
 ## Core insight: retrospective reconstruction
 
-The takeoff time (`MVT_TIME_UTC_mvt`) is not blanked, and the arrival side of the ranking data is
-complete. So the task is reconstructing what happened after the fact, not forecasting taxi-out
-before pushback. For each departure we know:
+The takeoff time (`MVT_TIME_UTC_mvt`) is still there in the ranking data, and all the arrivals
+are complete. So the task isn't forecasting taxi-out before the aircraft pushes back; it's
+working out after the fact what must have happened. For each departure, the following are
+already known:
 
-- the takeoff time `T`;
-- the scheduled off-block `S`;
-- the network manager's planned and recorded off-block times (LOBT, EOBT, `AOBT_3`);
-- everything that happened around it on the airport: other takeoffs, landings, stand occupancy.
+- `T`: take-off time;
+- `S`: scheduled time to leave the stand;
+- the off-block times the Network Manager (NM) planned and recorded (LOBT, EOBT, `AOBT_3`);
+- everything else going on at the airport at the time: other takeoffs, landings, which stands
+  were in use.
 
-Taxi-out is `T − AOBT`, so the problem becomes estimating one unknown timestamp, the off-block,
-from a well-constrained context. This has two consequences:
+Taxi-out is just `T − AOBT`, so the problem comes down to estimating one missing timestamp, the
+off-block time, with a lot of context around it. Two things follow from this:
 
-- **Much of the signal is in the planned times and the delay `T − S`.** Pushback delay
-  `d = AOBT − S` is often easier to model than taxi itself, and the two are linked exactly:
-  `taxi = (T − S) − d`.
-- **The model is for post-operations analysis.** It uses the realised takeoff time and does not
-  transfer to tactical prediction before pushback.
+- **A lot of the information is in the planned times and in the delay `T − S`.** The pushback
+  delay `d = AOBT − S` is often easier to model than the taxi time itself, and one converts
+  exactly into the other: `taxi = (T − S) − d`.
+- **The model is meant for looking back at operations.** It relies on the actual takeoff time,
+  so it can't be used to predict taxi-out ahead of time, before the aircraft has pushed back.
 
 ## Hard invariant: split-blind features
 
-The feature builder never sees a departure's off-block time or taxi label:
+The code that builds features never gets to see a departure's off-block time or its taxi label:
 
-- `BLOCK_TIME_UTC_mvt` and `TAXITIME_SEC_mvt` are nulled on every departure, in training and
-  ranking data alike, before any feature code runs.
-- Labels live in a separate table keyed on `MVT_ID_mvt` and are joined only at fit time.
-- `build_features()` takes one frame in the ranking schema, so it cannot leak by construction.
+- `BLOCK_TIME_UTC_mvt` and `TAXITIME_SEC_mvt` are set to null on every departure, in both the
+  training and ranking data, before any feature code runs.
+- The labels are kept in a separate table keyed on `MVT_ID_mvt`, and are only joined in when a
+  model is being trained.
+- `build_features()` takes a single dataframe in the ranking format, so it has no way to leak
+  the answer.
 
-Every later stage that adds inputs follows the same rule: only quantities that exist for 2026
-rows.
+Every later stage that adds inputs sticks to the same rule: it can only use things that also
+exist for the 2026 rows.
 
 ## Architecture
 
@@ -69,211 +72,232 @@ features ──► base models (LightGBM, CatBoost) ──► OOF corrector on C
 
 ### 1. Features
 
-Built by `src/features/build_features.py` and `src/features/neighbour_feats.py`, all
-label-free. The families are:
+These are built by `src/features/build_features.py` and `src/features/neighbour_feats.py`, and
+none of them use labels. The main groups are:
 
-- **Physical baseline:** unimpeded taxi-out percentiles per stand group, runway, aircraft type and
-  wake category.
-- **Congestion anchored on the takeoff time:** rolling departure and arrival counts, gaps between
-  departures, saturation runs.
-- **Runway configuration**, inferred per 5-minute bin, and the time since the last change.
+- **Physical baseline:** typical taxi-out times when there's no queue (low percentiles), per
+  stand group, runway, aircraft type and wake category.
+- **Traffic around the takeoff time:** how many departures and arrivals there were in the
+  minutes around it, the gaps between departures, and stretches where the runway was running
+  at full capacity.
+- **Runway configuration:** which runways were in use, worked out for each 5-minute window, and
+  how long it had been since the configuration last changed.
 - **Rotation and schedule:**
-  - the inbound flight, linked through stand occupancy (`src/link/stand_link.py`; 99.9% link rate);
-  - inbound delay, scheduled and actual ground time;
-  - the differences between the planned and recorded off-block times (LOBT, EOBT, IOBT, `AOBT_3`).
-- **Weather (METAR):** wind, visibility, precipitation and temperature, which signals de-icing.
-- **Neighbour state:** what other flights around the same time and runway show: their recorded
-  off-block error, their delay, and arrivals' excess taxi-in.
+  - the inbound flight, matched through stand occupancy (`src/link/stand_link.py`; 99.9% of
+    departures get a match);
+  - how late the inbound was, and the scheduled and actual time on the ground;
+  - how far apart the various planned and recorded off-block times are (LOBT, EOBT, IOBT,
+    `AOBT_3`).
+- **Weather (METAR):** wind, visibility, precipitation and temperature. Temperature mostly
+  matters because it signals when de-icing is likely.
+- **Neighbouring flights:** what other flights around the same time and on the same runway look
+  like, for example how wrong their recorded off-block was, how late they were, and how much
+  longer than usual arrivals took to taxi in.
 - **Categorical and calendar** features.
 
 ### 2. Base models
 
-- **LightGBM and CatBoost**, trained on all ten airports together.
-- **Mixed target.** At LIRF (Rome) the model predicts pushback delay `d` and reconstructs taxi.
-  At every other airport it predicts taxi directly.
-- **Echo classifier.** Some records have the block time equal to the scheduled time, so the
-  recorded taxi absorbs the whole departure delay. We call these "echoes"; they are concentrated
-  at LIRF. A classifier gives each row an echo probability `p`, and the prediction is the mixture
-  `p·(T − S) + (1 − p)·model`.
+- **LightGBM and CatBoost**, each trained on all ten airports together.
+- **Mixed target.** At LIRF (Rome) the model predicts the pushback delay `d`, which is then
+  converted back to taxi time. Everywhere else it predicts taxi time directly.
+- **Echo classifier.** In some records the block time is just a copy of the scheduled time, so
+  the recorded taxi time ends up containing the whole departure delay. We call these "echoes",
+  and most of them are at LIRF. A classifier gives each row a probability `p` of being an echo,
+  and the prediction is the blend `p·(T − S) + (1 − p)·model`.
 
 ### 3. Correctors
 
-- **OOF corrector on CatBoost.** A small Huber LightGBM learns CatBoost's systematic errors from
-  month-wise out-of-fold predictions.
+- **CatBoost corrector.** A small LightGBM (with Huber loss) learns the mistakes CatBoost tends
+  to make. It's trained on out-of-fold predictions, meaning predictions CatBoost made for months
+  it wasn't trained on.
 - **Stack.** LightGBM and the corrected CatBoost are combined with non-negative weights.
-- **Context corrector** (`src/post/ctx_armc.py`). A LightGBM on the stack's residual, trained only
-  on out-of-fold predictions, with label-free context blocks:
-  - stand prefix and out-of-month cell statistics;
-  - consistency of the network-manager times;
-  - runway state and stand re-occupation;
-  - hour-window and multi-scale runway windows;
-  - flow state.
+- **Context corrector** (`src/post/ctx_armc.py`). Another LightGBM, this time on the stack's
+  remaining error. It's also trained only on out-of-fold predictions, and uses label-free
+  context such as:
+  - the stand prefix, and statistics for similar flights from other months;
+  - whether the NM times agree with each other;
+  - what the runway was doing and whether the stand was re-used soon after;
+  - summaries over the surrounding hour, and runway activity over several window lengths;
+  - the flow of traffic at the time.
 
-  It has two members, one with ADS-B inputs. The ADS-B member is used only at the four airports
-  whose ADS-B coverage is similar in 2025 and 2026 (EHAM, LSZH, EDDF, LEBL). The final corrector
-  is the average of fits with three LightGBM seeds.
+  There are two versions, and one of them also uses ADS-B inputs. The ADS-B version is only
+  used at the four airports where ADS-B coverage looks about the same in 2025 and 2026 (EHAM,
+  LSZH, EDDF, LEBL). The final corrector is the average of three fits with different random
+  seeds.
 
 ### 4. Observation stages
 
 - **ADS-B pushback.**
-  - A detector (`src/link/adsb_pushback.py`) finds the aircraft leaving its stand in adsb.lol
-    surface tracks, using stand coordinates from the X-Plane Scenery Gateway, plus 50 positions
-    we inferred from ADS-B for stands the Gateway lacks.
-  - A learned combiner merges the observed pushback with the model on rows that have ADS-B
-    information.
-  - It is trained on the 2025 holdout plus a sample of ADS-B days from every other month.
-- **OPDI ground events** (EUROCONTROL) at LSZH, where coverage is high, and at EDDF, where they are
-  used demeaned per day because of a clock offset.
-- **Neighbour-state corrector.** On rows without ADS-B it uses neighbouring flights' observed
-  errors. Its correction is demeaned per airport and UTC day.
+  - A detector (`src/link/adsb_pushback.py`) looks for the moment the aircraft leaves its stand
+    in the adsb.lol ground tracks. It uses stand positions from the X-Plane Scenery Gateway,
+    plus 50 positions inferred from ADS-B for stands the Gateway doesn't have.
+  - A second model then combines the detected pushback with the model's prediction, on rows
+    where ADS-B data is available.
+  - It's trained on the 2025 holdout plus a sample of ADS-B days from every other month.
+- **OPDI ground events** (EUROCONTROL). These are used at LSZH, where coverage is good, and at
+  EDDF. At EDDF their clock is off, so they are only used after subtracting each day's average.
+- **Neighbour-state corrector.** For rows without ADS-B, this looks at the errors on nearby
+  flights that can be observed. Its average correction per airport and UTC day is subtracted,
+  so it only moves errors around within a day.
 
 ### 5. Physical bounds
 
-The off-block is clipped to `|BLOCK − LOBT| ≤ 3,606 s`. This held on every 2025 departure that
-has a LOBT.
+The predicted off-block is clipped so that `|BLOCK − LOBT| ≤ 3,606 s`. Every 2025 departure
+with a LOBT stayed inside this window.
 
-NM-unmatched departures more than 6 h late follow fitted lines in `T − S`. At airports other than
-LIRF these lines are removed again, because the corrector predicts those rows better.
+NM-unmatched departures that are more than 6 hours late follow simple lines fitted on `T − S`.
+Outside LIRF these lines are taken back out again, because the corrector does better on those
+rows.
 
 ### 6. Day-level reconciliation
 
-EUROCONTROL publishes, per airport and day:
+For each airport and day, EUROCONTROL publishes:
 
-- the sum of pre-departure delay, Σ max(0, AOBT − SOBT);
+- the total pre-departure delay, Σ max(0, AOBT − SOBT);
 - the number of departures.
 
-In 2025 these sums equal the sum over our labels. For 2026 we:
+In 2025 these totals match the sum of our labels. So for 2026 the pipeline:
 
-1. solve for each airport-day the shift λ that makes our predictions match the published sum;
-2. give each flight a share of it, from a slope model learned on 2025 (by delay band, hour,
-   ADS-B / OPDI coverage, size of λ).
+1. works out, for each airport-day, the shift λ that makes the predictions add up to the
+   published total;
+2. splits that shift between the flights, using a model fitted on 2025 that decides how much
+   each flight should move (based on its delay band, hour, whether it has ADS-B or OPDI data,
+   and how big λ is).
 
-LSZH gets its own day-level variant. LIRF is left out: a LIRF version that used the daily sums
-to estimate per-row echo probabilities was tried and dropped, because it did not hold up.
+LSZH has its own version of this step. LIRF is left out. We tried using the daily totals at
+LIRF to estimate each row's echo probability, but it didn't hold up, so it was dropped.
 
 ### 7. Recording-artefact stages
 
-These target how the ranking labels were recorded rather than taxi-out itself. Most concern LIRF
-departures that the network manager could not match (NM-unmatched). For those rows the label is
-one of a few cases:
+These deal with how the ranking labels were recorded, rather than with taxiing itself. Most of
+them are about LIRF departures that the Network Manager couldn't match (NM-unmatched). For those
+rows the label usually turns out to be one of a few things:
 
-- an echo of the schedule;
+- a copy of the schedule (an echo);
 - a real pushback;
-- a block time logged in local time (+1 h in winter, +2 h in summer);
-- a date one day off.
+- a block time written down in local time instead of UTC (+1 h in winter, +2 h in summer);
+- a date that is one day off.
 
-These stages:
+What these stages do:
 
-- estimate each row's probability of each case, from label-free evidence:
-  - published daily departure counts;
-  - arrival "twins" that bound the off-block;
-  - the airline's 2025 echo record;
-  - the flight-number format;
-- then predict the expected value.
+- estimate how likely each of those cases is for each row, using only label-free clues:
+  - the published daily departure counts;
+  - arrival "twins" that limit when the off-block could have happened;
+  - how often that airline had echoes in 2025;
+  - the format of the flight number;
+- then predict the average outcome, weighted by those probabilities.
 
-The rule for each case is fitted on 2025 and checked month by month.
+The rule for each case is fitted on 2025 and checked one month at a time.
 
 ## Key decisions and rationale
 
-**Mixed target.** Predicting `d` gives a better inductive bias where the label is tied to the
-schedule (LIRF's echoes and long delays). Predicting taxi directly is better wherever taxi is
-mostly physical. On the holdout, the direct target beat the delay target at 8 of 10 airports but
-lost clearly at LIRF; the mixed model matched the better one at every airport. A side effect: a
-feature can help one target and hurt the other, so every change was tested under the mixed
-target, the one we submit.
+**Mixed target.** Predicting the delay `d` works better where the label is tied to the schedule
+(LIRF's echoes and long delays). Predicting taxi time directly works better where taxi time is
+mostly about physically getting to the runway. On the holdout, predicting taxi directly beat
+predicting delay at 8 of the 10 airports, but did clearly worse at LIRF. The mixed model was as
+good as the better of the two at every airport. One catch: a feature can help one target and
+hurt the other, so we tested every change with the mixed target, since that's the one submitted.
 
-**Out-of-fold training for every second stage.** A corrector trained on the base model's
-in-sample predictions learns a residual distribution the 2026 rows will never have. Every second
-stage is trained on predictions the base model made for months it did not see:
+**Every second-stage model is trained out-of-fold.** A corrector trained on the base model's
+predictions for data it has already seen learns from errors that are smaller than the ones it
+will see on 2026. So every second-stage model is trained on predictions the base model made for
+months it was not trained on:
 
 - the CatBoost corrector;
 - the context corrector;
 - the ADS-B combiner;
 - the neighbour stage.
 
-Within each fold, priors, encodings and early stopping also exclude the held-out month.
+Inside each fold, the priors, encodings and early stopping also leave out the held-out month.
 
-**Errors are shared in time.** Neighbouring departures share much of their error: the same
-disruption, de-icing or runway closure. This drove three stages:
+**Errors come in clusters.** Departures close together in time tend to be wrong in the same way,
+because they were hit by the same disruption, de-icing or runway closure. That led to three
+stages:
 
 - the neighbour-state stage, which uses label-free signals from nearby flights;
-- the context corrector's time-window blocks;
-- the day-level reconciliation, which uses the one label aggregate published for 2026.
+- the time-window features in the context corrector;
+- the day-level reconciliation, which uses the one label total that is published for 2026.
 
-The neighbour stage is demeaned per airport-day, so it can redistribute error within a day but
-cannot move an airport's level. Only the day-level stage, anchored to published data, moves the
-level.
+The neighbour stage has its daily average removed per airport, so it can shift error between
+flights on the same day but can't change an airport's overall level. Only the day-level stage,
+which is tied to published numbers, is allowed to do that.
 
-**2025 → 2026 coverage shifts.** ADS-B coverage changed a lot between the two years at several
-airports (receiver growth; LEMD, EGLL and LIRF in opposite directions). Fits that learn
-per-airport ADS-B behaviour from thin 2025 data generalised badly. So:
+**ADS-B coverage changed between 2025 and 2026.** At several airports it changed a lot (more
+receivers came online; LEMD, EGLL and LIRF moved in opposite directions). Models that learned
+airport-specific ADS-B behaviour from the patchy 2025 data didn't carry over well. So:
 
-- ADS-B-dependent pieces are used only where coverage is similar in both years;
-- per-airport ADS-B models are avoided;
-- every new input is checked for 2025-vs-2026 drift before it is gated.
+- anything that depends on ADS-B is only used where coverage is similar in both years;
+- there are no separate ADS-B models per airport;
+- every new input is checked for differences between 2025 and 2026 before it is accepted.
 
-**RMSE is dominated by a few labels.** Some labels are hours long: date errors, echoes, real
-disruption days. A handful of them can decide a holdout comparison. So:
+**A few labels drive most of the RMSE.** Some labels are hours long, because of date mistakes,
+echoes or genuinely bad days. A handful of those can decide which of two models looks better on
+the holdout. So:
 
-- changes are judged on a fixed trimmed metric (labels ≤ 5 h) and on "body" rows (NM-matched,
-  ≤ 1 h), with full RMSE as a guard;
-- where a row's label is one of a few discrete cases, we predict the probability-weighted
-  expected value. Under squared error that beats committing to one case.
+- changes are judged on a fixed trimmed score (labels up to 5 h) and on the "body" rows
+  (NM-matched, up to 1 h), with the full RMSE kept as a safety check;
+- where a label can only be one of a few cases, the prediction is the probability-weighted
+  average. With squared error, that does better than betting on a single case.
 
-**Recording artefacts are part of the target.** The LIRF echoes and the NM-unmatched long-delay
-rows hold a large share of the squared error, and no physical model can predict them. Treating
-them as recording processes, with rules fitted on 2025 and validated out of sample, was worth more
-than further model capacity.
+**Recording quirks are part of the target.** The LIRF echoes and the long-delay NM-unmatched
+rows make up a big part of the squared error, and no model of real taxiing could predict them.
+Treating them as quirks of how the data was recorded, with rules fitted on 2025 and checked on
+months they weren't fitted on, helped more than making the models bigger.
 
-**Deltas instead of rebuilds.** Refits are noisy (two CatBoost GPU runs differ by ~27 s RMS). So a
-new stage is built as (treatment − control) with both fitted in the same process, and added to
-the previous best file. Rows where a change did not transfer to 2026 keep their earlier values;
-in particular, LIRF NM-matched rows are frozen after the hedges. Averaging the corrector over
-three seeds serves the same purpose: it lowers the noise of each delta.
+**Add changes on top instead of rebuilding.** Refitting is noisy: two CatBoost GPU runs can
+differ by about 27 s RMS. So each new stage is built as the difference between a run with the
+change and a run without it, fitted in the same process, and that difference is added to the
+previous best file. Rows where a change didn't carry over to 2026 keep their old values. In
+particular, LIRF NM-matched rows were frozen after the earlier LIRF fixes. Averaging the
+corrector over three seeds is for the same reason: it makes each of these differences less
+noisy.
 
-**Stand linking gives features, not bounds.** Pairing each departure with its inbound aircraft
-should bound the off-block between the inbound's in-block and the next occupant's in-block. The
-bounds hold (0.1% violations in the high-confidence tier), but their median width is about 14
-times the taxi-out standard deviation, so they constrain nothing. The link is kept for rotation
-features: inbound delay and ground time.
+**Stand linking is useful for features, not for limits.** Matching each departure to its inbound
+aircraft should give a window for the off-block: after the inbound arrived at the stand, and
+before the next aircraft did. The window does hold (only 0.1% of high-confidence matches fall
+outside it), but it's typically about 14 times wider than the spread of taxi times, so it
+doesn't narrow anything down. The matching was kept for the rotation features, like inbound
+delay and time on the ground.
 
-**Leaderboard use.** Every change is gated on the 2025 holdout, most with a pre-registration
-(`reports/*_preregistration.md`) written before the result. A change that passed was uploaded
-with a keep/reject rule set in advance. Board scores were used only as that verdict, never to fit
+**How we used the leaderboard.** Every change had to pass on the 2025 holdout first, and for most
+of them the expected outcome was written down before seeing the result
+(`reports/*_preregistration.md`). A change that passed was uploaded with a keep-or-drop rule
+decided in advance. Leaderboard scores were only used for that yes/no decision, never to tune
 values, weights or scales.
 
 ## Validation
 
-- **Holdout:** January + July 2025, models trained on the other ten months. These months match
-  the ranking period's season.
-- **No random k-fold:** neighbouring flights share congestion state, so random folds would leak
-  it.
-- **Isolated holdout frame:** the holdout features are built on a frame of those two months alone,
-  so the gap in the ranking data's timeline (and features that cross it) is reproduced in
-  validation.
-- **Out-of-fold check:** stages that touch the final ranking's February and June rows were also
-  checked on Feb/Jun 2025 out of fold.
-- **Uncertainty:** a paired (airport, day) cluster bootstrap (`tests/_harness.py`).
+- **Holdout:** January + July 2025, with models trained on the other ten months. These months
+  are the same seasons as the ranking period.
+- **No random k-fold:** flights close together share the same traffic conditions, so random
+  folds would let that information leak.
+- **Holdout built on its own:** the holdout features are built from just those two months, so
+  the gap in the ranking data's timeline (and any features that reach across it) behaves the
+  same way in validation.
+- **February and June check:** stages that affect the February and June rows of the final
+  ranking were also checked on Feb/Jun 2025, out of fold.
+- **Uncertainty:** a paired bootstrap that resamples whole (airport, day) groups
+  (`tests/_harness.py`).
 
 ## Not built
 
-- **Reference (unimpeded) model:** a model on a restricted feature set (stand, runway, aircraft
-  type, wake category, configuration; no congestion or takeoff-time inputs), fitted to
-  low-traffic periods or a low quantile. It would give `excess = observed − unimpeded`, the
-  quantity needed for the fuel and CO2 analysis the challenge describes.
-- **Distributional output** (quantile predictions).
-- **OSM routed taxi distance:** it is a fixed function of (airport, stand, runway), which the model
-  already sees. Stand and runway geometry added nothing as features.
+- **Reference (unimpeded) model:** a model using only stand, runway, aircraft type, wake
+  category and configuration (no traffic or takeoff-time inputs), fitted to quiet periods or to
+  a low quantile. It would give `excess = observed − unimpeded`, the quantity needed for the
+  fuel and CO2 analysis the challenge talks about.
+- **Uncertainty ranges** (quantile predictions).
+- **OSM taxi route distance:** this only depends on (airport, stand, runway), which the model
+  already knows. Adding stand and runway geometry as features didn't help.
 
 ## Compute and conventions
 
-- Developed on two laptops with the same specification: Intel Core Ultra 7 155H (16 cores /
-  22 threads), 32 GB RAM, Windows 11, integrated Intel Arc graphics (not used for training).
-  GPU work (CatBoost) ran on free-tier Google Colab (NVIDIA T4). Polars for features, LightGBM on
-  CPU. The final model has no neural networks (an MLP corrector member was tried and rejected,
-  PROGRESS.md §146).
-- Fixed seeds; LightGBM with `deterministic=true` and `force_row_wise=true`.
-- Fetch scripts and small derived tables are committed; caches are local and rebuildable from
-  source.
-- Every external source has a row in [DATA_SOURCES.md](DATA_SOURCES.md): name, URL, licence, date
-  accessed, derived artefact and fetch script.
+- We worked on two laptops with the same spec: Intel Core Ultra 7 155H (16 cores / 22 threads),
+  32 GB RAM, Windows 11, with integrated Intel Arc graphics (not used for training). GPU work
+  (CatBoost) ran on free-tier Google Colab (NVIDIA T4). Features were built with Polars, and
+  LightGBM ran on CPU. The final model has no neural networks (an MLP corrector was tried and
+  dropped, see PROGRESS.md §146).
+- Seeds are fixed, and LightGBM runs with `deterministic=true` and `force_row_wise=true`.
+- Fetch scripts and small derived tables are in the repo. Caches stay local and can be rebuilt
+  from source.
+- Every external source has a row in [DATA_SOURCES.md](DATA_SOURCES.md): name, URL, licence,
+  date accessed, the artefact derived from it, and the script that fetches it.
