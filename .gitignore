@@ -9,6 +9,8 @@ data/raw/
 data/ranking/
 data/submissions/
 cache/
+# Diagnostic tables with row-level challenge fields (movement IDs, block times, labels)
+logs/*.parquet
 # Saved model refits (src/models/fit.py save_models; hundreds of MB, rebuildable)
 /models/
 
