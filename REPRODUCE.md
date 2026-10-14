@@ -2,8 +2,11 @@
 
 This rebuilds our final files from the raw challenge data:
 
-- **Jan + Jul 2026:** `data/submissions/smart-jigsaw_v75.parquet`
-- **Jan + Feb + Jun + Jul 2026 (final ranking):** Jan/Jul rows from v75, Feb/Jun rows from the same
+- **Jan + Jul 2026:** `data/submissions/smart-jigsaw_v76.parquet`, leaderboard RMSE 234.2695, md5
+  `9b818fb96911e546ebc591a81830bec8`. This is v75 (step 8) averaged with the four-month build's own
+  Jan/Jul rows (step 9).
+- **Jan + Feb + Jun + Jul 2026 (final ranking):** `data/submissions/final4m/smart-jigsaw_final.parquet`, md5
+  `08adc51280d01f1521e27e72f06ce21c`. Its Jan/Jul rows come from v76, and its Feb/Jun rows from the same
   pipeline run on `final_ranking.parquet` (step 9).
 
 The design is in [DESIGN.md](DESIGN.md).
@@ -399,8 +402,8 @@ $PY src/post/lirf_airline_record.py $S/smart-jigsaw_v71.parquet $S/smart-jigsaw_
 ALR_L2LOOSE=1 $PY src/post/lirf_airline_record.py $S/smart-jigsaw_v72.parquet $S/smart-jigsaw_v75.parquet
 ```
 
-`smart-jigsaw_v75.parquet` is the final Jan/Jul file. Our copy has md5
-`027b245e7a54c99dc753040fb8317f4c`. Every stage prints its own checks. Each output must have the
+Our copy of `smart-jigsaw_v75.parquet` has md5 `027b245e7a54c99dc753040fb8317f4c` (234.5098). It is
+the live half of the final Jan/Jul file, v76 (step 9.7). Every stage prints its own checks. Each output must have the
 template's `MVT_ID_mvt` exactly, no nulls and integer seconds.
 
 ---
@@ -426,13 +429,31 @@ are reused. Outputs go to `final4m/` subfolders.
    `ctxc1sel_rohb`. Before that, run `ctx_armc.py prod` for both members and both seed settings, and
    `ctx_seedavg_merge.py`, with `PRC_SCOPE=final4m`.
 6. With `PRC_SCOPE=final4m`, run the v69–v75 commands of step 8 on that file, in the same order. For
-   `nm_lines_remove.py`, use the four-month chain's `_win` / `_final` files.
-7. Compose the upload. This takes Jan/Jul rows from v75 and Feb/Jun rows from the four-month build,
-   and checks the IDs against `final_submitting.parquet`:
+   `nm_lines_remove.py`, use the four-month chain's `_win` / `_final` files. The output is
+   `final4m/f4m_v75.parquet`; our copy has md5 `af5dcb99e817a08f1834fae4996545b2`.
+   `bash scripts/run_v75_final4m.sh B` runs steps 5 and 6 in one go.
+7. v76 for Jan/Jul: the average of the two independent builds (live v75 and the four-month build's Jan/Jul
+   rows). It applies to NM-matched rows at the nine non-LIRF airports; every other row keeps v75's value.
+   The live LOBT window is applied last (`reports/twin_build_average_preregistration.md`, PROGRESS.md §163):
 
    ```bash
-   $PY src/post/final4m_compose.py $S/smart-jigsaw_v75.parquet <four-month build>.parquet <output>.parquet
+   $PY src/post/twin_average.py $S/smart-jigsaw_v75.parquet $S/final4m/f4m_v75.parquet $S/smart-jigsaw_v76.parquet
    ```
+
+8. Compose the final file. It takes Jan/Jul rows from v76 and Feb/Jun rows from the four-month build,
+   checks the IDs against `final_submitting.parquet`, and is uploaded as `smart-jigsaw_final.parquet`:
+
+   ```bash
+   PRC_SCOPE=final4m $PY src/post/final4m_compose.py $S/smart-jigsaw_v76.parquet $S/final4m/f4m_v75.parquet $S/final4m/blind_v8.parquet
+   cp $S/final4m/blind_v8.parquet $S/final4m/smart-jigsaw_final.parquet
+   ```
+
+9. Checks: `$PY tests/blind_qa.py $S/final4m/smart-jigsaw_final.parquet $S/smart-jigsaw_v76.parquet` (label-free QA),
+   and `$PY tests/v76_checks.py`. The second re-checks the md5s, the lineage, an independent recompute of v76, the
+   format and the label-free proxy checks (log `logs/v76/v76_checks.log`).
+
+A rebuild matches our files only up to refit noise. LightGBM is deterministic only on the same machine and
+thread count, and GPU CatBoost differs by 25–33 s RMS from run to run.
 
 ---
 
